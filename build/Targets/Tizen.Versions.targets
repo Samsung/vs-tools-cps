@@ -1,0 +1,43 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Choose>
+	<When Condition="!Exists('..\..\packages\msbuildtasks\1.5.0.235\build\MSBuildTasks.targets')">
+	  <ItemGroup>
+		<PackageReference Include="MSBuildTasks" Version="1.5.0.235"/>
+	  </ItemGroup>
+	</When>
+  </Choose>
+
+  <PropertyGroup>
+    <TizenNETVersion>4.0.0</TizenNETVersion>
+    <TizenNETSDKVersion>1.0.1</TizenNETSDKVersion>
+    <XamarinFormsVersion>2.5.0.77107</XamarinFormsVersion>
+    <XamarinFormsPlatformTizenVersion>2.5.0.77107</XamarinFormsPlatformTizenVersion>
+    <MSBuildTasksVersion>1.5.0.235</MSBuildTasksVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <TemplateCSProjSRCFiles Include=".\**\Project.*.csproj.src" />
+      <TemplateCSProjFiles Include=".\**\Project.*.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyCSProjTemplate">
+    <Message Importance="High" Text="Copy .csproj file in each Template" />
+    <Copy SourceFiles="@(TemplateCSProjSRCFiles)" DestinationFiles="@(TemplateCSProjSRCFiles -> '%(RelativeDir)%(Filename)')" />
+    <CallTarget Targets="ChangeRefVersion"/>
+  </Target>
+
+  <Target Name="ChangeRefVersion">
+    <!--
+    <Message Importance="High" Text="Find @(TemplateCSProjFiles)" />
+    <Message Importance="High" Text="Find @(TemplateCSProjSRCFiles)" />
+    <Message Importance="High" Text="TizenNETVersion : $(TizenNETVersion)" />
+    <Message Importance="High" Text="@(TemplateCSProjSRCFiles -> '%(TemplateCSProjSRCFiles.RecursiveDir)%(Filename)'" />
+    -->
+    <FileUpdate Files="@(TemplateCSProjFiles)" Regex="_NUGET_TIZENNET_VER_" ReplacementText="$(TizenNETVersion)"/>
+    <FileUpdate Files="@(TemplateCSProjFiles)" Regex="_NUGET_TIZENNETSDK_VER_" ReplacementText="$(TizenNETSDKVersion)"/>
+    <FileUpdate Files="@(TemplateCSProjFiles)" Regex="_NUGET_XAMARINFORMS_VER_" ReplacementText="$(XamarinFormsVersion)"/>
+    <FileUpdate Files="@(TemplateCSProjFiles)" Regex="_NUGET_XAMARINFORMSTIZENPLATFORM_VER_" ReplacementText="$(XamarinFormsPlatformTizenVersion)"/>
+  </Target>
+
+
+</Project>

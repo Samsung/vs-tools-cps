@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|AnyCPU">
+      <Configuration>Debug</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|AnyCPU">
+      <Configuration>Release</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <!-- Capabilities for this project.  Conditions should be based on platform|configuration only. -->
+  <ItemGroup>
+    <ProjectCapability Include="Tizen.NET" />
+    <ProjectCapability Include="UseFileGlobs" />
+    <ProjectCapability Include="OpenProjectFile" />
+    <ProjectCapability Include="HandlesOwnReload" />
+    <ProjectCapability Include="ProjectConfigurationsDeclaredAsItems" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)Rules\ProjectDebugger.xaml;">
+      <Context>Project</Context>
+    </PropertyPageSchema>
+  </ItemGroup>
+
+  <!-- A list of the TFMs that are supported by this SDK for Tizen .NET Core.
+       This is used by VS to show the list of tizen frameworks -->
+  <ItemGroup>
+    <SupportedTargetFramework Include="Tizen,Version=v4.0" DisplayName=".NET Tizen 4.0" />
+  </ItemGroup>
+
+  <Target Name="Run">
+    <Message Text="$(RunCommandArguments)" />
+    <Exec Command='$(RunCommand) "$(MSBuildProjectDirectory)\$(StartItem)" $(RunCommandArguments)' WorkingDirectory="$(RunWorkingDirectory)" />
+  </Target>
+
+</Project>

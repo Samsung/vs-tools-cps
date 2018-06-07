@@ -1,0 +1,559 @@
+﻿<UserControl
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Tizen.VisualStudio.ManifestEditor"
+             xmlns:vsfx="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             x:Class="Tizen.VisualStudio.ManifestEditor.TizenManifestDesignerControl"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1000" Loaded="UserControl_Loaded" Height="AUTO">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverterRev"/>
+            <ObjectDataProvider x:Key="manageTask" MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="local:ManageTaskType"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <ObjectDataProvider x:Key="noDisplay" MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="local:NoDisplayType"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <ObjectDataProvider x:Key="hwAcceleration" MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="local:NewHWaccelerationType"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <ObjectDataProvider x:Key="autorestart" MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="local:AutorestartType"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <ObjectDataProvider x:Key="onboot" MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="local:OnbootType"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <ObjectDataProvider x:Key="launchMode" MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="local:LaunchType"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <ObjectDataProvider x:Key="displaySplash" MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="local:DisplaySplashScreenType"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <ObjectDataProvider x:Key="profileType" MethodName="GetValues"
+                            ObjectType="{x:Type System:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="local:ProfileType"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <Style x:Key="hideHeaderStyle" TargetType="{x:Type GridViewColumnHeader}">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </Style>
+            <Style TargetType="local:IDTextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            </Style>
+            <Style TargetType="local:ExecTextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            </Style>
+            <Style TargetType="local:RuleTextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            </Style>
+            <!--If you want to modify the design, insert the following 3 lines of comment.-->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Theme/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <ScrollViewer CanContentScroll="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <TabControl x:Name="EditorTabContorl" TabStripPlacement="Left">
+            <TabItem Header="Overview" HorizontalAlignment="Left" Width="200" >
+                <StackPanel HorizontalAlignment="Left" Margin="10">
+                    <Label Content="General Information" HorizontalAlignment="Left"
+                           VerticalAlignment="Top" Margin="3" FontSize="20" />
+                    <Label Content="Define general information about the application"
+                           HorizontalAlignment="Left" Margin="3" VerticalAlignment="Top"/>
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <StackPanel  Orientation="Horizontal">
+                            <Label Margin="3" Content="Application ID"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Width="90"/>
+                            <TextBox BorderThickness="1" Margin="5" x:Name="TBApplicationID"
+                                     TextChanged="OverViewText_TextChanged" Text="{Binding ApplicationID}"
+                                     HorizontalAlignment="Left" Height="21" TextWrapping="Wrap"
+                                     VerticalAlignment="Top" Width="380" />
+                            <Label x:Name="Label_Application_ID" Width="300" FontSize="9" Foreground="Red" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Margin="3" Content="Package"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Width="90"/>
+                            <TextBox BorderThickness="1" Margin="5" x:Name="TBPackage"
+                                     TextChanged="OverViewText_TextChanged" Text="{Binding Package}"
+                                     HorizontalAlignment="Left" Height="21" TextWrapping="Wrap"
+                                     VerticalAlignment="Top" Width="380"/>
+                            <Label x:Name="Label_Package" Width="300" FontSize="9" Foreground="Red" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Margin="3" Content="Version"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Width="90"/>
+                            <TextBox  BorderThickness="1" Margin="5" x:Name="TBVersion"
+                                     TextChanged="OverViewText_TextChanged" Text="{Binding Version}"
+                                     HorizontalAlignment="Left" Height="21" TextWrapping="Wrap"
+                                     VerticalAlignment="Top" Width="380"/>
+                            <Label x:Name="Label_Version" Width="300" FontSize="9" Foreground="Red" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Margin="3" Content="Profile"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Width="90"/>
+                            <ComboBox x:Name="comboBox_profileType" Width="380" Margin="5"
+                                      HorizontalAlignment="Left" VerticalAlignment="Top" ItemsSource="{Binding Source={StaticResource profileType}}" SelectionChanged="comboBox_profileType_SelectionChanged" Loaded="comboBox_profileType_Loaded" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Margin="3" Content="Api Version"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Width="90"/>
+                            <ComboBox x:Name="comboBox_apiVersion" Width="380" Margin="5" 
+                                      HorizontalAlignment="Left" VerticalAlignment="Top" ItemsSource="{Binding ApiVersionList}" SelectedValue="{Binding ApiVersion}" SelectionChanged="comboBox_apiVersion_SelectionChanged"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Margin="3" Content="Label"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Width="90"/>
+                            <TextBox BorderThickness="1" Margin="5" x:Name="TBLabel"
+                                     TextChanged="OverViewText_TextChanged" Text="{Binding Label}"
+                                     HorizontalAlignment="Left" Height="21" TextWrapping="Wrap"
+                                     VerticalAlignment="Top" Width="380"/>
+                            <Label x:Name="Label_label" Width="300" FontSize="9" Foreground="Red" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Margin="3" Content="Exec"
+                                   HorizontalAlignment="Left" VerticalAlignment="Center" Width="90"/>
+                            <local:ExecTextBox BorderThickness="1" Margin="5" x:Name="TBExec"
+                                     TextChanged="OverViewText_TextChanged" Text="{Binding Exec}"
+                                     HorizontalAlignment="Left" Height="21" TextWrapping="Wrap"
+                                     VerticalAlignment="Top" Width="380"/>
+                            <Label x:Name="Label_Exec" Width="300" FontSize="9" Foreground="Red" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,30,10,0">
+                        <Label Content="Icon" Margin="15,0,0,10"/>
+                        <StackPanel Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Source" HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center" Width="50"/>
+                                <TextBox BorderThickness="1" Margin="36,10,10,10" x:Name="TBIcon"
+                                             Text="{Binding Icon}"
+                                             HorizontalAlignment="Left" Height="23"  TextWrapping="Wrap"
+                                             VerticalAlignment="Top" Width="280" IsReadOnly="True"/>
+                                <Button  x:Name="imgButton" Content="Browse" HorizontalAlignment="Left"
+                                             Margin="10" VerticalAlignment="Top" Width="75" Click="imgButton_Click"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                <Label Content="Launcher Icon"
+                                           HorizontalAlignment="Left" Margin="5" VerticalAlignment="Top" Width="90"/>
+                                <Image x:Name="imagePreview" HorizontalAlignment="Left" Height="90"
+                                           VerticalAlignment="Top" Width="90" Margin="-1,5,0,5" Stretch="Fill"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,30,10,0">
+                        <Label Content="Author" Margin="15,0,0,10"/>
+                        <StackPanel Margin="20,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Name" HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center" Width="80"/>
+                                <TextBox BorderThickness="1"  x:Name="TBAuthor"
+                                         TextChanged="OverViewText_TextChanged" Text="{Binding Author}"
+                                         HorizontalAlignment="Left" Height="23" Margin="5"
+                                         TextWrapping="Wrap" VerticalAlignment="Top" Width="377"/>
+                                <Label x:Name="Label_Author" Width="300" FontSize="9" Foreground="Red" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Email" HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center" Width="80"/>
+                                <TextBox BorderThickness="1"  x:Name="TBEmail"
+                                         TextChanged="OverViewText_TextChanged" Text="{Binding Email}"
+                                         HorizontalAlignment="Left" Height="23" Margin="5"
+                                         TextWrapping="Wrap" VerticalAlignment="Top" Width="377"/>
+                                <Label x:Name="Label_Email" Width="300" FontSize="9" Foreground="Red" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Website" HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center" Width="80"/>
+                                <TextBox BorderThickness="1"  x:Name="TBWebsite"
+                                         TextChanged="OverViewText_TextChanged" Text="{Binding Website}"
+                                         HorizontalAlignment="Left" Height="23" Margin="5"
+                                         TextWrapping="Wrap" VerticalAlignment="Top" Width="377"/>
+                                <Label x:Name="Label_Website" Width="300" FontSize="9" Foreground="Red" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Margin="0,30,10,0">
+                        <Label Content="Description" Margin="15,0,0,10"/>
+                        <TextBox BorderThickness="1"  x:Name="TBDescription"
+                                 TextChanged="OverViewText_TextChanged" Text="{Binding Description}"
+                                 HorizontalAlignment="Left" Height="69" Margin="40,10,0,0" TextWrapping="Wrap"
+                                 VerticalAlignment="Top" Width="450" AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Visible"/>
+                        <Label x:Name="Label_Description" Width="300" FontSize="9" Foreground="Red" />
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Features" HorizontalAlignment="Left" Width="200">
+                <StackPanel HorizontalAlignment="Left" Margin="10">
+                    <Label Content="Required Feature" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3" FontSize="20"  />
+                    <Label Content="You can declare required software or hardware features." HorizontalAlignment="Left" Margin="3" VerticalAlignment="Top" />
+                    <Label Content="This declaration can be used for application filtering on Tizen market place." HorizontalAlignment="Left" Margin="3" VerticalAlignment="Top" />
+                    <StackPanel Orientation="Horizontal" >
+                        <Button x:Name="FeatureAddBtn" Content="Add" HorizontalAlignment="Right" Margin="280,10,0,10" VerticalAlignment="Top" Width="75" Click="FeatureAddBtn_Click"/>
+                        <Button x:Name="FeatureRemoveBtn" Content="Remove" HorizontalAlignment="Right" Margin="10" VerticalAlignment="Top" Width="75" Click="FeatureRemoveBtn_Click"/>
+                    </StackPanel>
+                    <ListView  x:Name="FeatureListView" Margin="10" Width="430" ItemsSource="{Binding FeatureField}" HorizontalAlignment="Left" Height="300"  SelectionChanged="FeatureListView_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListView.View>
+                            <GridView AllowsColumnReorder="true" ColumnHeaderContainerStyle="{StaticResource hideHeaderStyle}">
+                                <GridViewColumn DisplayMemberBinding="{Binding name}" Width="430"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <TextBlock  x:Name="featureDescBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Margin="10" Height="159" Width="428"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Privileges" HorizontalAlignment="Left" Width="200" >
+                <StackPanel HorizontalAlignment="Left" Margin="10">
+                    <Label Content="Privileges" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3" FontSize="20"  />
+                    <Label Content="Authentication process later on, so select only the one you really need." HorizontalAlignment="Left" Margin="3" VerticalAlignment="Top" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="PrivilegeAddBtn" Content="Add" HorizontalAlignment="Left" Margin="370,10,0,10" VerticalAlignment="Top" Width="75" Click="PrivilegeAddBtn_Click" />
+                        <Button x:Name="PrevilegeRemoveBtn" Content="Remove" HorizontalAlignment="Left" Margin="10" VerticalAlignment="Top" Width="75" Click="PrevilegeRemoveBtn_Click" />
+                    </StackPanel>
+                    <ListView  x:Name="PrivilegeListView" Margin="10" Width="530" Height="200" ItemsSource="{Binding IntegratedprivilegeList}" HorizontalAlignment="Left" SelectionChanged="PrivilegeListView_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Auto" >
+                        <ListView.View>
+                            <GridView x:Name="Priv_Gridview" AllowsColumnReorder="true" ColumnHeaderContainerStyle="{StaticResource hideHeaderStyle}">
+                                <GridViewColumn Width="Auto" DisplayMemberBinding="{Binding }"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <TextBlock  x:Name="privilegeDescBlock" HorizontalAlignment="Left" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Margin="10" Height="159" Width="429"/>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="Localization" HorizontalAlignment="Left" Width="200" >
+                <StackPanel HorizontalAlignment="Left" Margin="10">
+                    <Label Content="Managing the Localization" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3" FontSize="20" Grid.ColumnSpan="3"  />
+                    <Label Content="Localization for selected node elements in tizen-manifest.xml" HorizontalAlignment="Left" Margin="3" VerticalAlignment="Top" Grid.ColumnSpan="3" />
+                    <StackPanel Margin="10">
+                        <Label Content="Name" HorizontalAlignment="Left" FontWeight="Bold"/>
+                        <StackPanel Orientation="Horizontal" >
+                            <ListView x:Name="localLabel" HorizontalAlignment="Left" Height="125" VerticalAlignment="Top" Width="350"
+                                      ItemsSource="{Binding LocalizationLabels}" SelectionChanged="localLabel_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true">
+                                        <GridViewColumn Header="Language" DisplayMemberBinding="{Binding lang}" Width="100" />
+                                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Text[0]}" Width="240" />
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" Height="125" VerticalAlignment="Top" Width="90">
+                                <Button x:Name="AddLabelBtn" Content="Add.." Margin="3" Click="AddLabelBtn_Click" />
+                                <Button x:Name="RemoveLabelBtn" Content="Remove" Margin="3" Click="RemoveLabelBtn_Click" />
+                                <Button x:Name="EditLabelBtn" Content="Edit.." Margin="3" Click="EditLabelBtn_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Margin="10">
+                        <Label Content="Description" HorizontalAlignment="Left" FontWeight="Bold"/>
+                        <StackPanel Orientation="Horizontal" >
+                            <ListView x:Name="localDescription" HorizontalAlignment="Left" Height="125" VerticalAlignment="Top" Width="350"
+                                          ItemsSource="{Binding LocalizationDescriptions}" SelectionChanged="localDescription_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true" >
+                                        <GridViewColumn Header="Language" DisplayMemberBinding="{Binding lang}" Width="100"/>
+                                        <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Text}" Width="240"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Width="90" Height="125">
+                                <Button x:Name="AddDescriptionBtn" Content="Add.." Margin="3" Click="AddDescriptionBtn_Click" />
+                                <Button x:Name="RemoveDescriptionBtn" Content="Remove" Margin="3" Click="RemoveDescriptionBtn_Click" />
+                                <Button x:Name="EditDescriptionBtn" Content="Edit.." Margin="3" Click="EditDescriptionBtn_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Margin="10">
+                        <Label Content="Icon" HorizontalAlignment="Left" FontWeight="Bold"/>
+                        <StackPanel Orientation="Horizontal" >
+                            <ListView x:Name="localIcon" HorizontalAlignment="Left" Height="125" VerticalAlignment="Top" Width="350"
+                                          ItemsSource="{Binding LocalizationIcons}" ScrollViewer.HorizontalScrollBarVisibility="Hidden" SelectionChanged="localIcon_SelectionChanged" IsSynchronizedWithCurrentItem="True">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true" >
+                                        <GridViewColumn Header="Language" DisplayMemberBinding="{Binding lang}" Width="100"/>
+                                        <GridViewColumn Header="Icon" DisplayMemberBinding="{Binding Text[0]}" Width="240"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Width="90" Height="125">
+                                <Button x:Name="AddIconBtn" Content="Add.." Margin="3" Click="AddIconBtn_Click" />
+                                <Button x:Name="RemoveIconBtn" Content="Remove" Margin="3" Click="RemoveIconBtn_Click"/>
+                                <Button x:Name="EditIconBtn" Content="Edit.." Margin="3" Click="EditIconBtn_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="Advanced" HorizontalAlignment="Left" Width="200">
+                <StackPanel Width="700" HorizontalAlignment="Left" Margin="10">
+                    <Label Content="Advanced" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3" FontSize="20" />
+                    <StackPanel Margin="10">
+                        <Label Content="Meta Data" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" />
+                        <Label Content="You can add user-defined key-value pairs to the application." Margin="5" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ListView x:Name="metaListBox" HorizontalAlignment="Left"
+                                      ItemsSource="{Binding AdvanceMetaList}" Height="100" VerticalAlignment="Top" SelectionChanged="metaListBox_SelectionChanged" Width="600" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true">
+                                        <GridViewColumn Header="Key" DisplayMemberBinding="{Binding key}" Width="200"/>
+                                        <GridViewColumn Header="Value" DisplayMemberBinding="{Binding value}" Width="400"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button x:Name="AddMetaBtn" Content="Add.." Width="60" Margin="3" Click="AddMetaBtn_Click"></Button>
+                                <Button x:Name="RemoveMetaBtn" Content="Remove" Width="60" Margin="3" Click="RemoveMetaBtn_Click"></Button>
+                                <Button x:Name="EditMetaBtn" Content="Edit.." Width="60" Margin="3" Click="EditMetaBtn_Click" ></Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="10">
+                        <Label Content="Data Control" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" />
+                        <Label Content="You can share data of your service application" Margin="5" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ListView x:Name="dataControlListBox" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top"
+                                        ItemsSource="{Binding AdvanceDataControlList}" SelectionChanged="dataControlListBox_SelectionChanged" Width="600" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true" >
+                                        <GridViewColumn Header="Provider ID" DisplayMemberBinding="{Binding providerid}" Width="320"/>
+                                        <GridViewColumn Header="Type" DisplayMemberBinding="{Binding type}" Width="80"/>
+                                        <GridViewColumn Header="Accessibility" DisplayMemberBinding="{Binding access}" Width="100"/>
+                                        <GridViewColumn Header="Trusted" DisplayMemberBinding="{Binding trusted}" Width="70"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button x:Name="AddControlBtn" Content="Add.." Width="60" Margin="3" Click="AddControlBtn_Click"></Button>
+                                <Button x:Name="RemoveControlBtn" Content="Remove" Width="60" Margin="3" Click="RemoveControlBtn_Click"></Button>
+                                <Button x:Name="EditControlBtn" Content="Edit.." Width="60" Margin="3" Click="EditControlBtn_Click"></Button>
+                            </StackPanel>
+                        </StackPanel>
+                        <Label Content="Miscellaneous Options" Margin="5" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+                                <Label Content="Manage task" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150"/>
+                                <ComboBox
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Width="58"
+                                        ItemsSource="{Binding Source={StaticResource manageTask}}"
+                                        SelectedItem="{Binding TaskManage}" Margin="0,0,0,0" />
+                                <Label Content="No display" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150" Margin="10,0,0,0"
+                                       Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}"/>
+                                <ComboBox Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Width="58"
+                                        ItemsSource="{Binding Source={StaticResource noDisplay}}"
+                                        SelectedItem="{Binding NoDisplay}" Margin="0,0,0,0" />
+                                <Label Content="Hardware acceleration" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150" Margin="10,0,0,0" 
+                                       Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}"/>
+                                <ComboBox Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Width="58"
+                                        ItemsSource="{Binding Source={StaticResource hwAcceleration}}"
+                                        SelectedItem="{Binding HWAcceleration}" Margin="0,0,0,0" />
+                                <Label Content="Auto restart" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150" Margin="10,0,0,0"
+                                       Visibility="{Binding Path=UIvisibility, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                <ComboBox Visibility="{Binding Path=UIvisibility, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Width="58"
+                                        ItemsSource="{Binding Source={StaticResource autorestart}}"
+                                        SelectedItem="{Binding Autorestart}" Margin="0,0,0,0" />
+                                <Label Content="Onboot" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150" Margin="10,0,0,0" 
+                                       Visibility="{Binding Path=UIvisibility, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                <ComboBox Visibility="{Binding Path=UIvisibility, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Width="58"
+                                        ItemsSource="{Binding Source={StaticResource onboot}}"
+                                        SelectedItem="{Binding Onboot}" Margin="0,0,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+                                <Label Content="Launch Mode" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150"
+                                       Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}"/>
+                                <ComboBox Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Width="58"
+                                        ItemsSource="{Binding Source={StaticResource launchMode}}"
+                                        SelectedItem="{Binding LaunchMode}" Margin="0,0,0,0" />
+                                <Label Content="Display Splash Screen" HorizontalAlignment="Left" VerticalAlignment="Center" Width="150" Margin="10,0,0,0"
+                                       Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}"/>
+                                <ComboBox Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Width="58"
+                                        ItemsSource="{Binding Source={StaticResource displaySplash}}"
+                                        SelectedItem="{Binding DisplaySplash}" Margin="0,0,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="10">
+                        <Label Content="Application Control" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" />
+                        <Label Content="You can export your application funcitonalities by defining an application control." Margin="5" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ListView x:Name="appContorlListBox" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top"
+                                      ItemsSource="{Binding AdvanceAppControlList}" SelectionChanged="appContorlListBox_SelectionChanged" Width="600" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true" >
+                                        <GridViewColumn Header="Operation" DisplayMemberBinding="{Binding Items[0].name}" Width="200"/>
+                                        <GridViewColumn Header="Uri" DisplayMemberBinding="{Binding Items[1].name}" Width="200"/>
+                                        <GridViewColumn Header="Mime" DisplayMemberBinding="{Binding Items[2].name}" Width="200"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button x:Name="AddAppControlBtn" Content="Add.." Width="60" Margin="3" Click="AddAppControlBtn_Click" ></Button>
+                                <Button x:Name="RemoveAppControlBtn" Content="Remove" Width="60" Margin="3" Click="RemoveAppControlBtn_Click" ></Button>
+                                <Button x:Name="EditAppControlBtn" Content="Edit.." Width="60" Margin="3" Click="EditAppControlBtn_Click" ></Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="10"  Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}">
+                        <Label Content="Account" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" />
+                        <Label Content="You can add Accounts for the application." Margin="5" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ListView x:Name="accountlListBox" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" 
+                                      ItemsSource="{Binding AccountField}" SelectionChanged="accountlListBox_SelectionChanged" Width="600" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true" >
+                                        <GridViewColumn Header="Display name" DisplayMemberBinding="{Binding accountprovider.appid}" Width="100"/>
+                                        <GridViewColumn Header="Multiple account" DisplayMemberBinding="{Binding accountprovider.multipleaccounts}" Width="120"/>
+                                        <GridViewColumn Header="Provider ID" DisplayMemberBinding="{Binding accountprovider.providerid}" Width="100"/>
+                                        <GridViewColumn Header="Icon" DisplayMemberBinding="{Binding accountprovider.icon}" Width="100"/>
+                                        <GridViewColumn Header="Small icon" DisplayMemberBinding="{Binding accountprovider.iconsmall}" Width="100"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button x:Name="AddAccountBtn" Content="Add.." Width="60" Margin="3" Click="AddAccountBtn_Click" ></Button>
+                                <Button x:Name="RemoveAccountBtn" Content="Remove" Width="60" Margin="3" Click="RemoveAccountBtn_Click"></Button>
+                                <Button x:Name="EditAccountBtn" Content="Edit.." Width="60" Margin="3" Click="EditAccountBtn_Click"></Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="10">
+                        <Label Content="Background Category" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" />
+                        <Label Content="Background category types" Margin="5" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ListView x:Name="BgCategoryListBox" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" 
+                                      ItemsSource="{Binding BackgroundCategoryList}" Width="600" SelectionChanged="BgCategoryListBox_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true">
+                                        <GridViewColumn Header="Category Type" DisplayMemberBinding="{Binding value}" Width="600"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button x:Name="AddBgCategoryBtn" Content="Add.." Width="60" Margin="3" Click="AddBgCategoryBtn_Click" ></Button>
+                                <Button x:Name="RemoveBgCategoryBtn" Content="Remove" Width="60" Margin="3" Click="RemoveBgCategoryBtn_Click"></Button>
+                                <Button x:Name="EditBgCategoryBtn" Content="Edit.." Width="60" Margin="3" Click="EditBgCategoryBtn_Click"></Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="10"  Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}">
+                        <Label Content="Shortcut List" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" />
+                        <Label Content="You can add shortcuts for the application" Margin="5"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ListView x:Name="shortcutlListBox" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" 
+                                      ItemsSource="{Binding ShortcutList}" Width="600" SelectionChanged="shortcutlListBox_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true" >
+                                        <GridViewColumn Header="Icon" DisplayMemberBinding="{Binding icon.Text[0]}" Width="200"/>
+                                        <GridViewColumn Header="Key" DisplayMemberBinding="{Binding extra_key}" Width="200"/>
+                                        <GridViewColumn Header="Data" DisplayMemberBinding="{Binding extra_data}" Width="200"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button x:Name="AddShortcutBtn" Content="Add.." Width="60" Margin="3" Click="AddShortcutBtn_Click" ></Button>
+                                <Button x:Name="RemoveShortcutBtn" Content="Remove" Width="60" Margin="3" Click="RemoveShortcutBtn_Click"></Button>
+                                <Button x:Name="EditShortcutBtn" Content="Edit.." Width="60" Margin="3" Click="EditShortcutBtn_Click"></Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="10"  Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}">
+                        <Label Content="Splash Screen" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" />
+                        <Label Content="Define Splash Screen for the Application" Margin="5"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ListView x:Name="splashscreenListBox" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top"
+                                      ItemsSource="{Binding SplashscreenList}" Width="600" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="splashscreenListBox_SelectionChanged">
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true" >
+                                        <GridViewColumn Header="Resource" DisplayMemberBinding="{Binding src}" Width="100"/>
+                                        <GridViewColumn Header="Type" DisplayMemberBinding="{Binding type}" Width="100"/>
+                                        <GridViewColumn Header="DPI" DisplayMemberBinding="{Binding dpi}" Width="100"/>
+                                        <GridViewColumn Header="Orientation" DisplayMemberBinding="{Binding orientation}" Width="100"/>
+                                        <GridViewColumn Header="Indicator Display" DisplayMemberBinding="{Binding indicatordisplay}" Width="100"/>
+                                        <GridViewColumn Header="Operation" DisplayMemberBinding="{Binding appcontroloperation}" Width="100"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button x:Name="AddSplashScreenBtn" Content="Add.." Width="60" Margin="3" Click="AddSplashScreenBtn_Click" ></Button>
+                                <Button x:Name="RemoveSplashScreenBtn" Content="Remove" Width="60" Margin="3" Click="RemoveSplashScreenBtn_Click"></Button>
+                                <Button x:Name="EditSplashScreenBtn" Content="Edit.." Width="60" Margin="3" Click="EditSplashScreenBtn_Click"></Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="10"  Visibility="{Binding Path=Servicevisibility, Converter={StaticResource BoolToVisibilityConverterRev}}">
+                        <Label Content="Icons" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" />
+                        <Label Content="Define Icons for the Application" Margin="5"  HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ListView x:Name="advIconListBox" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top"
+                                      ItemsSource="{Binding LocalizationIcons}" Width="600" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="advIconListBox_SelectionChanged" >
+                                <ListView.View>
+                                    <GridView AllowsColumnReorder="true" >
+                                        <GridViewColumn Header="Language" DisplayMemberBinding="{Binding lang}" Width="200"/>
+                                        <GridViewColumn Header="DPI" DisplayMemberBinding="{Binding resolution}" Width="200"/>
+                                        <GridViewColumn Header="Icon" DisplayMemberBinding="{Binding Text[0]}" Width="200"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button x:Name="AddadvIconBtn" Content="Add.." Width="60" Margin="3" Click="AddadvIconBtn_Click"></Button>
+                                <Button x:Name="RemoveadvIconBtn" Content="Remove" Width="60" Margin="3" Click="RemoveadvIconBtn_Click" ></Button>
+                                <Button x:Name="EditadvIconBtn" Content="Edit.." Width="60" Margin="3" Click="EditadvIconBtn_Click"></Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,43 @@
+﻿<UserControl x:Class="NetCore.Profiler.Extension.UI.MemoryProfilingCharts.DataTypeMemoryStatisticsChart"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:wpf="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             xmlns:shell="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"  
+             xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"  
+             xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <DockPanel>
+        <ScrollBar x:Name="ScrollBar" DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Stretch" Value="{Binding Offset }"></ScrollBar>
+        <wpf:CartesianChart x:Name="LiveTimeline" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5" LegendLocation="Bottom">
+            <wpf:CartesianChart.ChartLegend>
+                <wpf:DefaultLegend Foreground="{DynamicResource {x:Static shell:EnvironmentColors.ToolWindowTextBrushKey}}"></wpf:DefaultLegend>
+            </wpf:CartesianChart.ChartLegend>
+            <wpf:CartesianChart.AxisY>
+                <wpf:Axis Title="Memory (Mb)" Position="LeftBottom" MinValue="0"/>
+                <!--<wpf:LogarithmicAxis  LabelFormatter="{Binding Formatter}" Base="10" Foreground="DarkRed" Title="Memory (Mb)" Position="LeftBottom">
+                    <wpf:LogarithmicAxis.Separator>
+                        <wpf:Separator StrokeThickness="1" IsEnabled="True"></wpf:Separator>
+                    </wpf:LogarithmicAxis.Separator>
+                </wpf:LogarithmicAxis>-->
+            </wpf:CartesianChart.AxisY>
+            <wpf:CartesianChart.AxisX>
+                <wpf:Axis Title="Time (msec)"></wpf:Axis>
+            </wpf:CartesianChart.AxisX>
+            <wpf:CartesianChart.ContextMenu>
+                <ContextMenu>
+                    <MenuItem theming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}" Header="Reset Zoom" Click="OnClickResetZoom">
+                        <MenuItem.Icon>
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.ZoomOriginalSize}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </wpf:CartesianChart.ContextMenu>
+        </wpf:CartesianChart>
+    </DockPanel>
+</UserControl>
+

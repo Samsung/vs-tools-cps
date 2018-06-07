@@ -1,0 +1,22 @@
+﻿<Window x:Class="NetCore.Profiler.Extension.UI.SessionExplorer.EditAnnotationDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             Width="500" Height="130"
+             Title="Edit Annotation" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow">
+    <Window.Resources>
+        <ResourceDictionary Source="../Theme/Styles.xaml"/>
+    </Window.Resources>
+    <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <TextBlock Margin="5" DockPanel.Dock="Top">Annnotation</TextBlock>
+        <TextBox  Margin="5" DockPanel.Dock="Top" IsReadOnly="False" Text="{Binding Annotation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <DockPanel DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+            <Button Margin="5" DockPanel.Dock="Right" Width="50" HorizontalAlignment="Right" Click="OkClick" IsDefault="True">Ok</Button>
+            <Button Margin="5" DockPanel.Dock="Right" Width="50" HorizontalAlignment="Right" Click="CancelClick" IsCancel="True">Cancel</Button>
+        </DockPanel>
+    </DockPanel>
+
+</Window>
+

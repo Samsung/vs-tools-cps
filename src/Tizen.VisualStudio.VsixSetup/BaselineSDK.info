@@ -1,0 +1,3 @@
+INSTALLER_32BIT_URL=http://download.tizen.org/sdk/Installer/Latest/Baseline_Tizen_Studio_windows-32.exe
+INSTALLER_64BIT_URL=http://download.tizen.org/sdk/Installer/Latest/Baseline_Tizen_Studio_windows-64.exe
+BASELINE_MIN_VER=2.0.0

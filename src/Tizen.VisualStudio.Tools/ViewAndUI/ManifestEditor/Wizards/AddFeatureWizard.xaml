@@ -1,0 +1,53 @@
+﻿<Window x:Class="Tizen.VisualStudio.ManifestEditor.AddFeatureWizard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Tizen.VisualStudio.ManifestEditor"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300" Width="500" Height="500" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Title="Features" WindowStyle="ToolWindow">
+    <Window.Resources>
+        <ResourceDictionary Source="../../Theme/Styles.xaml" />
+    </Window.Resources>
+    <Grid>
+        <StackPanel Orientation="Vertical" Margin="10">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Setter Property="Margin" Value="0, 5, 0, 0" />
+                </Style>
+            </StackPanel.Resources>
+            <StackPanel Orientation="Vertical">
+                <Label Content="Search" HorizontalAlignment="Left" VerticalAlignment="Top" Width="460"/>
+                <TextBox x:Name="textBox_search" HorizontalAlignment="Left" Height="22" TextWrapping="Wrap" VerticalAlignment="Top" Width="460" TextChanged="textBox_search_TextChanged"/>
+                <ListView x:Name="listView" Margin="0,10,0,0" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="460" SelectionChanged="listView_SelectionChanged" SelectionMode="Single" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.View>
+                        <GridView>
+                            <GridView.ColumnHeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </Style>
+                            </GridView.ColumnHeaderContainerStyle>
+                            <GridView.Columns>
+                                <GridViewColumn Width="450"/>
+                            </GridView.Columns>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <StackPanel x:Name="Option_Panel" Orientation="Horizontal" Visibility="Hidden">
+                    <Label Content="Option : "/>
+                    <ComboBox x:Name="Combobox_Option" Width="150" HorizontalAlignment="Left" SelectionChanged="Combobox_Option_SelectionChanged"/>
+                </StackPanel>
+                <Label Content="Description" Margin="0,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="465"/>
+                <Grid HorizontalAlignment="Left" Width="460">
+                    <ScrollViewer HorizontalAlignment="Left" Height="80" VerticalAlignment="Top" Width="460" VerticalScrollBarVisibility="Auto">
+                        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Top" Height="80" Width="460"/>
+                    </ScrollViewer>
+                </Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"  Margin="0,20,0,0">
+                    <Button x:Name="button_ok" Margin="5,0,0,0" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Top" Width="74" Click="button_ok_Click"/>
+                    <Button x:Name="button_cancel" Margin="5,0,0,0" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="74" Click="button_cancel_Click"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

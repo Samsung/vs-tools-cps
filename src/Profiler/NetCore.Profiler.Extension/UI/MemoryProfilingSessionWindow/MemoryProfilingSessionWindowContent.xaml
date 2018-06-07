@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="NetCore.Profiler.Extension.UI.MemoryProfilingSessionWindow.MemoryProfilingSessionWindowContent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:memoryProfilingCharts="clr-namespace:NetCore.Profiler.Extension.UI.MemoryProfilingCharts"
+    xmlns:shell="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:memoryProfilingSessionWindow="clr-namespace:NetCore.Profiler.Extension.UI.MemoryProfilingSessionWindow"
+    mc:Ignorable="d" 
+    d:DesignHeight="300" d:DesignWidth="300"
+    HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <TabControl  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0"
+                 Background="{DynamicResource {x:Static shell:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+        <TabItem Header="Heap Profile" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <memoryProfilingCharts:HeapProfilingChart x:Name="HeapChart" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        </TabItem>
+        <TabItem Header="Memory Profile" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <memoryProfilingCharts:MemoryProfilingChart x:Name="MemoryChart" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        </TabItem>
+        <TabItem Header="Data Type Allocations" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <memoryProfilingSessionWindow:DataTypeAllocationStatisticsGrid x:Name="DataTypeAllocationStatisticsGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        </TabItem>
+        <TabItem Header="Data Type Charts" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="3*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <memoryProfilingCharts:DataTypeMemoryStatisticsChart x:Name="DataTypeMemoryStatisticsChart" Grid.Row="0"/>
+                <memoryProfilingSessionWindow:DataTypeMemoryStatisticsGrid x:Name="DataTypeMemoryStatisticsGrid" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Grid>
+        </TabItem>
+    </TabControl>
+
+</UserControl>

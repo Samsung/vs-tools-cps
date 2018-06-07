@@ -1,0 +1,43 @@
+﻿<Window x:Class="Tizen.VisualStudio.ManifestEditor.BackgroundCategoryWizard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Tizen.VisualStudio.ManifestEditor"
+             mc:Ignorable="d" d:DesignWidth="300" Width="400" Height="370" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Title="Background" WindowStyle="ToolWindow">
+    <Window.Resources>
+        <ResourceDictionary Source="../../Theme/Styles.xaml" />
+    </Window.Resources>
+    <Grid>
+        <StackPanel Orientation="Vertical" Margin="10">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Setter Property="Margin" Value="0, 5, 0, 0" />
+                </Style>
+            </StackPanel.Resources>
+            <StackPanel Orientation="Vertical">
+                <Label x:Name="label_categorytypes" Content="Category types" HorizontalAlignment="Left" VerticalAlignment="Top" Width="360"/>
+                <TextBox x:Name="textBox_categorytypes" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="360" TextChanged="textBox_categorytypes_TextChanged"/>
+                <ListView x:Name="listView_categorytypes" HorizontalAlignment="Left" Margin="0,10,0,0" Height="208" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" Width="360"
+                          SelectionChanged="listView_categorytypes_SelectionChanged" >
+                    <ListView.View>
+                        <GridView>
+                            <GridView.ColumnHeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </Style>
+                            </GridView.ColumnHeaderContainerStyle>
+                            <GridView.Columns>
+                                <GridViewColumn Width="260"/>
+                            </GridView.Columns>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button x:Name="button_ok" Margin="5,0,0,0" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="button_ok_Click"/>
+                <Button x:Name="button_cancel" Margin="5,0,0,0" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="button_cancel_Click"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

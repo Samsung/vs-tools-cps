@@ -1,0 +1,113 @@
+﻿<Window x:Class="Tizen.VisualStudio.InstallLauncher.InstallWizard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Tizen.VisualStudio.ViewAndUI.InstallLauncher"
+             mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
+        xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+            Width="800" Height="500" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Title="Visual Studio Tools for Tizen" WindowStyle="ToolWindow">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Theme/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        </ResourceDictionary>
+
+    </Window.Resources>
+    <Grid x:Name="Grid_main">
+        <StackPanel VerticalAlignment="Top" Height="472">
+            <StackPanel.Background>
+                <ImageBrush ImageSource="pinwheel_alpha.png" Stretch="None" AlignmentX="Right" AlignmentY="Top" Opacity="0.2"/>
+            </StackPanel.Background>
+            
+            <Label Content="{x:Static local:InstallWizardString.Label_Main}"  FontSize="30" FontWeight="Bold" Margin="20 20 0 0"/>
+            
+            <Grid Background="Transparent" Height="350" Margin="20 0 20 0">
+                
+                <Grid x:Name="FirstScreen" Visibility="Visible" IsVisibleChanged="Screen_IsVisibleChanged" Background="Transparent">
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <Label Content="{x:Static local:InstallWizardString.Label_FirstScreen}" FontSize="17"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20">
+
+                            <StackPanel Margin="15" Background="{DynamicResource {x:Static shell:VsBrushes.ButtonTextKey}}" Width="260" Height="260" >
+                                <Button x:Name="Button_New" Width="254" Height="254" Margin="3" Click="Button_New_Click" FontSize="20">
+                                    <StackPanel Orientation="Vertical">
+                                        <Image Source="icon_newinstall.png" Stretch="Fill" Width="180"/>
+                                        <TextBlock>Install new Tizen SDK</TextBlock>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <StackPanel Margin="15" Background="{DynamicResource {x:Static shell:VsBrushes.ButtonTextKey}}" Width="260" Height="260" >
+                                <Button x:Name="Button_Exist" Width="254" Height="254" Margin="3" Click="Button_Exist_Click" FontSize="20">
+                                    <StackPanel Orientation="Vertical">
+                                        <Image Source="icon_exist.png" Stretch="Fill" Width="180"/>
+                                        <TextBlock>Use installed Tizen SDK</TextBlock>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </StackPanel>
+                    <Label x:Name="Label_JREWARN" HorizontalAlignment="Center" VerticalAlignment="Bottom" Foreground="Red" Visibility="Visible" FontSize="15" Content="{x:Static local:InstallWizardString.Label_JREWARN}"/>
+                </Grid>
+
+                <Grid x:Name="SecondScreen_New" IsVisibleChanged="Screen_IsVisibleChanged" Visibility="Hidden" Background="Transparent">
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <Label Content="{x:Static local:InstallWizardString.Label_SecondScreen_New}" FontSize="17"/>
+                        <StackPanel Orientation="Vertical" Margin="20">
+                            <TextBox x:Name="Textbox_EULA" TextWrapping="Wrap" IsReadOnly="True" Height="270" Text="{x:Static local:InstallWizardString.EULASTRING}" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="ThirdScreen_New" IsVisibleChanged="Screen_IsVisibleChanged" Visibility="Hidden" Background="Transparent">
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <Label Content="{x:Static local:InstallWizardString.Label_ThirdScreen}" FontSize="17"/>
+                        <StackPanel Orientation="Vertical" Margin="20">
+                            <StackPanel Orientation="Horizontal" >
+                                <TextBox x:Name="Path_new" Width="580" Text="{Binding Path}" Margin="5" TextChanged="Path_new_TextChanged"/>
+                                <Button x:Name="Path_new_Button" Width="70" Content="{x:Static local:InstallWizardString.Button_Browse}" Click="Path_set_Button_Click" Margin="5"/>
+                            </StackPanel>
+                            <Label x:Name="Label_WARN_EmptyDir" HorizontalAlignment="Center" Content="Please select or input an empty directory" Height="40" Foreground="Red" FontSize="17" Visibility="Hidden"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="FourthScreen_New" IsVisibleChanged="Screen_IsVisibleChanged" Visibility="Hidden" Background="Transparent">
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <Label Content="{x:Static local:InstallWizardString.Label_FourthScreen_New}" FontSize="17"/>
+                        <StackPanel Orientation="Vertical" Margin="20" HorizontalAlignment="Center">
+                            <ProgressBar x:Name="Progressbar_download" Height="50" Value="{Binding ProgressDown}" Maximum="100" Minimum="0" Width="700"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Label Content="{Binding ProgressDown}" FontSize="20"/>
+                                <Label Content="%" FontSize="20"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="SecondScreen_Exist" IsVisibleChanged="Screen_IsVisibleChanged" Visibility="Hidden" Background="Transparent">
+                    <StackPanel Orientation="Vertical" Margin="10">
+                        <Label Content="{x:Static local:InstallWizardString.Label_SecondScreen_Exist}" FontSize="17"/>
+                        <StackPanel Orientation="Horizontal" Margin="20">
+                            <TextBox x:Name="Path_exist" IsReadOnly="True" Width="580" Text="{Binding Path}" Margin="5" TextChanged="Path_exist_TextChanged"/>
+                            <Button x:Name="Path_exist_Button" Width="70" Content="{x:Static local:InstallWizardString.Button_Browse}" Click="Path_set_Button_Click" Margin="5"/>
+                        </StackPanel>
+                        <Label x:Name="Label_VERWARN" HorizontalAlignment="Center" Content="{x:Static local:InstallWizardString.Label_VERWARN}" Height="40" Foreground="Red" FontSize="17" Visibility="Hidden"/>
+                    </StackPanel>
+                </Grid>
+                
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+                <Button x:Name="Button_back" Margin="0 0 10 0" Content="{x:Static local:InstallWizardString.Button_Back}" Width="80" Click="Button_back_Click"/>
+                <Button x:Name="Button_ok" Margin="0 0 10 0" Content="{x:Static local:InstallWizardString.Button_OK}" Width="80" Click="Button_ok_Click"/>
+                <Button x:Name="Button_cancel" Content="{x:Static local:InstallWizardString.Button_Cancel}" Width="80" Click="Button_cancel_Click"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

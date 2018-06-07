@@ -1,0 +1,52 @@
+﻿<Window x:Class="Tizen.VisualStudio.ManifestEditor.SplashScreenWizard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Tizen.VisualStudio.ManifestEditor"
+             mc:Ignorable="d" Width="500" Height="310" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Title="Splash Screen" WindowStyle="ToolWindow">
+    <Window.Resources>
+        <ResourceDictionary Source="../../Theme/Styles.xaml" />
+    </Window.Resources>
+    <Grid>
+        <StackPanel Orientation="Vertical" Margin="10">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Setter Property="Margin" Value="0, 5, 0, 0" />
+                </Style>
+            </StackPanel.Resources>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Resource Type" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140"/>
+                <ComboBox x:Name="comboBox_ResourceType" HorizontalAlignment="Left" VerticalAlignment="Top" Width="320" SelectionChanged="comboBox_ResourceType_SelectionChanged"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Resolution" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140"/>
+                <ComboBox x:Name="comboBox_Resolution" HorizontalAlignment="Left" VerticalAlignment="Top" Width="320" SelectionChanged="comboBox_Resolution_SelectionChanged"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Orientation" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140"/>
+                <ComboBox x:Name="comboBox_Orientation" HorizontalAlignment="Left" VerticalAlignment="Top" Width="320" SelectionChanged="comboBox_Orientation_SelectionChanged"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Indicator Display" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140"/>
+                <ComboBox x:Name="comboBox_IndicatorDisplay" HorizontalAlignment="Left" VerticalAlignment="Top" Width="320" SelectionChanged="comboBox_IndicatorDisplay_SelectionChanged"/>
+            </StackPanel>
+
+            <Label Content="Resource" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,10,0,0"/>
+            <StackPanel Orientation="Horizontal" Margin="10,5,0,0">
+                <Label Content="Source" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100"/>
+                <TextBox x:Name="textBox_source" HorizontalAlignment="Left" Height="23" TextWrapping="NoWrap" VerticalAlignment="Top" Width="270" IsReadOnly="True" TextChanged="textBox_source_TextChanged"/>
+                <Button x:Name="button_browse" Margin="5,0,0,0" Content="Browse..." HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="button_browse_Click"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <Label Content="App-control Operation" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140"/>
+                <TextBox x:Name="textBox_AppcontrolOp" HorizontalAlignment="Left" Height="23" TextWrapping="NoWrap" VerticalAlignment="Top" Width="320" TextChanged="textBox_AppcontrolOp_TextChanged"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button x:Name="button_ok" Margin="5,0,0,0" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="button_ok_Click"/>
+                <Button x:Name="button_cancel" Margin="5,0,0,0" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="button_cancel_Click"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

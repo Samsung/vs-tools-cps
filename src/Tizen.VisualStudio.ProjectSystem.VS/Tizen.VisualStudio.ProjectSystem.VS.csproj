@@ -1,0 +1,326 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4F56329A-1974-4E6F-8282-72589A605D58}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Tizen.VisualStudio</RootNamespace>
+    <AssemblyName>Tizen.VisualStudio.ProjectSystem.VS</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>TizenNET.snk</AssemblyOriginatorKeyFile>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <DeployExtension>False</DeployExtension>
+    <CreateVsixContainer>False</CreateVsixContainer>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DeployExtension>False</DeployExtension>
+    <CreateVsixContainer>False</CreateVsixContainer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="envdte100, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="envdte90, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.VisualStudio.Designer.Interfaces, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" />
+    <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+  <!--
+  Resources for our new project system
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="OptionPages\CertificateControl.resx">
+      <DependentUpon>CertificateControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProjectSystem\VS\Debug\ResourcesInstallMessage.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ResourcesInstallMessage.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProjectSystem\VS\PropertyPages\TizenPropertyPageResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>TizenPropertyPageResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources.resx">
+      <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OptionPages\ToolsControl.resx" />
+    <EmbeddedResource Include="VSPackage.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+      <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>VSPackage.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+    <Compile Include="AssemblyRedirects.cs" />
+    -->
+    <Compile Update="BuildSystem\Rules\ProjectDebugger.xaml.cs">
+      <DependentUpon>ProjectDebugger.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AssemblyRedirects.cs" />
+    <Compile Include="IVsEventsHandler.cs" />
+    <Compile Include="OptionPages\Certificate.cs" />
+    <Compile Include="OptionPages\CertificateControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="OptionPages\CertificateControl.Designer.cs">
+      <DependentUpon>CertificateControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="OptionPages\CryptoHelper.cs" />
+    <Compile Include="ProjectSystem\VS\Build\BuildProperty.cs" />
+    <Compile Include="ProjectSystem\VS\Build\CertificatePropertiesProvider.cs" />
+    <Compile Include="ProjectSystem\VS\Debug\ProjectDebugLaunchProvider.cs" />
+    <Compile Include="ProjectSystem\VS\Debug\DebugProfileEnumValueGenerator.cs" />
+    <Compile Include="ProjectSystem\VS\Debug\DebugProfileEnumValueProvider.cs" />
+    <Compile Include="MyConfiguredProject.cs" />
+    <Compile Include="MyUnconfiguredProject.cs" />
+    <Compile Include="Debug\Launcher.cs" />
+    <Compile Include="Debug\OnDemandInstaller.cs" />
+    <Compile Include="OptionPages\Tools.cs" />
+    <Compile Include="OptionPages\ToolsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="OptionPages\ToolsControl.Designer.cs">
+      <DependentUpon>ToolsControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectSystem\VS\Debug\ResourcesInstallMessage.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ResourcesInstallMessage.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectSystem\VS\Extensibility\HierarchyId.cs" />
+    <Compile Include="ProjectSystem\VS\Extensibility\IProjectExportProvider.cs" />
+    <Compile Include="ProjectSystem\VS\Extensibility\ProjectExportProvider.cs" />
+    <Compile Include="ProjectSystem\VS\Extensibility\VsHierarchyExtensions.cs" />
+    <Compile Include="ProjectSystem\VS\Generators\ClassRegistrationAttribute.cs" />
+    <Compile Include="ProjectSystem\VS\IServiceProviderExtensions.cs" />
+    <Compile Include="ProjectSystem\VS\IUnconfiguredProjectVsServices.cs" />
+    <Compile Include="ProjectSystem\VS\Properties\ProjectDesignerPageMetadata.cs" />
+    <Compile Include="ProjectSystem\VS\Properties\TizenProjectDesignerPage.cs" />
+    <Compile Include="ProjectSystem\VS\Properties\TizenProjectDesignerPageProvider.cs" />
+    <Compile Include="ProjectSystem\VS\PropertyPages\PropertyPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ProjectSystem\VS\PropertyPages\PropertyPage.Designer.cs">
+      <DependentUpon>PropertyPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectSystem\VS\PropertyPages\PropertyPageControl.cs" />
+    <Compile Include="ProjectSystem\VS\PropertyPages\PropertyPageElementHost.cs" />
+    <Compile Include="ProjectSystem\VS\PropertyPages\PropertyPageViewModel.cs" />
+    <Compile Include="ProjectSystem\VS\PropertyPages\TizenPropertyPageControl.xaml.cs">
+      <DependentUpon>TizenPropertyPageControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectSystem\VS\PropertyPages\TizenPropertyPageViewModel.cs" />
+    <Compile Include="ProjectSystem\VS\PropertyPages\TizenPropertyPage.cs" />
+    <Compile Include="ProjectSystem\VS\PropertyPages\TizenPropertyPageResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TizenPropertyPageResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectSystem\VS\PropertyPages\WatermarkTextBox.cs" />
+    <Compile Include="ProjectSystem\VS\PropertyPages\WpfBasedPropertyPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ProjectSystem\VS\PropertyPages\WpfBasedPropertyPage.Designer.cs">
+      <DependentUpon>WpfBasedPropertyPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectSystem\VS\UnconfiguredProjectVsServices.cs" />
+    <Compile Include="ProjectSystem\VS\UpToDate\TizenBuildUpToDateCheckProvider.cs" />
+    <Compile Include="ProjectSystem\VS\Utilities\NameValuePair.cs" />
+    <Compile Include="ProjectSystem\VS\Utilities\ObservableList.cs" />
+    <Compile Include="ProjectSystem\VS\Utilities\UIThreadHelper.cs" />
+    <Compile Include="ProjectSystem\VS\Utilities\WpfHelper.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardPortableUI.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenCommon.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenCrossPlatform.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenMobile.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenWearable.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenTV.cs" />
+    <Compile Include="ProjectWizard\TizenManifestData.cs" />
+    <Compile Include="ProjectWizard\View\ProjectWizardViewTizenCrossPlatform.xaml.cs">
+      <DependentUpon>ProjectWizardViewTizenCrossPlatform.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PropertyUtil.cs" />
+    <!--
+    <Compile Include="ProvideProjectSystemBindingRedirectionAttribute.cs" />
+    -->
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="ToolsMenu.cs" />
+    <Compile Include="ToolsOption\TizenOptionPage.xaml.cs">
+      <DependentUpon>TizenOptionPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ToolsOption\TizenOptionPageViewModel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="VsEvents.cs" />
+    <Compile Include="VSPackage.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>VSPackage.resx</DependentUpon>
+    </Compile>
+    <Compile Include="VsProjectHelper.cs" />
+    <Compile Include="VsPackage.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TizenNET.snk" />
+  </ItemGroup>
+  <!--
+  These are the parts of the custom project system which will be deployed as part of the
+  final implementation, and provide the basic processing for handling rules in CPS.
+  -->
+  <!--
+  The XAML files provide buth compile-time implementations for CPS rules as well as
+  runtime information for property pages.  They will also be deployed as part of the
+  final package.
+  -->
+  <ItemGroup>
+    <VSCTCompile Include="ToolsMenu.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
+    </VSCTCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ToolsOption\StatusOK_16x.png" />
+    <Resource Include="ToolsOption\StatusInvalid_16x.png" />
+    <Resource Include="ToolsOption\pinwheel_alpha.png" />
+    <None Include="Resources\ic_tizen_certificate_mgr.png" />
+    <None Include="Resources\ic_tizen_device_mgr.png" />
+    <None Include="Resources\ic_tizen_emulator_mgr.png" />
+    <None Include="Resources\ic_tizen_log_viewer.png" />
+    <None Include="Resources\ic_tizen_run_api.png" />
+    <None Include="Resources\ic_tizen_sdb.png" />
+    <None Include="Resources\ic_tizen_package_manager.png" />
+    <None Include="Resources\ic_tizen_profiler.png" />
+    <None Include="Resources\ic_tizen_resource_manager.png" />
+    <None Include="Resources\ic_tizen_run_profiler.png" />
+    <None Include="Resources\ic_tizen_session_explorer.png" />
+    <Content Include="Resources\LogViewCommand.png" />
+    <None Include="Resources\StatusInvalid_16x.png" />
+    <None Include="Resources\StatusInformation_16x.png" />
+    <None Include="Resources\StatusInvalid_16x1.png" />
+    <None Include="Resources\StatusOK_16x.png" />
+    <Content Include="Resources\Tizen.Extension.Package.ico" />
+    <Content Include="Resources\Tizen.Extension.ToolsMenu.png" />
+    <Content Include="Resources\view_tab_connection_sel.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="ProjectSystem\VS\PropertyPages\TizenPropertyPageControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ProjectSystem\VS\PropertyPages\WatermarkStyle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\Colors.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardViewStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardViewTizenCrossPlatform.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ToolsOption\TizenOptionPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build">
+      <Version>15.3.409</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" Version="15.0.751" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="15.0.751" />
+    <PackageReference Include="NuGet.VisualStudio">
+      <Version>4.3.0-preview3-4168</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Profiler\NetCore.Profiler.Extension\NetCore.Profiler.Extension.csproj">
+      <Project>{7511DC49-D198-4546-AC61-E44BB1FC39B5}</Project>
+      <Name>NetCore.Profiler.Extension</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tizen.VisualStudio.ProjectSystem\Tizen.VisualStudio.ProjectSystem.csproj">
+      <Project>{d407f9de-e591-49fc-90ad-5584d3e64fd0}</Project>
+      <Name>Tizen.VisualStudio.ProjectSystem</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tizen.VisualStudio.Tools\Tizen.VisualStudio.Tools.csproj">
+      <Project>{d8138674-7365-4ec1-8d8c-81b8b5a1b845}</Project>
+      <Name>Tizen.VisualStudio.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tools\Tizen.VisualStudio.APIChecker\Tizen.VisualStudio.APIChecker.csproj">
+      <Project>{7dada217-e0d9-45dd-ae98-1ebe43552b55}</Project>
+      <Name>Tizen.VisualStudio.APIChecker</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
+  <!-- TODO: This copies the build authoring to a well-known location so that on the machine this project builds on,
+       the projects created by the 3rd party consumer can open and build. But the real 3rd party consumer will not
+       have run this step so they won't be able to open their projects.
+       To ship, the project type author must create an MSI that places these files in a well-known location on the
+       customer machine and update the project template to point at that location.-->
+  <Import Project="..\..\build\Targets\Tizen.Versions.targets" />
+</Project>

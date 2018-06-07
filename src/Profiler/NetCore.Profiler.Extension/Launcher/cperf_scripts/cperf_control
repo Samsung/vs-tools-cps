@@ -1,0 +1,86 @@
+export HOME=/opt/usr/home/owner/share/
+
+trap - SIGHUP
+
+if [ "$1" == "-v" ]
+then
+	shift
+else
+	exec 2>/dev/null
+fi
+
+# 1 - timeout
+# 2 - host code
+echo  1 $1 2 $2  >>~/errors
+
+#ncpu=`grep ^cpu[0-9] /proc/stat | wc -l`
+# the cpu's cores may be off-line on the phone
+# so the following method is more reliable
+ncpu=`lscpu | grep '^CPU(s):' | awk '{ print $2 }'`
+pagesize=`getconf PAGESIZE`
+
+while true
+do
+read tmp user nice system idle other < /proc/stat
+puser=0
+psystem=0
+if [ -f ~/cperf_pid_$2 ]
+then
+  pid=$(< ~/cperf_pid_$2)
+  if read -a pproc < /proc/$pid/stat
+  then
+    puser=${pproc[13]}
+    psystem=${pproc[14]}
+  fi
+  if read -a pstatm < /proc/$pid/statm
+  then
+    pmemsize=$((${pstatm[0]}*$pagesize))
+  fi
+fi
+{ read -a mtotal; read -a mfree;} < /proc/meminfo
+{ read -a tmp; read name blocks used kfree other;} < <(df -k .)
+echo `date +%s` $ncpu $user $system $idle $puser $psystem \
+        ${mtotal[1]} ${mfree[1]} $kfree $pmemsize
+
+sleep ${1:-1}
+
+done &
+
+stty -echo
+while read command
+do
+  case "$command" in
+  exit)
+	kill -1 %1
+	break
+	;;
+  kill)
+	#echo START
+	if [ -f ~/cperf_pid_$2 ]
+	then
+	  pid=$(< ~/cperf_pid_$2)
+	  kill -2 $pid
+	fi
+	;;
+  start)
+	#echo START
+	if [ -f ~/cperf_pid_$2 ]
+	then
+	  pid=$(< ~/cperf_pid_$2)
+	  kill -s SIGRTMIN+8 $pid
+	fi
+	lttng enable-channel --userspace channel0
+	;;
+  stop)
+	#echo STOP
+	if [ -f ~/cperf_pid_$2 ]
+	then
+	  pid=$(< ~/cperf_pid_$2)
+	  kill -s SIGRTMIN+7 $pid
+	fi
+	lttng disable-channel --userspace channel0
+	;;
+  esac
+done
+stty echo
+exit

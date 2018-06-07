@@ -1,0 +1,118 @@
+﻿<UserControl x:Class="NetCore.Profiler.Extension.UI.SessionExplorer.SessionExplorerWindowContent"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:shell="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"  
+             xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"  
+             xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="300"
+             Name="MyToolWindow"
+             DataContext="{Binding RelativeSource={RelativeSource Self}}"
+             HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <UserControl.Resources>
+        <!--ResourceDictionary Source="../Theme/Styles.xaml"/-->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </UserControl.Resources>
+    <DockPanel>
+        <ProgressBar x:Name="ProgressBar" Margin="1" DockPanel.Dock="Top" Height="5"
+            Foreground="{DynamicResource {x:Static shell:ProgressBarColors.IndicatorFillBrushKey}}" 
+            Background="{DynamicResource {x:Static shell:ProgressBarColors.BackgroundBrushKey}}" 
+            IsIndeterminate="True" Visibility="Collapsed"/>
+        <DataGrid x:Name="SessionsGrid"  Margin ="4" Visibility="Visible" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+            Background="{DynamicResource {x:Static shell:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+            ItemsSource="{Binding Sessions}"
+            SelectionMode="Single"
+            SelectionUnit="FullRow"
+            IsReadOnly="True"
+            RowHeaderWidth="0"
+            AutoGenerateColumns="False"
+            GridLinesVisibility="None"
+            BorderThickness="0"
+            RowDetailsVisibilityMode="Visible"
+            MouseDoubleClick="SessionsGrid_MouseDoubleClick"
+            SelectionChanged="SessionsGrid_OnSelectionChanged">
+            <DataGrid.Resources>
+                <platformUi:BrushToColorConverter x:Key="BrushToColorConverter"/>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static shell:EnvironmentColors.ToolWindowBackgroundBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="Padding" Value="5" />
+                </Style>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static shell:EnvironmentColors.ToolWindowBackgroundBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                    <Setter Property="BorderThickness" Value="0" />
+                    <!--<Setter Property="BorderBrush" Value="Transparent" />-->
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <!--<Setter Property="Focusable" Value="False" />
+                    <Setter Property="IsTabStop" Value="False" />
+                    <Setter Property="IsHitTestVisible" Value="False" />-->
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource {x:Static shell:EnvironmentColors.SystemHighlightBrushKey }}" />
+                            <!--<Setter Property="BorderBrush" Value="Black" />-->
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.ContextMenu>
+                <ContextMenu 
+                    Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuBackgroundGradientBeginBrushKey}}"
+                    Foreground="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarTextActiveBrushKey}}">
+                    <MenuItem 
+                        Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundBrushKey}}" 
+                        theming:ImageThemingUtilities.ImageBackgroundColor="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundColorKey}}" 
+                        Header="Open Profile Session" Click="OnClickProfile" IsEnabled="{Binding OpenProfilePossible}">
+                        <MenuItem.Icon>
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Processor}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem 
+                        Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundBrushKey}}"
+                        theming:ImageThemingUtilities.ImageBackgroundColor="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundColorKey}}"
+                        Header="Open Memory Profile Session" Click="OnClickMemoryProfile" IsEnabled="{Binding OpenMemoryProfilePossible}">
+                        <MenuItem.Icon>
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Memory}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem 
+                        Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundBrushKey}}" 
+                        theming:ImageThemingUtilities.ImageBackgroundColor="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundColorKey}}" 
+                        Header="Edit Annotation" Click="OnClickEdit">
+                        <MenuItem.Icon>
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Edit}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem 
+                        Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundBrushKey}}" 
+                        theming:ImageThemingUtilities.ImageBackgroundColor="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundColorKey}}" 
+                        Header="Delete" Click="OnClickDelete">
+                        <MenuItem.Icon>
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Cut}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Date" Binding="{Binding CreatedAt}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Preset" Binding="{Binding Preset}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Device" Binding="{Binding DeviceName}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Project" Binding="{Binding ProjectName}"></DataGridTextColumn>
+            </DataGrid.Columns>
+            <DataGrid.RowDetailsTemplate>
+                <DataTemplate>
+                    <TextBlock  
+                        Background="{DynamicResource {x:Static shell:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+                        Foreground="{DynamicResource {x:Static shell:EnvironmentColors.ToolWindowTextBrushKey}}"
+                        FontStyle="Italic" Text="{Binding Annotation, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding HasAnnotation, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </DataTemplate>
+            </DataGrid.RowDetailsTemplate>
+        </DataGrid>
+    </DockPanel>
+</UserControl>
+

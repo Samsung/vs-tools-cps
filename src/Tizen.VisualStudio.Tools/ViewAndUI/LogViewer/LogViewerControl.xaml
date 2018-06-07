@@ -1,0 +1,54 @@
+﻿<UserControl x:Class="Tizen.VisualStudio.LogViewer.LogViewerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="544.616" Name="LogViewer">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Theme/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <DockPanel Margin="0,0,2,0">
+        <DockPanel DockPanel.Dock="Top">
+            <StackPanel Height="30" Margin="0,0,0,0" VerticalAlignment="Top" Orientation="Horizontal" HorizontalAlignment="Left" DockPanel.Dock="Left" >
+                <ToggleButton Content="V" Width="23" Margin="2" Name="verboseCheck" IsChecked="True" Checked="SetlevelCheck_Checked" Unchecked="SetlevelCheck_Checked" VerticalAlignment="Center" ToolTip="Verbose"/>
+                <ToggleButton Content="D" Width="23" Margin="2" Name="debugCheck" IsChecked="True" Checked="SetlevelCheck_Checked" Unchecked="SetlevelCheck_Checked" VerticalAlignment="Center" ToolTip="Debug"/>
+                <ToggleButton Content="I" Width="23" Margin="2" Name="infoCheck" IsChecked="True" Checked="SetlevelCheck_Checked" Unchecked="SetlevelCheck_Checked" VerticalAlignment="Center" ToolTip="Information"/>
+                <ToggleButton Content="W" Width="23" Margin="2" Name="warningCheck" IsChecked="True" Checked="SetlevelCheck_Checked" Unchecked="SetlevelCheck_Checked" VerticalAlignment="Center" ToolTip="Warning"/>
+                <ToggleButton Content="E" Width="23" Margin="2" Name="errorCheck" IsChecked="True" Checked="SetlevelCheck_Checked" Unchecked="SetlevelCheck_Checked" VerticalAlignment="Center" ToolTip="Error"/>
+                <ToggleButton Content="F" Width="23" Margin="2" Name="fatalCheck" IsChecked="True" Checked="SetlevelCheck_Checked" Unchecked="SetlevelCheck_Checked" VerticalAlignment="Center" ToolTip="Fatal"/>
+                <ToggleButton Content="🔒" Width="23" Margin="2" Name="scLockCheck" VerticalAlignment="Center" ToolTip="Scroll Lock"/>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <Button Content="Clear" Margin="2" Click="BtnClear_Click" Name="btnClear" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                <Button Content="Export" Margin="2" Click="BtnExport_Click" Name="btnExport" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            </StackPanel>
+        </DockPanel>
+        <DockPanel Height="28" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" DockPanel.Dock="Bottom">
+            <Label x:Name="msgLabel" Content="Msg" Width="30" HorizontalContentAlignment="Right" Margin="10,0,0,0"/>
+            <TextBox TextChanged="FilterTextBox_TextChanged" TextWrapping="NoWrap" Text="" Name="msgTextBox" Margin="2" ToolTip="Input sentence to be searched."/>
+        </DockPanel>
+        <DockPanel Height="28" HorizontalAlignment="Left" VerticalAlignment="Bottom" DockPanel.Dock="Bottom">
+            <Label x:Name="pidLabel" Content="PID" Width="30" HorizontalAlignment="Right" HorizontalContentAlignment="Right" Margin="10,0,0,0"/>
+            <TextBox TextChanged="FilterTextBox_TextChanged" TextWrapping="NoWrap" Text="" Name="pidTextBox" Margin="2" Width="128" ToolTip="Input process IDs to be searched. Keywords are separated by a space."/>
+            <Label x:Name="tagLabel" Content="Tag" Width="30" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+            <TextBox TextChanged="FilterTextBox_TextChanged" TextWrapping="NoWrap" Text="" Name="tagTextBox" Margin="2" Width="128" ToolTip="Input log tags to be searched. Keywords are separated by a space."/>
+        </DockPanel>
+        <DockPanel DockPanel.Dock="Left" >
+            <TabControl Height="AUTO" Width="AUTO" Name="logTabControl">
+                <TabControl.ItemContainerStyle>
+                    <Style TargetType="{x:Type TabItem}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type TabControl}}, Path=Items.Count}" Value="1">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TabControl.ItemContainerStyle>
+            </TabControl>
+        </DockPanel>
+    </DockPanel>
+</UserControl>

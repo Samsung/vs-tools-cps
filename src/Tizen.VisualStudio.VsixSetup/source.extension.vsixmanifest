@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Id="Tizen.Extension.Samsung.f9eb96dd-089c-472c-accb-dae6ce5dc687" Version="1.2.0" Language="en-US" Publisher="Samsung Electronics" />
+        <DisplayName>Visual Studio Tools for Tizen</DisplayName>
+        <Description xml:space="preserve">Visual Studio Tools for Tizen. Develop Tizen Application and Library with C# Language in Visual Studio 2017.</Description>
+        <Icon>Tizen.NET.VSTools.ico</Icon>
+        <PreviewImage>Tizen.NET.VSTools.Preview.png</PreviewImage>
+    </Metadata>
+    <Installation AllUsers="true">
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0.27009.1,]" />
+        <InstallationTarget Version="[15.0.27009.1,]" Id="Microsoft.VisualStudio.Pro" />
+        <InstallationTarget Version="[15.0.27009.1,]" Id="Microsoft.VisualStudio.Enterprise" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+        <Dependency d:Source="File" DisplayName="Tizen MI-based Debugger" Id="EC769E24-0F3D-479F-834D-55F584443C5A" Version="[0.17.731.3,)" d:InstallSource="Embed" Location="Tizen.MIDebugPackage_2017.vsix" />
+    </Dependencies>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:ProjectName="Tizen.NET.Template.NUI" d:TargetPath="|Tizen.NET.Template.NUI;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" />
+        <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:ProjectName="Tizen.NET.Template.NSClassLib" d:TargetPath="|Tizen.NET.Template.NSClassLib;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" />
+        <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:ProjectName="Tizen.NET.Template.ElmSharp" d:TargetPath="|Tizen.NET.Template.ElmSharp;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Tizen.VisualStudio.Tools" Path="|Tizen.VisualStudio.Tools|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" Path="|Tizen.VisualStudio.ProjectSystem|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Tizen.VisualStudio.ProjectSystem.VS" Path="|Tizen.VisualStudio.ProjectSystem.VS|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="NetCore.Profiler.Extension" Path="|NetCore.Profiler.Extension|" />
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Tizen.VisualStudio.ProjectSystem.VS" Path="|Tizen.VisualStudio.ProjectSystem.VS;PkgdefProjectOutputGroup|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Core40" Path="|Core40|" AssemblyName="|Core40;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="WpfView" Path="|WpfView|" AssemblyName="|WpfView;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="NetCore.Profiler.Common" Path="|NetCore.Profiler.Common|" AssemblyName="|NetCore.Profiler.Common;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="NetCore.Profiler.Cperf.Core" Path="|NetCore.Profiler.Cperf.Core|" AssemblyName="|NetCore.Profiler.Cperf.Core;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="NetCore.Profiler.Cperf.LogAdaptor.Core" Path="|NetCore.Profiler.Cperf.LogAdaptor.Core|" AssemblyName="|NetCore.Profiler.Cperf.LogAdaptor.Core;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="NetCore.Profiler.Lttng.Core" Path="|NetCore.Profiler.Lttng.Core|" AssemblyName="|NetCore.Profiler.Lttng.Core;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="NetCore.Profiler.Analytics" Path="|NetCore.Profiler.Analytics|" AssemblyName="|NetCore.Profiler.Analytics;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="NetCore.Profiler.Session.Core" Path="|NetCore.Profiler.Session.Core|" AssemblyName="|NetCore.Profiler.Session.Core;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="NetCore.Profiler.Extension" Path="|NetCore.Profiler.Extension|" AssemblyName="|NetCore.Profiler.Extension;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" Path="|Tizen.VisualStudio.APIChecker|" d:ProjectName="Tizen.VisualStudio.APIChecker" AssemblyName="|Tizen.VisualStudio.APIChecker;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Tizen.VisualStudio.APIChecker" Path="|Tizen.VisualStudio.APIChecker|" />
+        <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:ProjectName="Tizen.NET.Template.Cross.NETStandard" d:TargetPath="|Tizen.NET.Template.Cross.NETStandard;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" />
+        <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="Project" d:ProjectName="Tizen.NET.Template.ServiceApp" d:TargetPath="|Tizen.NET.Template.ServiceApp;TemplateProjectOutputGroup|" Path="ProjectTemplates" d:VsixSubPath="ProjectTemplates" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="Newtonsoft.Json.dll" AssemblyName="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed" />
+    </Assets>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
+</PackageManifest>

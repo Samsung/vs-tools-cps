@@ -1,0 +1,70 @@
+﻿<UserControl x:Class="NetCore.Profiler.Extension.UI.HotPath.HotPathView1"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:hotPath="clr-namespace:NetCore.Profiler.Extension.UI.HotPath"
+             xmlns:model="clr-namespace:NetCore.Profiler.Analytics.DataProvider;assembly=NetCore.Profiler.Analytics"
+             xmlns:vsUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             x:Name="TopLines"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <hotPath:HotPathConverter x:Key="ItemConvertor" />
+        <HierarchicalDataTemplate DataType="{x:Type model:HotPath}" ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock FontWeight="Bold" Margin="4,0,0,0" Width="45" TextAlignment="Right">
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource ItemConvertor}" ConverterParameter="PercentText">
+                            <Binding Path="ItemAdaptor" ElementName="TopLines"></Binding>
+                            <Binding Path="." ></Binding>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                    <TextBlock.Foreground>
+                        <MultiBinding Converter="{StaticResource ItemConvertor}" ConverterParameter="Color">
+                            <Binding Path="ItemAdaptor" ElementName="TopLines"></Binding>
+                            <Binding Path="." ></Binding>
+                        </MultiBinding>
+                    </TextBlock.Foreground>
+                </TextBlock>
+                <TextBlock Text="•" Margin="4,0,0,0"/>
+                <TextBlock Margin="4,0,0,0">
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource ItemConvertor}" ConverterParameter="Name">
+                            <Binding Path="ItemAdaptor" ElementName="TopLines"></Binding>
+                            <Binding Path="." ></Binding>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Text="•" Margin="4,0,0,0"/>
+                <TextBlock Margin="4,0,0,0" FontWeight="Bold">
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource ItemConvertor}" ConverterParameter="Value">
+                            <Binding Path="ItemAdaptor" ElementName="TopLines"></Binding>
+                            <Binding Path="." ></Binding>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+        </HierarchicalDataTemplate>
+        <DataTemplate DataType="{x:Type model:HotPathItem}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Name}">
+                </TextBlock>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+    <DockPanel>
+        <TextBlock x:Name="TreeViewHeader" DockPanel.Dock="Top" FontWeight="Bold"></TextBlock>
+        <TreeView Name="TreeView" BorderThickness="0"
+            Background="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+    </DockPanel>
+</UserControl>

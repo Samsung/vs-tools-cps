@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<languages>
+  <lang id="ar-ae" name="Arabic"/>
+  <lang id="as-in" name="Assamese"/>
+  <lang id="az-az" name="Azerbaijani"/>
+  <lang id="be-by" name="Belarusian"/>
+  <lang id="bg-bg" name="Bulgarian"/>
+  <lang id="bn-bd" name="Bengali(Bangladesh)"/>
+  <lang id="bn-in" name="Bengali"/>
+  <lang id="ca-es" name="Catalan"/>
+  <lang id="cs-cz" name="Czech"/>
+  <lang id="da-dk" name="Danish"/>
+  <lang id="de-at" name="German (Austria)"/>
+  <lang id="de-ch" name="German (Switzerland)"/>
+  <lang id="de-de" name="German"/>
+  <lang id="el-gr" name="Greek"/>
+  <lang id="en-au" name="English (Australia)"/>
+  <lang id="en-ca" name="English (Canada)"/>
+  <lang id="en-gb" name="English (UK)"/>
+  <lang id="en-ie" name="English (Ireland)"/>
+  <lang id="en-nz" name="English (New Zealand)"/>
+  <lang id="en-ph" name="English (Philippines)"/>
+  <lang id="en-us" name="English (US)"/>
+  <lang id="en-za" name="English (South Africa)"/>
+  <lang id="es-es" name="Spanish (Spain)"/>
+  <lang id="es-mx" name="Spanish(Mexico)"/>
+  <lang id="es-us" name="Spanish (Latin)"/>
+  <lang id="et-ee" name="Estonian"/>
+  <lang id="eu-es" name="Basque"/>
+  <lang id="fa-ir" name="Farsi"/>
+  <lang id="fi-fi" name="Finnish"/>
+  <lang id="fr-be" name="French (Belgium)"/>
+  <lang id="fr-ca" name="French (Canada)"/>
+  <lang id="fr-ch" name="French (Switzerland)"/>
+  <lang id="fr-fr" name="French (France)"/>
+  <lang id="ga-ie" name="Irish"/>
+  <lang id="gl-es" name="Galician"/>
+  <lang id="gu-in" name="Gujarati"/>
+  <lang id="he-il" name="Hebrew"/>
+  <lang id="hi-in" name="Hindi"/>
+  <lang id="hr-hr" name="Croatian"/>
+  <lang id="hu-hu" name="Hungarian"/>
+  <lang id="hy-am" name="Armenian"/>
+  <lang id="id-id" name="Indonesian"/>
+  <lang id="is-is" name="Icelandic"/>
+  <lang id="it-it" name="Italian"/>
+  <lang id="ja-jp" name="Japanese"/>
+  <lang id="jv-id" name="Javanese(Bahasa Jawa)"/>
+  <lang id="ka-ge" name="Georgian"/>
+  <lang id="kk-kz" name="Kazakh"/>
+  <lang id="km-kh" name="Khmer"/>
+  <lang id="kn-ca" name="Kannada"/>
+  <lang id="kn-in" name="Kannada(India)"/>
+  <lang id="ko-kr" name="Korean"/>
+  <lang id="ky-kg" name="Kyrgyz"/>
+  <lang id="lo-la" name="Lao"/>
+  <lang id="lt-lt" name="Lithuanian"/>
+  <lang id="lv-lv" name="Latvian"/>
+  <lang id="mk-mk" name="Macedonian"/>
+  <lang id="ml-in" name="Malayalam"/>
+  <lang id="ml-my" name="Malayalam"/>
+  <lang id="mn-mn" name="Mongolian"/>
+  <lang id="mr-in" name="Marathi"/>
+  <lang id="ms-mw" name="Malay"/>
+  <lang id="my-mm" name="Myanmar"/>
+  <lang id="nb-no" name="Norwegian"/>
+  <lang id="ne-np" name="Nepali"/>
+  <lang id="nl-be" name="Dutch (Belgium)"/>
+  <lang id="nl-nl" name="Dutch"/>
+  <lang id="or-in" name="Odia"/>
+  <lang id="pa-in" name="Panjabi(India)"/>
+  <lang id="pa-pk" name="Punjabi"/>
+  <lang id="pl-pl" name="Polish"/>
+  <lang id="pt-br" name="Portuguese (Brazil)"/>
+  <lang id="pt-pt" name="Portuguese (Portugal)"/>
+  <lang id="ro-ro" name="Romanian"/>
+  <lang id="ru-ru" name="Russian"/>
+  <lang id="si-lk" name="Sinhala"/>
+  <lang id="sk-sk" name="Slovakian"/>
+  <lang id="sl-si" name="Slovenian"/>
+  <lang id="sq-al" name="Albanian"/>
+  <lang id="sr-rs" name="Serbian"/>
+  <lang id="su-id" name="Sundanese(Bahasa Sunda)"/>
+  <lang id="sv-se" name="Swedish"/>
+  <lang id="ta-in" name="Tamil"/>
+  <lang id="te-in" name="Telugu"/>
+  <lang id="tg-tj" name="Tajik"/>
+  <lang id="th-th" name="Thai"/>
+  <lang id="tk-tm" name="Turkmen"/>
+  <lang id="tl-ph" name="Filipino"/>
+  <lang id="tr-tr" name="Turkish"/>
+  <lang id="uk-ua" name="Ukrainian"/>
+  <lang id="ur-pk" name="Urdu"/>
+  <lang id="uz-uz" name="Uzbekistan"/>
+  <lang id="vi-vn" name="Vietnamese"/>
+  <lang id="xh-za" name="Xhosa"/>
+  <lang id="zh-cn" name="Chinese Simplified (ä¸­æ–‡ ç®€ä½“)"/>
+  <lang id="zh-hk" name="Chinese Traditional (Hong Kong)"/>
+  <lang id="zh-sg" name="Chinese(Singapore)"/>
+  <lang id="zh-tw" name="Chinese Traditional (Taiwan)"/>
+  <lang id="zu-za" name="Zulu"/>
+</languages>

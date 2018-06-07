@@ -1,0 +1,482 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7511DC49-D198-4546-AC61-E44BB1FC39B5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NetCore.Profiler.Extension</RootNamespace>
+    <AssemblyName>NetCore.Profiler.Extension</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>TizenNET.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="envdte100, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="envdte90, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Editor, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Imaging, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.VisualStudio.Imaging.15.0.26606\lib\net45\Microsoft.VisualStudio.Imaging.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Shell.15.0, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Framework, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime, Version=15.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Utilities, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.VisualStudio.Utilities.15.0.26606\lib\net45\Microsoft.VisualStudio.Utilities.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="UI\CallTree\CallTreeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\AdornedSourceWindow\HotLinesToolWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\HotPath\HotPathView1.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\MemoryProfilingCharts\HeapProfilingChart.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\MemoryProfilingCharts\DataTypeMemoryStatisticsChart.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\MemoryProfilingCharts\MemoryProfilingChart.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\MemoryProfilingSessionWindow\DataTypeAllocationStatisticsGrid.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\MemoryProfilingSessionWindow\MemoryProfilingSessionWindowContent.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\MemoryProfilingSessionWindow\DataTypeMemoryStatisticsGrid.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Summary\SessionSummaryCpuChart.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\TimelineCharts\ThreadTimelineChart.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\TimelineCharts\AppCpuTimelineChart.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\HotPath\HotPathViewGrid.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\HotPath\HotPathView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\SourceLines\TopLinesViewGrid.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Functions\TopMethodsViewGrid.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Functions\TopMethodsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\SourceLines\TopLinesView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\ProfilingProgressWindow\ProfilingProgressWindowContent.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\Button.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\Colors.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\ComboBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Theme\GroupBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\Label.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\ListBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\ListView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\Styles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\TabControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\TextBlock.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\TextBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Theme\UserControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\Styles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\Summary\SummaryPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\RunProfilerDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\SessionWindow\CallStackPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\SessionWindow\FilterPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\SessionExplorer\EditAnnotationDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\SessionExplorer\SessionExplorerWindowContent.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\SessionWindow\SessionWindowContent.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\SessionWindow\TimelinePanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\OptionsPages\OptionsPageGeneralControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Session\ICallTreeQueryResult.cs" />
+    <Compile Include="Session\IHotPathsQueryResult.cs" />
+    <Compile Include="Session\IMethodsQueryResult.cs" />
+    <Compile Include="Session\IMemoryProfilingSession.cs" />
+    <Compile Include="Session\ISourceLinesQueryResult.cs" />
+    <Compile Include="Session\IStatisticsQueryResult.cs" />
+    <Compile Include="Session\MemoryProfilingSession.cs" />
+    <Compile Include="UI\CallTree\CallTreeView.xaml.cs">
+      <DependentUpon>CallTreeView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\AdornedSourceWindow\HotLineAdornment.cs" />
+    <Compile Include="UI\AdornedSourceWindow\HotLinesToolWindow.cs" />
+    <Compile Include="UI\AdornedSourceWindow\HotLinesToolWindowControl.xaml.cs">
+      <DependentUpon>HotLinesToolWindowControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\HotPath\HotPathView1.xaml.cs">
+      <DependentUpon>HotPathView1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MemoryProfilingCharts\HeapProfilingChart.xaml.cs">
+      <DependentUpon>HeapProfilingChart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MemoryProfilingCharts\DataTypeMemoryStatisticsChartModel.cs" />
+    <Compile Include="UI\MemoryProfilingCharts\DataTypeMemoryStatisticsChart.xaml.cs">
+      <DependentUpon>DataTypeMemoryStatisticsChart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MemoryProfilingCharts\MemoryProfilingChartModel.cs" />
+    <Compile Include="UI\MemoryProfilingCharts\MemoryProfilingChart.xaml.cs">
+      <DependentUpon>MemoryProfilingChart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MemoryProfilingCharts\ManagedMemoryProfilingChartModel.cs" />
+    <Compile Include="UI\MemoryProfilingCharts\IManagedMemoryProfilingChartModel.cs" />
+    <Compile Include="UI\MemoryProfilingCharts\IMemoryProfilingChartModelBase.cs" />
+    <Compile Include="UI\MemoryProfilingCharts\ManagedMemoryProfilingChartModelBase.cs" />
+    <Compile Include="UI\MemoryProfilingSessionWindow\DataTypeAllocationStatisticsGrid.xaml.cs">
+      <DependentUpon>DataTypeAllocationStatisticsGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MemoryProfilingSessionWindow\DataTypeMemoryStatisticsItem.cs" />
+    <Compile Include="UI\MemoryProfilingSessionWindow\MemoryProfilingSessionWindow.cs" />
+    <Compile Include="UI\MemoryProfilingSessionWindow\MemoryProfilingSessionWindowContent.xaml.cs">
+      <DependentUpon>MemoryProfilingSessionWindowContent.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\MemoryProfilingSessionWindow\DataTypeMemoryStatisticsGrid.xaml.cs">
+      <DependentUpon>DataTypeMemoryStatisticsGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Summary\SessionSummaryCpuChart.xaml.cs">
+      <DependentUpon>SessionSummaryCpuChart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\TimelineCharts\ThreadTimelineChart.xaml.cs">
+      <DependentUpon>ThreadTimelineChart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\TimelineCharts\ThreadClrJobTimelineChartModel.cs" />
+    <Compile Include="UI\TimelineCharts\ThreadCpuTimelineChartModel.cs" />
+    <Compile Include="UI\TimelineCharts\ThreadTimelineChartModelBase.cs" />
+    <Compile Include="UI\TimelineCharts\IManagedTimelineChartModel.cs" />
+    <Compile Include="UI\TimelineCharts\ManagedTimelineChartModelBase.cs" />
+    <Compile Include="UI\TimelineCharts\TimeLineSection.cs" />
+    <Compile Include="UI\TimelineCharts\ITimelineChartModelBase.cs" />
+    <Compile Include="UI\TimelineCharts\AppCpuTimelineChartModel.cs" />
+    <Compile Include="UI\TimelineCharts\AppCpuTimelineChart.xaml.cs">
+      <DependentUpon>AppCpuTimelineChart.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\CallTree\CallTreeNodeAdaptor.cs" />
+    <Compile Include="UI\HotPath\HotPathViewGrid.xaml.cs">
+      <DependentUpon>HotPathViewGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\IThreadListItem.cs" />
+    <Compile Include="Session\ISolutionSessionsContainer.cs" />
+    <Compile Include="Session\CallTreeQueryResult.cs" />
+    <Compile Include="Session\ISession.cs" />
+    <Compile Include="Session\ISessionThread.cs" />
+    <Compile Include="Session\MethodsQueryResult.cs" />
+    <Compile Include="Session\SessionThread.cs" />
+    <Compile Include="Session\SessionConstants.cs" />
+    <Compile Include="Session\SolutionSessionsContainer.cs" />
+    <Compile Include="Session\SourceLinesQueryResult.cs" />
+    <Compile Include="Session\HotPathsQueryResult.cs" />
+    <Compile Include="Session\Session.cs" />
+    <Compile Include="UI\ThreadListItem.cs" />
+    <Compile Include="Session\TimelineType.cs" />
+    <Compile Include="UI\SourceLines\TopLinesViewGrid.xaml.cs">
+      <DependentUpon>TopLinesViewGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Functions\TopMethodsViewGrid.xaml.cs">
+      <DependentUpon>TopMethodsViewGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\CallTree\CallStatisticsTreeNode.cs" />
+    <Compile Include="UI\Adaptor\IItemAdaptor.cs" />
+    <Compile Include="UI\HotPath\HotPathAdaptor.cs" />
+    <Compile Include="UI\Adaptor\ProfiledObjectStatisticsAdaptor.cs" />
+    <Compile Include="UI\Functions\MethodAdaptor.cs" />
+    <Compile Include="UI\SourceLines\SourceLineAdaptor.cs" />
+    <Compile Include="UI\Adaptor\ItemConverter.cs" />
+    <Compile Include="UI\Summary\SummaryPanel.xaml.cs">
+      <DependentUpon>SummaryPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\HotPath\HotPathView.xaml.cs">
+      <DependentUpon>HotPathView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Functions\TopMethodsView.xaml.cs">
+      <DependentUpon>TopMethodsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\SourceLines\TopLinesView.xaml.cs">
+      <DependentUpon>TopLinesView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\PropertiesContainer.cs" />
+    <Compile Include="UI\SessionExplorer\EditAnnotationDialog.xaml.cs">
+      <DependentUpon>EditAnnotationDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="VSPackage\GeneralProperties.cs" />
+    <Compile Include="Session\ActiveSession.cs" />
+    <Compile Include="Common\NotifyPropertyChanged.cs" />
+    <Compile Include="Launcher\Model\OnDemand.cs" />
+    <Compile Include="Launcher\Model\ProfileSessionConfiguration.cs" />
+    <Compile Include="Launcher\Model\ProfileSession.cs" />
+    <Compile Include="Launcher\Model\ProfileSessionState.cs" />
+    <Compile Include="Launcher\Model\IProfileSession.cs" />
+    <Compile Include="Launcher\Model\ProfilingMethod.cs" />
+    <Compile Include="Launcher\ProfileLauncher.cs" />
+    <Compile Include="UI\ProfilingProgressWindow\ProfilingProgressWindowContent.xaml.cs">
+      <DependentUpon>ProfilingProgressWindowContent.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\RunProfilerDialog.xaml.cs">
+      <DependentUpon>RunProfilerDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Session\IActiveSession.cs" />
+    <Compile Include="VSPackage\ProfilerPlugin.cs" />
+    <Compile Include="VSPackage\SolutionListener.cs" />
+    <Compile Include="Commands\Command.cs" />
+    <Compile Include="UI\SessionWindow\CallStackPanel.xaml.cs">
+      <DependentUpon>CallStackPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Commands\ExplorerWindowCommand.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\SessionWindow\FilterPanel.xaml.cs">
+      <DependentUpon>FilterPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\SessionExplorer\SessionExplorerWindow.cs" />
+    <Compile Include="UI\SessionExplorer\SessionExplorerWindowContent.xaml.cs">
+      <DependentUpon>SessionExplorerWindowContent.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\SessionWindow\SessionWindow.cs" />
+    <Compile Include="UI\SessionWindow\SessionWindowContent.xaml.cs">
+      <DependentUpon>SessionWindowContent.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\SessionWindow\TimelinePanel.xaml.cs">
+      <DependentUpon>TimelinePanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Commands\RunProfilerCommand.cs" />
+    <Compile Include="UI\ProfilingProgressWindow\ProfilingProgressWindow.cs" />
+    <Compile Include="Launcher\Model\ProfilingPreset.cs" />
+    <Compile Include="Launcher\Model\ProfilingSettings.cs" />
+    <Compile Include="UI\TwoBooleanToEnableConvertor.cs" />
+    <Compile Include="Options\GeneralOptions.cs" />
+    <Compile Include="Options\SettingsStore.cs" />
+    <Compile Include="UI\OptionsPages\OptionsPageGeneral.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\OptionsPages\OptionsPageGeneralControl.xaml.cs">
+      <DependentUpon>OptionsPageGeneralControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="VSPackage\VsProjectHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tizen.VisualStudio.Tools\Tizen.VisualStudio.Tools.csproj">
+      <Project>{d8138674-7365-4ec1-8d8c-81b8b5a1b845}</Project>
+      <Name>Tizen.VisualStudio.Tools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Live-Charts\Core40\Core40.csproj">
+      <Project>{f261c3d7-6194-4625-9516-044081b06028}</Project>
+      <Name>Core40</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Live-Charts\WpfView\WpfView.csproj">
+      <Project>{4d253423-ae05-47f6-a59d-9162ec0bb1f2}</Project>
+      <Name>WpfView</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetCore.Profiler.Analytics\NetCore.Profiler.Analytics.csproj">
+      <Project>{fcf895e7-92f0-43fd-ae98-cf3fdbf3b766}</Project>
+      <Name>NetCore.Profiler.Analytics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetCore.Profiler.Common\NetCore.Profiler.Common.csproj">
+      <Project>{cb8c29f2-db71-4115-8bbb-3920bb4c78d9}</Project>
+      <Name>NetCore.Profiler.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetCore.Profiler.Cperf.Core\NetCore.Profiler.Cperf.Core.csproj">
+      <Project>{f0720e54-b379-4dae-a95e-a4d115cb48fb}</Project>
+      <Name>NetCore.Profiler.Cperf.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetCore.Profiler.Cperf.LogAdaptor.Core\NetCore.Profiler.Cperf.LogAdaptor.Core.csproj">
+      <Project>{5ec402f4-874b-4757-bcfc-8a0bd07e4111}</Project>
+      <Name>NetCore.Profiler.Cperf.LogAdaptor.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetCore.Profiler.Lttng.Core\NetCore.Profiler.Lttng.Core.csproj">
+      <Project>{d10f56ce-e54b-45d2-a30d-fa7034f599c6}</Project>
+      <Name>NetCore.Profiler.Lttng.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetCore.Profiler.Session.Core\NetCore.Profiler.Session.Core.csproj">
+      <Project>{3a7e5fda-98f5-4c97-8ccb-3463ca95c166}</Project>
+      <Name>NetCore.Profiler.Session.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="TizenNET.snk" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

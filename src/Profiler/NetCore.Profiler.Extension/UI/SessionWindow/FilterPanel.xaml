@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="NetCore.Profiler.Extension.UI.SessionWindow.FilterPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vsUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             Background="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+             Foreground="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowTextBrushKey}}"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300"
+             Name="MyToolWindow">
+    <UserControl.Resources>
+        <!--<ResourceDictionary Source="../Theme/Styles.xaml"/>-->
+    </UserControl.Resources>
+
+    <StackPanel>
+        <GroupBox Header="Call Tree and Methods" Margin="4">
+            <StackPanel>
+                <RadioButton x:Name="TimeRb" Content="Time" GroupName="StatisticsType" Click="StatisticsType_Click"
+                    Background="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+                    Foreground="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                <RadioButton x:Name="MemoryRb" Content="Allocated Memory" GroupName="StatisticsType" Click="StatisticsType_Click"
+                    Background="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+                    Foreground="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                <RadioButton x:Name="SamplesRb" Content="Samples" GroupName="StatisticsType" Click="StatisticsType_Click"
+                    Background="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+                    Foreground="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+            </StackPanel>
+        </GroupBox>
+        <GroupBox Header="Thread Timeline" Margin="4">
+            <StackPanel>
+                <RadioButton x:Name="GcRb" Content="GC" GroupName="TimeLineType" Click="TimeLineType_Click"
+                    Background="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+                    Foreground="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                <RadioButton x:Name="JitRb" Content="JIT" GroupName="TimeLineType" Click="TimeLineType_Click"
+                    Background="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+                    Foreground="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                <RadioButton x:Name="UtilizationRb" Content="Cpu Utilization" GroupName="TimeLineType" Click="TimeLineType_Click"
+                    Background="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
+                    Foreground="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+            </StackPanel>
+        </GroupBox>
+    </StackPanel>
+</UserControl>

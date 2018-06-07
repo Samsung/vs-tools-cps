@@ -1,0 +1,46 @@
+# Cna be used for channel0 only with 4 subbuffers
+# $1 - host key
+rm -rf ~/ready_$1
+rm -rf ~/lttng_$1
+pos=ust/uid/$(id -u)/32-bit
+rpos=~/ready_$1/$pos
+mkdir -p $rpos/index
+stty -echo
+
+mkdir -p ${HOME}/lttng_$1
+cd ${HOME}/lttng_$1
+
+while true
+do
+	domove=false
+	for i in `ls $pos/channel0_* 2>/dev/null`
+	do
+	    if [ -s $i ]
+	    then
+		# Can be already moved !!
+		if fuser -s $i 2>/dev/null
+		then
+			fname=$i
+			mv $fname $rpos
+			mv $pos/index/`basename $fname.idx` $rpos/index
+			domove=true
+		fi
+	    fi
+	done
+	$domove && (echo send; 
+		while read go # Fix crlf problems
+		do
+			if [[ "$go" = "Go" || "$go" = "Exit" ]
+			then
+				break
+			fi
+		done
+		if [ "$go" == "Exit" ]
+		then
+			exit
+		fi
+		rm -f $rpos/* $rpos/index/*
+	)
+	sleep 2
+done
+

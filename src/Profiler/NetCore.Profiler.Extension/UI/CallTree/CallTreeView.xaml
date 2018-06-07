@@ -1,0 +1,77 @@
+﻿<UserControl x:Class="NetCore.Profiler.Extension.UI.CallTree.CallTreeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:callTree="clr-namespace:NetCore.Profiler.Extension.UI.CallTree"
+             xmlns:vsUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             x:Name="TopLines"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <callTree:CallTreeNodeConverter x:Key="ItemConvertor" />
+        <HierarchicalDataTemplate DataType="{x:Type callTree:CallStatisticsTreeNode}">
+            <HierarchicalDataTemplate.ItemsSource>
+                <MultiBinding Converter="{StaticResource ItemConvertor}" ConverterParameter="Children">
+                    <Binding Path="ItemAdaptor" ElementName="TopLines"></Binding>
+                    <Binding Path="." ></Binding>
+                </MultiBinding>
+            </HierarchicalDataTemplate.ItemsSource>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock FontWeight="Bold" Width="45" TextAlignment="Right">
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource ItemConvertor}" ConverterParameter="Percent">
+                            <Binding Path="ItemAdaptor" ElementName="TopLines"></Binding>
+                            <Binding Path="." ></Binding>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                    <TextBlock.Foreground>
+                        <MultiBinding Converter="{StaticResource ItemConvertor}" ConverterParameter="Color">
+                            <Binding Path="ItemAdaptor" ElementName="TopLines"></Binding>
+                            <Binding Path="." ></Binding>
+                        </MultiBinding>
+                    </TextBlock.Foreground>
+                </TextBlock>
+                <TextBlock Text="•"/>
+                <TextBlock FontWeight="Bold">
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource ItemConvertor}" ConverterParameter="Value">
+                            <Binding Path="ItemAdaptor" ElementName="TopLines"></Binding>
+                            <Binding Path="." ></Binding>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock Text="•"/>
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource ItemConvertor}" ConverterParameter="Name">
+                            <Binding Path="ItemAdaptor" ElementName="TopLines"></Binding>
+                            <Binding Path="." ></Binding>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StackPanel>
+        </HierarchicalDataTemplate>
+    </UserControl.Resources>
+    <DockPanel>
+        <TextBlock x:Name="TreeViewHeader" DockPanel.Dock="Top" FontWeight="Bold"></TextBlock>
+        <TreeView Name="TreeView" BorderThickness="0"
+                  Background="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+
+                    <!--Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                    <Setter Property="FontWeight" Value="Normal" />
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="FontWeight" Value="Bold" />
+                        </Trigger>
+                    </Style.Triggers-->
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+    </DockPanel>
+</UserControl>

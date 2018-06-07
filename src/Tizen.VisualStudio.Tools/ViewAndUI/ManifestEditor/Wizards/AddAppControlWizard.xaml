@@ -1,0 +1,44 @@
+﻿<Window x:Class="Tizen.VisualStudio.ManifestEditor.AddAppControlWizard"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Tizen.VisualStudio.ManifestEditor"
+        mc:Ignorable="d"
+        Title="Application Control" Height="600" Width="500" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" >
+    <Window.Resources>
+        <ResourceDictionary Source="../../Theme/Styles.xaml" />
+    </Window.Resources>
+    <Grid>
+        <StackPanel HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="10">
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="3">
+                <Label Content="Operation" Width="80"/>
+                <TextBox x:Name="operationTextBox" Height="23" TextWrapping="NoWrap" Width="375" TextChanged="operationTextBox_TextChanged"/>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="3">
+                <Label Content="Uri" Width="80"/>
+                <TextBox x:Name="UriTextBox" Height="23" TextWrapping="NoWrap" Width="375" TextChanged="UriTextBox_TextChanged"/>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="3">
+                <Label Content="mime" Width="80"/>
+                <TextBox x:Name="mimeTextBox" Height="23" TextWrapping="NoWrap" Width="375" TextChanged="mimeTextBox_TextChanged"/>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Center" Orientation="Vertical" Margin="0 10 0 0">
+                <Label Content="Added Privileges"/>
+                <ListView x:Name="AddedPrivList" HorizontalAlignment="Left" Height="150" VerticalAlignment="Top" 
+                          ItemsSource="{Binding AddedPrivilegeList}" Width="450" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                    <Button x:Name="Button_add" Content="Add▲" Width="100" Click="Button_add_Click"/>
+                    <Button x:Name="Button_remove" Content="Remove▼" Width="100" Margin="20 0 0 0" Click="Button_remove_Click"/>
+                </StackPanel>
+                <Label Content="Support Privileges"/>
+                <ListView x:Name="SupportedPrivList" HorizontalAlignment="Left" Height="150" VerticalAlignment="Top" 
+                          ItemsSource="{Binding SupportPrivilegeList}" Width="450" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Margin="3">
+                <Button x:Name="OKbutton" Content="OK" Width="75" Margin="5,0,0,0" Click="OKbutton_Click"/>
+                <Button x:Name="Cancelbutton" Content="Cancel" Width="75" Margin="5,0,0,0" Click="Cancelbutton_Click"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

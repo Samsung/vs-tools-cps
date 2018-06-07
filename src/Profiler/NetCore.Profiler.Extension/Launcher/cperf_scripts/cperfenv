@@ -1,0 +1,974 @@
+# Usage:
+# Create new lttng session DotNET by default
+
+# Setup default parameters
+
+export LD_LIBRARY_PATH=/usr/local/lib
+
+export LTTNG_HOME=/opt/usr/home/owner/share
+export HOME=/opt/usr/home/owner
+
+CPERF_LIST=all
+CPERF_TIMEOUT=10
+CPERF_CORERUN=/usr/share/dotnet/shared/Microsoft.NETCore.App/2.0.0/corerun
+CPERF_DOTNET_LAUNCHER=/usr/bin/dotnet-launcher
+
+export COMPlus_EnableEventLog=1
+#export COMPlus_ARMEnabled=1
+
+#PAL_DBG_CHANNELS="+all. TRACE"
+#export COMPlus_LogEnable=1
+#export COMPlus_LogToConsole=1
+#export COMPlus_LogFacility=800
+#export COMPlus_LogLevel=10
+
+export CORECLR_PROFILER={101DA8FE-FDCA-4D0E-9712-7639CDE48EBA}
+export CORECLR_ENABLE_PROFILING=1
+export CORECLR_PROFILER_PATH=/usr/share/dotnet/shared/Microsoft.NETCore.App/2.0.0/libcoreprof.so
+export PROF_EXECUTION_TRACE=1
+export PROF_MEMORY_TRACE=1
+export PROF_TRACE_FILENAME=trace.log
+export PROF_COLLECT_METHOD=Sampling
+export PROF_SAMPLING_TIMEOUT=10
+
+export PROF_LINE_TRACE=1
+export PROF_LINE_TRACE_EXEC=1
+export PROF_LINE_TRACE_MEM=1
+
+export PROF_HIGH_GRAN=1
+export PROF_STACK_TRACK=1
+export PROF_STACK_TRACE=1
+
+#export PROF_LOG_LEVEL=Trace
+#export PROF_LOG_STREAM=File
+
+declare -a CPERF_VARIABLES=(
+	CPERF_LIST
+	CPERF_TIMEOUT
+	CPERF_CORERUN
+
+	COMPlus_EnableEventLog
+	COMPlus_ARMEnabled
+
+	CORECLR_PROFILER
+	CORECLR_ENABLE_PROFILING
+	CORECLR_PROFILER_PATH
+	PROF_EXECUTION_TRACE
+	PROF_MEMORY_TRACE
+	PROF_TRACE_FILENAME
+	PROF_COLLECT_METHOD
+	# PROF_SAMPLING_TIMEOUT can't be defined by default
+
+	PROF_LINE_TRACE
+	PROF_LINE_TRACE_EXEC
+	PROF_LINE_TRACE_MEM
+
+	PROF_HIGH_GRAN
+	PROF_STACK_TRACK
+	PROF_STACK_TRACE
+
+	PROF_LOG_LEVEL
+)
+
+function cperf_parameters_load()
+{
+    if [ -x "$1" ]
+    then
+	. $1
+    fi
+    if [ "$PROF_COLLECT_METHOD" == "Sampling" ]
+    then
+	PROF_SAMPLING_TIMEOUT=$CPERF_TIMEOUT
+    else
+	unset PROF_SAMPLING_TIMEOUT
+    fi
+}
+
+# cperf_parameters_load /opt/usr/home/owner/.cperf
+
+# Stopped to reduce log size
+declare -a DotNETRuntime_STOP=(
+	DotNETRuntime:SetGCHandle
+	DotNETRuntime:GCSampledObjectAllocationHigh
+	DotNETRuntime:DestroyGCHandle
+	DotNETRuntime:GCAllocationTick_V2 # required for V3 :-)
+	DotNETRuntime:GCAllocationTick_V3
+	DotNETRuntime:GCMarkWithType
+)
+
+declare -a DotNETRuntime_ALL=(
+	# DotNETRuntime:GCStart
+	# DotNETRuntime:GCStart_V1
+	DotNETRuntime:GCStart_V2
+	# DotNETRuntime:GCEnd
+	DotNETRuntime:GCEnd_V1
+	# DotNETRuntime:GCRestartEEEnd
+	DotNETRuntime:GCRestartEEEnd_V1
+	# DotNETRuntime:GCHeapStats
+	# DotNETRuntime:GCHeapStats_V1 useless as __data__
+	# DotNETRuntime:GCCreateSegment
+	DotNETRuntime:GCCreateSegment_V1
+	# DotNETRuntime:GCFreeSegment
+	DotNETRuntime:GCFreeSegment_V1
+	# DotNETRuntime:GCRestartEEBegin
+	DotNETRuntime:GCRestartEEBegin_V1
+	# DotNETRuntime:GCSuspendEEEnd
+	DotNETRuntime:GCSuspendEEEnd_V1
+	# DotNETRuntime:GCSuspendEEBegin
+	DotNETRuntime:GCSuspendEEBegin_V1
+	# DotNETRuntime:GCAllocationTick
+	# DotNETRuntime:GCAllocationTick_V1 REDHAWK
+	# DotNETRuntime:GCAllocationTick_V2 # required for V3 :-) stopped
+	# DotNETRuntime:GCAllocationTick_V3 stopped
+	# DotNETRuntime:GCCreateConcurrentThread
+	DotNETRuntime:GCCreateConcurrentThread_V1
+	# DotNETRuntime:GCTerminateConcurrentThread
+	DotNETRuntime:GCTerminateConcurrentThread_V1
+	# DotNETRuntime:GCFinalizersEnd
+	DotNETRuntime:GCFinalizersEnd_V1
+	# DotNETRuntime:GCFinalizersBegin
+	DotNETRuntime:GCFinalizersBegin_V1
+	# DotNETRuntime:BulkType useless as __data__
+	# DotNETRuntime:GCBulkRootEdge useless as __data__
+	DotNETRuntime:GCBulkRootConditionalWeakTableElementEdge
+	# DotNETRuntime:GCBulkNode useless as __data__
+	# DotNETRuntime:GCBulkEdge useless as __data__
+	# DotNETRuntime:GCSampledObjectAllocationHigh stopped
+	# DotNETRuntime:GCBulkSurvivingObjectRanges useless as __data__
+	# DotNETRuntime:GCBulkMovedObjectRanges useless as __data__
+	DotNETRuntime:GCGenerationRange
+	# DotNETRuntime:GCMarkStackRoots ?
+	# DotNETRuntime:GCMarkFinalizeQueueRoots
+	# DotNETRuntime:GCMarkHandles
+	# DotNETRuntime:GCMarkOlderGenerationRoots
+	DotNETRuntime:FinalizeObject
+	# DotNETRuntime:SetGCHandle stopped
+	# DotNETRuntime:DestroyGCHandle stopped
+	DotNETRuntime:GCSampledObjectAllocationLow
+	DotNETRuntime:PinObjectAtGCTime
+	DotNETRuntime:GCTriggered
+	# DotNETRuntime:GCBulkRootCCW useless as __data__
+	# DotNETRuntime:GCBulkRCW useless as __data__
+	# DotNETRuntime:GCBulkRootStaticVar useless as __data__
+	# DotNETRuntime:WorkerThreadCreate
+	# DotNETRuntime:WorkerThreadTerminate
+	DotNETRuntime:WorkerThreadRetire # win32 ?
+	# DotNETRuntime:WorkerThreadUnretire
+	# DotNETRuntime:IOThreadCreate
+	# DotNETRuntime:IOThreadCreate_V1 !PAL
+	# DotNETRuntime:IOThreadTerminate 
+	# DotNETRuntime:IOThreadTerminate_V1 !PAL
+	# DotNETRuntime:IOThreadRetire
+	# DotNETRuntime:IOThreadRetire_V1 !PAL
+	# DotNETRuntime:IOThreadUnretire
+	# DotNETRuntime:IOThreadUnretire_V1 !PAL
+	# DotNETRuntime:ThreadpoolSuspensionSuspendThread
+	# DotNETRuntime:ThreadpoolSuspensionResumeThread
+	DotNETRuntime:ThreadPoolWorkerThreadStart # win32 ?
+	DotNETRuntime:ThreadPoolWorkerThreadStop # win32 ?
+	DotNETRuntime:ThreadPoolWorkerThreadRetirementStart # win32 ?
+	DotNETRuntime:ThreadPoolWorkerThreadRetirementStop # win32 ?
+	# DotNETRuntime:ThreadPoolWorkerThreadAdjustmentSample         # floating point
+	# DotNETRuntime:ThreadPoolWorkerThreadAdjustmentAdjustment     # floating point
+	# DotNETRuntime:ThreadPoolWorkerThreadAdjustmentStats useless as __data__
+	DotNETRuntime:ThreadPoolWorkerThreadWait # win32 ?
+	DotNETRuntime:ThreadPoolWorkingThreadCount # win32 ?
+	DotNETRuntime:ThreadPoolEnqueue
+	DotNETRuntime:ThreadPoolDequeue
+	DotNETRuntime:ThreadPoolIOEnqueue
+	DotNETRuntime:ThreadPoolIODequeue
+	DotNETRuntime:ThreadPoolIOPack
+	DotNETRuntime:ThreadCreating
+	DotNETRuntime:ThreadRunning
+	# DotNETRuntime:ExceptionThrown
+	DotNETRuntime:ExceptionThrown_V1
+	DotNETRuntime:ExceptionCatchStart
+	# DotNETRuntime:ExceptionCatchStop no template
+	DotNETRuntime:ExceptionFinallyStart
+	# DotNETRuntime:ExceptionFinallyStop no template
+	DotNETRuntime:ExceptionFilterStart
+	# DotNETRuntime:ExceptionFilterStop no template
+	# DotNETRuntime:ExceptionThrownStop no template
+	# DotNETRuntime:Contention
+	# DotNETRuntime:ContentionStart_V1 !CORECLR
+	# DotNETRuntime:ContentionStop !CORECLR
+	# DotNETRuntime:CLRStackWalk
+
+	# COMPlus_ARMEnabled=1
+	DotNETRuntime:AppDomainMemAllocated
+	DotNETRuntime:AppDomainMemSurvived
+	DotNETRuntime:ThreadCreated
+	DotNETRuntime:ThreadTerminated
+	DotNETRuntime:ThreadDomainEnter
+
+	# DotNETRuntime:ILStubGenerated useless as __data__
+	# DotNETRuntime:ILStubCacheHit !CORECLR
+	# DotNETRuntime:DCStartCompleteV2
+	# DotNETRuntime:DCEndCompleteV2
+	# DotNETRuntime:MethodDCStartV2
+	# DotNETRuntime:MethodDCEndV2
+	# DotNETRuntime:MethodDCStartVerboseV2
+	# DotNETRuntime:MethodDCEndVerboseV2
+
+	# Only VERBOSE mode is defined for CORECLR
+	# DotNETRuntime:MethodLoad
+	# DotNETRuntime:MethodLoad_V1
+	# DotNETRuntime:MethodLoad_V2
+	# DotNETRuntime:MethodUnload
+	# DotNETRuntime:MethodUnload_V1
+	# DotNETRuntime:MethodUnload_V2
+	# DotNETRuntime:MethodLoadVerbose
+	DotNETRuntime:MethodLoadVerbose_V1 # time only, useless as __data__ 
+	# DotNETRuntime:MethodLoadVerbose_V2 useless as __data__
+	# DotNETRuntime:MethodUnloadVerbose
+	# DotNETRuntime:MethodUnloadVerbose_V1 useless as __data__
+	# DotNETRuntime:MethodUnloadVerbose_V2 useless as __data_
+
+	# DotNETRuntime:MethodJittingStarted
+	DotNETRuntime:MethodJittingStarted_V1
+	# DotNETRuntime:MethodJitInliningSucceeded useless as __data__ ?
+	# DotNETRuntime:MethodJitInliningFailed useless as __data__ ?
+	# DotNETRuntime:MethodJitTailCallSucceeded useless as __data__ ?
+	# DotNETRuntime:MethodJitTailCallFailed useless as __data__ ?
+	# DotNETRuntime:MethodILToNativeMap useless as __data__ ?
+	# DotNETRuntime:ModuleDCStartV2
+	# DotNETRuntime:ModuleDCEndV2
+
+	# Loader options
+	# DotNETRuntime:DomainModuleLoad
+	DotNETRuntime:DomainModuleLoad_V1
+	# DotNETRuntime:ModuleLoad
+	# DotNETRuntime:ModuleLoad_V1
+	# DotNETRuntime:ModuleLoad_V2 useless as __data__
+	# DotNETRuntime:ModuleUnload
+	# DotNETRuntime:ModuleUnload_V1
+	# DotNETRuntime:ModuleUnload_V2 useless as __data__
+	# DotNETRuntime:AssemblyLoad
+	DotNETRuntime:AssemblyLoad_V1
+	# DotNETRuntime:AssemblyUnload
+	DotNETRuntime:AssemblyUnload_V1
+	# DotNETRuntime:AppDomainLoad
+	DotNETRuntime:AppDomainLoad_V1
+	# DotNETRuntime:AppDomainUnload
+	DotNETRuntime:AppDomainUnload_V1
+	DotNETRuntime:ModuleRangeLoad
+
+	# DotNETRuntime:StrongNameVerificationStart
+	# DotNETRuntime:StrongNameVerificationStart_V1 !CORECLR
+	# DotNETRuntime:StrongNameVerificationStop
+	# DotNETRuntime:StrongNameVerificationStop_V1 !CORECLR
+	# DotNETRuntime:AuthenticodeVerificationStart
+	# DotNETRuntime:AuthenticodeVerificationStart_V1 !CORECLR
+	# DotNETRuntime:AuthenticodeVerificationStop
+	# DotNETRuntime:AuthenticodeVerificationStop_V1 !CORECLR
+
+	# DotNETRuntime:RuntimeInformationStart useless as __data__
+
+	DotNETRuntime:IncreaseMemoryPressure
+	DotNETRuntime:DecreaseMemoryPressure
+	# DotNETRuntime:GCMarkWithType stopped
+	# DotNETRuntime:GCJoin_V2 MULTIPLE_HEAPS
+	# DotNETRuntime:GCPerHeapHistory_V3 useless as __data__
+	DotNETRuntime:GCGlobalHeapHistory_V2
+
+	# DotNETRuntime:DebugIPCEventStart no template
+	# DotNETRuntime:DebugIPCEventEnd  no template
+	# DotNETRuntime:DebugExceptionProcessingStart no template
+	# DotNETRuntime:DebugExceptionProcessingEnd no template
+	# DotNETRuntime:CodeSymbols useless as __data__
+	DotNETRuntime:EventSource
+)
+
+declare -a DotNETRuntime_GC=(
+	# DotNETRuntime:GCStart
+	# DotNETRuntime:GCStart_V1
+	DotNETRuntime:GCStart_V2
+	# DotNETRuntime:GCEnd
+	DotNETRuntime:GCEnd_V1
+	# DotNETRuntime:GCRestartEEEnd
+	DotNETRuntime:GCRestartEEEnd_V1
+	# DotNETRuntime:GCHeapStats
+	# DotNETRuntime:GCHeapStats_V1 useless as __data__
+	# DotNETRuntime:GCCreateSegment
+	DotNETRuntime:GCCreateSegment_V1
+	# DotNETRuntime:GCFreeSegment
+	DotNETRuntime:GCFreeSegment_V1
+	# DotNETRuntime:GCRestartEEBegin
+	DotNETRuntime:GCRestartEEBegin_V1
+	# DotNETRuntime:GCSuspendEEEnd
+	DotNETRuntime:GCSuspendEEEnd_V1
+	# DotNETRuntime:GCSuspendEEBegin
+	DotNETRuntime:GCSuspendEEBegin_V1
+	# DotNETRuntime:GCAllocationTick
+	# DotNETRuntime:GCAllocationTick_V1 REDHAWK
+	# DotNETRuntime:GCAllocationTick_V2
+	# DotNETRuntime:GCAllocationTick_V3 stopped
+	# DotNETRuntime:GCCreateConcurrentThread
+	DotNETRuntime:GCCreateConcurrentThread_V1
+	# DotNETRuntime:GCTerminateConcurrentThread
+	DotNETRuntime:GCTerminateConcurrentThread_V1
+	# DotNETRuntime:GCFinalizersEnd
+	DotNETRuntime:GCFinalizersEnd_V1
+	# DotNETRuntime:GCFinalizersBegin
+	DotNETRuntime:GCFinalizersBegin_V1
+	#
+	# DotNETRuntime:GCBulkRootEdge useless as __data__
+	# DotNETRuntime:GCBulkRootConditionalWeakTableElementEdge useless as __data__
+	# DotNETRuntime:GCBulkNode useless as __data__
+	# DotNETRuntime:GCBulkEdge useless as __data__
+	# DotNETRuntime:GCSampledObjectAllocationHigh stopped
+	# DotNETRuntime:GCBulkSurvivingObjectRanges useless as __data__
+	# DotNETRuntime:GCBulkMovedObjectRanges useless as __data__
+	DotNETRuntime:GCGenerationRange
+	# DotNETRuntime:GCMarkStackRoots ?
+	# DotNETRuntime:GCMarkFinalizeQueueRoots
+	# DotNETRuntime:GCMarkHandles
+	# DotNETRuntime:GCMarkOlderGenerationRoots
+	DotNETRuntime:FinalizeObject
+	# DotNETRuntime:SetGCHandle stopped
+	# DotNETRuntime:DestroyGCHandle stopped
+	DotNETRuntime:GCSampledObjectAllocationLow
+	DotNETRuntime:PinObjectAtGCTime
+	DotNETRuntime:GCTriggered
+	DotNETRuntime:IncreaseMemoryPressure
+	DotNETRuntime:DecreaseMemoryPressure
+	# DotNETRuntime:GCMarkWithType stopped
+	# DotNETRuntime:GCJoin_V2 MULTIPLE_HEAPS
+	# DotNETRuntime:GCPerHeapHistory_V3 useless as __data__
+	DotNETRuntime:GCGlobalHeapHistory_V2
+
+	# DotNETRuntime:GCBulkRootCCW useless as __data__
+	# DotNETRuntime:GCBulkRCW useless as __data__
+	# DotNETRuntime:GCBulkRootStaticVar useless as __data__
+)
+
+declare -a DotNETRuntimeRundown_ALL=(
+	DotNETRuntimeRundown:CLRStackWalkDCStart
+	DotNETRuntimeRundown:MethodDCStart
+	DotNETRuntimeRundown:MethodDCStart_V1
+	DotNETRuntimeRundown:MethodDCStart_V2
+	DotNETRuntimeRundown:MethodDCEnd
+	DotNETRuntimeRundown:MethodDCEnd_V1
+	DotNETRuntimeRundown:MethodDCEnd_V2
+	DotNETRuntimeRundown:MethodDCStartVerbose
+	DotNETRuntimeRundown:MethodDCStartVerbose_V1
+	DotNETRuntimeRundown:MethodDCStartVerbose_V2
+	DotNETRuntimeRundown:MethodDCEndVerbose
+	DotNETRuntimeRundown:MethodDCEndVerbose_V1
+	DotNETRuntimeRundown:MethodDCEndVerbose_V2
+	DotNETRuntimeRundown:MethodDCEndVerbos
+	DotNETRuntimeRundown:DCStartComplete_V1
+	DotNETRuntimeRundown:DCStartComplete
+	DotNETRuntimeRundown:DCEndComplete_V1
+	DotNETRuntimeRundown:DCEndComplete
+	DotNETRuntimeRundown:DCStartInit_V1
+	DotNETRuntimeRundown:DCStartInit
+	DotNETRuntimeRundown:DCEndInit_V1
+	DotNETRuntimeRundown:DCEndInit_V1
+	DotNETRuntimeRundown:DCEndInit_V1
+	DotNETRuntimeRundown:DomainModuleDCStart
+	DotNETRuntimeRundown:DomainModuleDCStart_V1
+	DotNETRuntimeRundown:DomainModuleDCEnd
+	DotNETRuntimeRundown:DomainModuleDCEnd_V1
+	DotNETRuntimeRundown:ModuleDCStart
+	DotNETRuntimeRundown:ModuleDCStart_V1
+	DotNETRuntimeRundown:ModuleDCStart_V2
+	DotNETRuntimeRundown:ModuleDCEnd
+	DotNETRuntimeRundown:ModuleDCEnd_V1
+	DotNETRuntimeRundown:ModuleDCEnd_V2
+	DotNETRuntimeRundown:AssemblyDCStart
+	DotNETRuntimeRundown:AssemblyDCStart_V1
+	DotNETRuntimeRundown:AssemblyDCEnd
+	DotNETRuntimeRundown:AssemblyDCEnd_V1
+	DotNETRuntimeRundown:AppDomainDCStart
+	DotNETRuntimeRundown:AppDomainDCStart_V1
+	DotNETRuntimeRundown:AppDomainDCEnd
+	DotNETRuntimeRundown:AppDomainDCEnd_V1
+	DotNETRuntimeRundown:ThreadDC
+	DotNETRuntimeRundown:ModuleRangeDCStart
+	DotNETRuntimeRundown:ModuleRangeDCEnd
+	DotNETRuntimeRundown:RuntimeInformationDCStart
+)
+
+declare -a DotNETRuntimeStress_ALL=(
+	DotNETRuntimeStress:StressLogEvent
+	DotNETRuntimeStress:StressLogEvent_V1
+	DotNETRuntimeStress:CLRStackWalkStress
+)
+
+declare -a DotNETRuntimePrivate_ALL=(
+	# DotNETRuntimePrivate:GCDecision
+	# DotNETRuntimePrivate:GCDecision_V1
+	# DotNETRuntimePrivate:GCSettings
+	# DotNETRuntimePrivate:GCSettings_V1 !PAL
+	# DotNETRuntimePrivate:GCOptimized
+	# DotNETRuntimePrivate:GCOptimized_V1
+	# DotNETRuntimePrivate:GCPerHeapHistory
+	# DotNETRuntimePrivate:GCPerHeapHistory_V1
+	# DotNETRuntimePrivate:GCGlobalHeapHistory
+	# DotNETRuntimePrivate:GCGlobalHeapHistory_V1
+	# DotNETRuntimePrivate:GCJoin
+	# DotNETRuntimePrivate:GCJoin_V1
+	# DotNETRuntimePrivate:PrvGCMarkStackRoots
+	# DotNETRuntimePrivate:PrvGCMarkStackRoots_V1
+	# DotNETRuntimePrivate:PrvGCMarkFinalizeQueueRoots
+	# DotNETRuntimePrivate:PrvGCMarkFinalizeQueueRoots_V1
+	# DotNETRuntimePrivate:PrvGCMarkHandles
+	# DotNETRuntimePrivate:PrvGCMarkHandles_V1
+	# DotNETRuntimePrivate:PrvGCMarkCards
+	# DotNETRuntimePrivate:PrvGCMarkCards_V1
+	# DotNETRuntimePrivate:BGCBegin !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC1stNonConEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC1stConEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC2ndNonConBegin !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC2ndNonConEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC2ndConBegin !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC2ndConEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCPlanEnd ?
+	# DotNETRuntimePrivate:BGCSweepEnd ?
+	# DotNETRuntimePrivate:BGCDrainMark !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCRevisit !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCOverflow !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCAllocWaitBegin !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCAllocWaitEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:GCFullNotify
+
+	DotNETRuntimePrivate:GCFullNotify_V1
+
+	# DotNETRuntimePrivate:EEStartupStart
+	# DotNETRuntimePrivate:EEStartupStart_V1 !PAL
+	# DotNETRuntimePrivate:EEStartupEnd
+	# DotNETRuntimePrivate:EEStartupEnd_V1 !PAL
+	# DotNETRuntimePrivate:EEConfigSetup
+	# DotNETRuntimePrivate:EEConfigSetup_V1
+	# DotNETRuntimePrivate:EEConfigSetupEnd
+	# DotNETRuntimePrivate:EEConfigSetupEnd_V1
+	# DotNETRuntimePrivate:LdSysBases
+	# DotNETRuntimePrivate:LdSysBases_V1
+	# DotNETRuntimePrivate:LdSysBasesEnd
+	# DotNETRuntimePrivate:LdSysBasesEnd_V1
+	# DotNETRuntimePrivate:ExecExe
+	# DotNETRuntimePrivate:ExecExe_V1 !PAL
+	# DotNETRuntimePrivate:ExecExeEnd
+	# DotNETRuntimePrivate:ExecExeEnd_V1 !PAL
+	# DotNETRuntimePrivate:Main
+	# DotNETRuntimePrivate:Main_V1 !PAL
+	# DotNETRuntimePrivate:MainEnd
+	# DotNETRuntimePrivate:MainEnd_V1 !PAL
+	# DotNETRuntimePrivate:ApplyPolicyStart
+	# DotNETRuntimePrivate:ApplyPolicyStart_V1
+	# DotNETRuntimePrivate:ApplyPolicyEnd
+	# DotNETRuntimePrivate:ApplyPolicyEnd_V1
+	# DotNETRuntimePrivate:LdLibShFolder
+	# DotNETRuntimePrivate:LdLibShFolder_V1
+	# DotNETRuntimePrivate:LdLibShFolderEnd
+	# DotNETRuntimePrivate:LdLibShFolderEnd_V1
+	# DotNETRuntimePrivate:PrestubWorker
+	# DotNETRuntimePrivate:PrestubWorker_V1
+	# DotNETRuntimePrivate:PrestubWorkerEnd
+	# DotNETRuntimePrivate:PrestubWorkerEnd_V1
+	# DotNETRuntimePrivate:GetInstallationStart
+	# DotNETRuntimePrivate:GetInstallationStart_V1
+	# DotNETRuntimePrivate:GetInstallationEnd
+	# DotNETRuntimePrivate:GetInstallationEnd_V1
+	# DotNETRuntimePrivate:OpenHModule
+	# DotNETRuntimePrivate:OpenHModule_V1
+	# DotNETRuntimePrivate:OpenHModuleEnd
+	# DotNETRuntimePrivate:OpenHModuleEnd_V1
+	# DotNETRuntimePrivate:ExplicitBindStart
+	# DotNETRuntimePrivate:ExplicitBindStart_V1
+	# DotNETRuntimePrivate:ExplicitBindEnd
+	# DotNETRuntimePrivate:ExplicitBindEnd_V1
+	# DotNETRuntimePrivate:ParseXml
+	# DotNETRuntimePrivate:ParseXml_V1
+	# DotNETRuntimePrivate:ParseXmlEnd
+	# DotNETRuntimePrivate:ParseXmlEnd_V1
+	# DotNETRuntimePrivate:InitDefaultDomain
+	# DotNETRuntimePrivate:InitDefaultDomain_V1
+	# DotNETRuntimePrivate:InitDefaultDomainEnd
+	# DotNETRuntimePrivate:InitDefaultDomainEnd_V1
+	# DotNETRuntimePrivate:InitSecurity
+	# DotNETRuntimePrivate:InitSecurity_V1
+	# DotNETRuntimePrivate:InitSecurityEnd
+	# DotNETRuntimePrivate:InitSecurityEnd_V1
+	# DotNETRuntimePrivate:AllowBindingRedirs
+	# DotNETRuntimePrivate:AllowBindingRedirs_V1
+	# DotNETRuntimePrivate:AllowBindingRedirsEnd
+	# DotNETRuntimePrivate:AllowBindingRedirsEnd_V1
+	# DotNETRuntimePrivate:EEConfigSync
+	# DotNETRuntimePrivate:EEConfigSync_V1
+	# DotNETRuntimePrivate:EEConfigSyncEnd
+	# DotNETRuntimePrivate:EEConfigSyncEnd_V1
+	# DotNETRuntimePrivate:FusionBinding
+	# DotNETRuntimePrivate:FusionBinding_V1
+	# DotNETRuntimePrivate:FusionBindingEnd
+	# DotNETRuntimePrivate:FusionBindingEnd_V1
+	# DotNETRuntimePrivate:LoaderCatchCall
+	# DotNETRuntimePrivate:LoaderCatchCall_V1
+	# DotNETRuntimePrivate:LoaderCatchCallEnd
+	# DotNETRuntimePrivate:LoaderCatchCallEnd_V1
+	# DotNETRuntimePrivate:FusionInit
+	# DotNETRuntimePrivate:FusionInit_V1
+	# DotNETRuntimePrivate:FusionInitEnd
+	# DotNETRuntimePrivate:FusionInitEnd_V1
+	# DotNETRuntimePrivate:FusionAppCtx
+	# DotNETRuntimePrivate:FusionAppCtx_V1
+	# DotNETRuntimePrivate:FusionAppCtxEnd
+	# DotNETRuntimePrivate:FusionAppCtxEnd_V1
+	# DotNETRuntimePrivate:Fusion2EE
+	# DotNETRuntimePrivate:Fusion2EE_V1
+	# DotNETRuntimePrivate:Fusion2EEEnd
+	# DotNETRuntimePrivate:Fusion2EEEnd_V1
+	# DotNETRuntimePrivate:SecurityCatchCall
+	# DotNETRuntimePrivate:SecurityCatchCall_V1 CAS_POLICY !CORECLR
+	# DotNETRuntimePrivate:SecurityCatchCallEnd
+	# DotNETRuntimePrivate:SecurityCatchCallEnd_V1
+	# DotNETRuntimePrivate:CLRStackWalkPrivate
+
+	DotNETRuntimePrivate:ModuleRangeLoadPrivate
+
+	# DotNETRuntimePrivate:BindingPolicyPhaseStart
+	# DotNETRuntimePrivate:BindingPolicyPhaseEnd
+	# DotNETRuntimePrivate:BindingNgenPhaseStart win32
+	# DotNETRuntimePrivate:BindingNgenPhaseEnd win32
+	# DotNETRuntimePrivate:BindingLookupAndProbingPhaseStart
+	# DotNETRuntimePrivate:BindingLookupAndProbingPhaseEnd win32 fusion
+	# DotNETRuntimePrivate:LoaderPhaseStart !CORECLR
+	# DotNETRuntimePrivate:LoaderPhaseEnd !CORECLR
+	# DotNETRuntimePrivate:BindingPhaseStart win32 fusion
+	# DotNETRuntimePrivate:BindingPhaseEnd win32 fusion
+	# DotNETRuntimePrivate:BindingDownloadPhaseStart
+	# DotNETRuntimePrivate:BindingDownloadPhaseEnd win32 fusion
+	# DotNETRuntimePrivate:LoaderAssemblyInitPhaseStart !CORECLR
+	# DotNETRuntimePrivate:LoaderAssemblyInitPhaseEnd !CORECLR
+	# DotNETRuntimePrivate:LoaderMappingPhaseStart !CORECLR
+	# DotNETRuntimePrivate:LoaderMappingPhaseEnd !CORECLR
+	# DotNETRuntimePrivate:LoaderDeliverEventsPhaseStart !CORECLR
+	# DotNETRuntimePrivate:LoaderDeliverEventsPhaseEnd !CORECLR
+	# DotNETRuntimePrivate:EvidenceGenerated CAS_POLICY
+	# DotNETRuntimePrivate:ModuleTransparencyComputationStart !CORECLR
+	# DotNETRuntimePrivate:ModuleTransparencyComputationEnd !CORECLR
+	# DotNETRuntimePrivate:TypeTransparencyComputationStart !CORECLR
+	# DotNETRuntimePrivate:TypeTransparencyComputationEnd !CORECLR
+	# DotNETRuntimePrivate:MethodTransparencyComputationStart !CORECLR
+	# DotNETRuntimePrivate:MethodTransparencyComputationEnd !CORECLR
+	# DotNETRuntimePrivate:FieldTransparencyComputationStart !CORECLR
+	# DotNETRuntimePrivate:FieldTransparencyComputationEnd !CORECLR
+	# DotNETRuntimePrivate:TokenTransparencyComputationStart !CORECLR
+	# DotNETRuntimePrivate:TokenTransparencyComputationEnd !CORECLR
+	# DotNETRuntimePrivate:NgenBindEvent
+
+	DotNETRuntimePrivate:FailFast
+	DotNETRuntimePrivate:PrvFinalizeObject
+
+	# DotNETRuntimePrivate:CCWRefCountChange !Linux
+
+	# DotNETRuntimePrivate:PrvSetGCHandle
+	DotNETRuntimePrivate:PrvDestroyGCHandle
+
+	# DotNETRuntimePrivate:FusionMessageEvent
+	# DotNETRuntimePrivate:FusionErrorCodeEvent
+
+	DotNETRuntimePrivate:PinPlugAtGCTime
+	# DotNETRuntimePrivate:AllocRequest
+
+	# 
+	DotNETRuntimePrivate:MulticoreJit
+	DotNETRuntimePrivate:MulticoreJitMethodCodeReturned
+
+	#
+	# DotNETRuntimePrivate:IInspectableRuntimeClassName !CORECLR
+        # DotNETRuntimePrivate:WinRTUnbox
+        # DotNETRuntimePrivate:CreateRCW
+        # DotNETRuntimePrivate:RCWVariance
+        # DotNETRuntimePrivate:RCWIEnumerableCasting
+        # DotNETRuntimePrivate:CreateCCW
+        # DotNETRuntimePrivate:CCWVariance
+        # DotNETRuntimePrivate:ObjectVariantMarshallingToNative
+        # DotNETRuntimePrivate:GetTypeFromGUID
+        # DotNETRuntimePrivate:GetTypeFromProgID
+        # DotNETRuntimePrivate:ConvertToCallbackEtw
+        # DotNETRuntimePrivate:BeginCreateManagedReference
+        # DotNETRuntimePrivate:EndCreateManagedReference
+        # DotNETRuntimePrivate:ObjectVariantMarshallingToManaged
+)
+
+declare -a DotNETRuntimePrivate_GC=(
+	# DotNETRuntimePrivate:GCDecision
+	# DotNETRuntimePrivate:GCDecision_V1
+	# DotNETRuntimePrivate:GCSettings
+	DotNETRuntimePrivate:GCSettings_V1
+	# DotNETRuntimePrivate:GCOptimized
+	# DotNETRuntimePrivate:GCOptimized_V1
+	# DotNETRuntimePrivate:GCPerHeapHistory
+	# DotNETRuntimePrivate:GCPerHeapHistory_V1
+	# DotNETRuntimePrivate:GCGlobalHeapHistory
+	# DotNETRuntimePrivate:GCGlobalHeapHistory_V1
+	# DotNETRuntimePrivate:GCJoin
+	# DotNETRuntimePrivate:GCJoin_V1
+	# DotNETRuntimePrivate:PrvGCMarkStackRoots
+	# DotNETRuntimePrivate:PrvGCMarkStackRoots_V1
+	# DotNETRuntimePrivate:PrvGCMarkFinalizeQueueRoots
+	# DotNETRuntimePrivate:PrvGCMarkFinalizeQueueRoots_V1
+	# DotNETRuntimePrivate:PrvGCMarkHandles
+	# DotNETRuntimePrivate:PrvGCMarkHandles_V1
+	# DotNETRuntimePrivate:PrvGCMarkCards
+	# DotNETRuntimePrivate:PrvGCMarkCards_V1
+	# DotNETRuntimePrivate:BGCBegin !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC1stNonConEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC1stConEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC2ndNonConBegin !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC2ndNonConEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC2ndConBegin !WRITE_WATCH
+	# DotNETRuntimePrivate:BGC2ndConEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCPlanEnd ?
+	# DotNETRuntimePrivate:BGCSweepEnd ?
+	# DotNETRuntimePrivate:BGCDrainMark !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCRevisit !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCOverflow !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCAllocWaitBegin !WRITE_WATCH
+	# DotNETRuntimePrivate:BGCAllocWaitEnd !WRITE_WATCH
+	# DotNETRuntimePrivate:GCFullNotify
+	DotNETRuntimePrivate:GCFullNotify_V1
+	#
+	DotNETRuntimePrivate:PrvFinalizeObject
+	#
+	DotNETRuntimePrivate:PinPlugAtGCTime
+)
+
+# Setup context
+
+#lttng add-context --userspace --type vpid > /dev/null
+#lttng add-context --userspace --type vtid > /dev/null
+#lttng add-context --userspace --type procname > /dev/null
+
+# Setup event parameters
+
+#lttng enable-event --userspace --tracepoint 'DotNETRuntime:*'  > /dev/null
+#lttng enable-event --userspace --tracepoint 'DotNETRuntimeRundown:*' > /dev/null
+#lttng enable-event --userspace --tracepoint 'DotNETRuntimeStress:*' > /dev/null
+#lttng enable-event --userspace --tracepoint 'DotNETRuntimePrivate:*' > /dev/null
+
+# lttng start
+#lttng start $session
+
+function lttng_enable_template()
+{
+	lttng enable-event -u -c channel0 --tracepoint "$1:*" > /dev/null
+}
+
+function lttng_enable_events()
+{
+#    echo ${events[@]}
+    (IFS=,; lttng enable-event -u -c channel0 --tracepoint "${events[*]}")  > /dev/null
+}
+
+function lttng_disable_events()
+{
+#    echo ${events[@]}
+    (IFS=,; lttng disable-event --userspace "${events[*]}")
+}
+
+function lttng_clear_events()
+{
+    lttng disable-event --userspace --all-events
+}
+
+function lttng_setup_events()
+{
+    output=`lttng list $CPERF_SESSION`
+    if [ $? != 0 ]
+    then
+	return
+    fi
+    events=""
+    for event in $*
+    do
+	# echo "==" $event
+	case "$event" in
+	clear)
+	    events=""
+	    lttng_clear_events
+	    ;;
+	all)
+	    events=(${DotNETRuntime_ALL[@]} ${DotNETRuntimePrivate_ALL[@]})
+	    # echo ${events[@]}
+	    lttng_enable_events
+	    ;;
+	gc)
+	    events=(${DotNETRuntime_GC[@]} ${DotNETRuntimePrivate_GC[@]})
+	    # echo ${events[@]}
+            lttng_enable_events
+            ;;
+	-gc)
+	    events=(${DotNETRuntime_GC[@]} ${DotNETRuntimePrivate_GC[@]})
+	    echo ${events[@]}
+            lttng_disable_events
+            ;;
+	*)
+	    echo "Unknown event group $event"
+	    return
+	    ;;
+	esac
+    done
+}
+
+function lttng_dir()
+{
+    output=`lttng list $CPERF_SESSION`
+    echo $output | sed 's/.*Trace path: \(.*\) === Domain:.*/\1/'
+}
+
+function lttng_state()
+{
+    output=`lttng list $CPERF_SESSION`
+    if [ $? != 0 ]
+    then
+	echo "closed"
+	return
+    fi
+    echo "$output" > /dev/tty
+    if expr "$output" : ".*Tracing session $CPERF_SESSION: \[inactive\].*" > /dev/null
+    then
+	echo "opened"
+	return
+    elif expr "$output" : ".*Tracing session $CPERF_SESSION: \[active\].*" > /dev/null
+    then
+	echo "started"
+	return
+    fi
+    echo "unknown"
+}
+
+function lttng_create_session()
+{
+    echo Create $CPERF_SESSION
+    if lttng list $CPERF_SESSION > /dev/null 2>/dev/null
+    then
+	echo Session $CPERF_SESSION already exists
+	return 1
+    fi
+
+    local output_option=
+    if [ "$CPERF_HOST_CODE" != "" ]
+    then
+	output_option=--output=$HOME/share/lttng_$CPERF_HOST_CODE
+    fi
+
+    if ! lttng create $output_option $CPERF_SESSION 
+    then 
+	echo "Can't create session $CPERF_SESSION"
+	return 1
+    fi
+    lttng enable-channel --userspace --tracefile-size 1048576 channel0 > /dev/null
+    lttng add-context --userspace --type vpid > /dev/null
+    lttng add-context --userspace --type vtid > /dev/null
+    #lttng add-context --userspace --type procname > /dev/null
+    lttng_setup_events $CPERF_LIST
+    if [[ "$PROF_DELAYED_START" = "true" || "$PROF_DELAYED_START" = "1" ]]
+    then
+	lttng disable-channel --userspace channel0
+    fi
+}
+
+function lttng_collect()
+{
+    if [ "$#" -le 1 ]
+    then
+	return
+    fi
+    shift
+    lttng destroy $CPERF_SESSION > /dev/null 2>&1
+    trap - SIGHUP
+    cperf clone &&
+    (local dir=`lttng_dir`
+    echo $dir
+    cperf start
+    trap "" SIGINT
+    (stty intr ^b; trap - SIGINT; trap "" SIGRTMIN+7; trap "" SIGRTMIN+8
+     if [ "$CPERF_HOST_CODE" != "" ]
+     then
+        # echo $BASHPID > /opt/usr/home/owner/cperf_pid_$CPERF_HOST_CODE
+        # The shell on Tizen is outdated and hasn't BASHPID variable
+	echo `sh -c 'echo $PPID'` > /opt/usr/home/owner/share/cperf_pid_$CPERF_HOST_CODE
+     fi
+     if [ "$CPERF_APPID" != "" ]
+     then
+        echo $HOME
+        # This is how to run CoreCLR Tizen Xamarin app from command line
+        XDG_RUNTIME_DIR=/run/user/5001 \
+        DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/5001/dbus/user_bus_socket  \
+        AUL_APPID=$CPERF_APPID \
+        exec $CPERF_DOTNET_LAUNCHER --standalone "$@" > /dev/null 2>&1
+     else
+        exec $CPERF_CORERUN "$@"
+     fi
+    )
+    stty intr ^c
+    trap - SIGINT
+    cperf close
+    if [[ "$CPERF_HOST_CODE" = "" || "$CPERF_ZIP_NAME" != "" ]]
+    then
+#        echo skip zip packing
+	mv $PROF_TRACE_FILENAME $dir || echo "Can't copy trace log"
+         (cd $dir;
+         zipdir=${CPERF_ZIP_NAME:-$dir.zip}; rm -f $zipdir;
+         zip -r $zipdir . > /dev/null && cd .. && rm -rf $dir )
+    else
+	rm -f trace.log
+    fi)
+}
+
+function cperf_usage()
+{
+cat <<!END
+Usage:
+	cperf command [parameter]
+
+Commands:
+	all - Select full set of lttng events
+	clear - Clear set of lttng events
+
+        new - Create a new lttng session without lttng events
+	clone - Create a new lttng session based on the current tmplate
+
+	start - Start and destroy the current lttng session
+	stop - Stop and destroy the current lttng session
+	close - Close and destroy the current lttng session
+
+	collect - Create a new session, collect data, copy trace file, show 
+		  directory name
+
+	Ins...|ins... - Select Instrumentation method
+	Sam...|sam... [timeout] - Select Sampling method
+
+	off - Switch off lttng variables
+	on - Switch on lttng variables
+	jit|-jit - Switch on/off JIT events in lttng
+	gc/-gc - Switch on/off GC events in lttng
+
+	load [file] - Load parameters from the file
+	save [file] - Save parameters to the file
+
+	usage | -h | --h - This help
+!END
+}
+
+function cperf()
+{
+    case "$1" in
+    all)
+        CPERF_LIST=all
+	lttng_setup_events all
+        ;;
+    clear)
+        CPERF_LIST=clear
+	lttng_setup_events clear
+        ;;
+    clone)
+        export CPERF_SESSION=${2:-DotNET}
+	lttng_create_session
+        ;;
+    close)
+	lttng destroy $CPERF_SESSION
+	;;
+    collect)
+	#if [[ "$COMPlus_EnableEventLog" == "1" || "COMPlus_ARMEnabled" == "1" ]]
+	#then
+	    # lttng must be started
+	    # cperf clone && dir=lttng_dir && cperf 
+	    lttng_collect "$@"
+	#else
+	#    echo no lttng
+	#fi
+	;;
+    finish)
+	(local dir=`lttng_dir`
+	 cperf close
+         mv $PROF_TRACE_FILENAME $dir || echo "Can't copy trace log"
+         (cd $dir/..; zip -r $dir.zip $dir && rm -rf $dir && 
+	  echo "Saved to $dir.zip"))
+	;;
+    new)
+        CPERF_LIST=clear
+        export CPERF_SESSION=${2:-DotNET}
+	lttng_create_session
+        ;;
+    off)
+	export COMPlus_EnableEventLog=0
+	export COMPlus_ARMEnabled=0
+	;;
+    on)
+	export COMPlus_EnableEventLog=1
+	export COMPlus_ARMEnabled=1
+	;;
+    jit|-jit|gc|-gc)
+        CPERF_LIST="$CPERF_LIST $1"
+	lttng_setup_events $1
+        ;;
+    load)
+	fname=${2:-~/.cperf}
+	cperf_parameters_load "$fname"
+	;;
+    ins*|Ins*)
+	if [[ nstrumentation != ${1:1}* ]] 
+	then
+	   echo Unknown command $1
+	   return
+	fi
+	export PROF_COLLECT_METHOD=Instrumentation
+	unset PROF_SAMPLING_TIMEOUT
+	;;
+    sam*|Sam*)
+	if [[ ampling != ${1:1}* ]] 
+	then
+	   echo Unknown command $1
+	   return
+	fi
+	export PROF_COLLECT_METHOD=Sampling
+	export PROF_SAMPLING_TIMEOUT=${2:-$CPERF_TIMEOUT}
+	CPERF_TIMEOUT=$PROF_SAMPLING_TIMEOUT
+	;;
+    save)
+	fname=${2:-~/.cperf}
+	{
+	    for name in ${CPERF_VARIABLES[*]}
+	    do
+		local -n tmp=$name
+		echo $name=$tmp
+	    done
+	} > $fname
+	chmod +x $fname
+	;;
+    start)
+        #lttng_enable_events $CPERF_LIST
+        lttng start $CPERF_SESSION
+        ;;
+    stop)
+        lttng stop $CPERF_SESSION
+        #lttng destroy $CPERF_SESSION
+        ;;
+    show|status)
+	echo "Session name         : $CPERF_SESSION"
+	echo "Enabled event groups : $CPERF_LIST"
+	echo "Current state        : `lttng_state`"
+	local use_lttng="no"
+	if [ "$COMPlus_EnableEventLog" == "1" ]
+	then
+	    use_lttng="yes"
+	fi
+	echo "Use lttng            : $use_lttng"
+	echo "Profiling method     : $PROF_COLLECT_METHOD"
+	echo "Timeout              : $CPERF_TIMEOUT"
+	;;
+    usage|-h|--help)
+	cperf_usage
+	;;
+    *)
+        echo "Unknown command $1"
+        return 1
+        ;;
+    esac
+    
+}
+

@@ -1,0 +1,19 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TizenToolsPath Condition="'$(TizenToolsPath)' == ''">$(MSBuildExtensionsPath)\Tizen\VisualStudio\</TizenToolsPath>
+	  <TizenRulesPath Condition="'$(TizenRulesPath)' == ''">$(TizenToolsPath)\Rules\</TizenRulesPath>
+  </PropertyGroup>
+
+  <Target Name="CopyAdditionalFilesForDeploy" AfterTargets="CopyFilesToOutputDirectory">
+	  <ItemGroup>
+	    <_XamlPropertyRuleToCopy Include="@(XamlPropertyRule)"/>
+	  </ItemGroup>
+	  <PropertyGroup>
+	    <_XamlCopyToDestination>$(SolutionDir)Tizen.VisualStudio.VsixSetup\$(OutputPath)DeployedContents\Rules\</_XamlCopyToDestination>
+	  </PropertyGroup>
+	  <Message Importance="High" Text="@(XamlPropertyRule)" />
+	  <Copy SourceFiles="@(_XamlPropertyRuleToCopy)"
+		    DestinationFiles="@(_XamlPropertyRuleToCopy ->'$(_XamlCopyToDestination)%(Filename)%(Extension)')"
+		    Condition="'@(_XamlPropertyRuleToCopy)' != ''" />
+  </Target>
+</Project>

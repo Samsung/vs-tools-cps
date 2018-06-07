@@ -1,0 +1,48 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Button.xaml" />
+        <ResourceDictionary Source="Grid.xaml" />
+        <ResourceDictionary Source="CheckBox.xaml" />
+        <ResourceDictionary Source="UserControl.xaml" />
+        <ResourceDictionary Source="ComboBox.xaml" />
+        <ResourceDictionary Source="ListBox.xaml" />
+        <ResourceDictionary Source="ListView.xaml" />
+        <ResourceDictionary Source="Label.xaml" />
+        <ResourceDictionary Source="TextBlock.xaml"/>
+        <ResourceDictionary Source="TextBox.xaml" />
+        <ResourceDictionary Source="GroupBox.xaml" />
+        <ResourceDictionary Source="TabControl.xaml" />
+        <ResourceDictionary Source="Scrollbar.xaml" />
+        <ResourceDictionary Source="ToggleButton.xaml" />
+        <ResourceDictionary Source="DataGrid.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <Style BasedOn="{StaticResource CommonButton}" TargetType="Button" />
+    <Style BasedOn="{StaticResource CommonGrid}" TargetType="Grid" />
+    <Style BasedOn="{StaticResource CommonCheckBox}" TargetType="CheckBox" />
+    <Style BasedOn="{StaticResource CommonUserControl}" TargetType="UserControl" />
+    <Style BasedOn="{StaticResource CommonComboBox}" TargetType="ComboBox" />
+    <Style BasedOn="{StaticResource CommonListBox}" TargetType="ListBox" />
+    <Style BasedOn="{StaticResource CommonListView}" TargetType="ListView" />
+    <Style BasedOn="{StaticResource CommonGridViewColumnHeader}" TargetType="GridViewColumnHeader" />
+    <Style BasedOn="{StaticResource CommonLabel}" TargetType="Label" />
+    <Style BasedOn="{StaticResource CommonTextBlock}" TargetType="TextBlock" />
+    <Style BasedOn="{StaticResource CommonTextBox}" TargetType="TextBox" />
+    <Style BasedOn="{StaticResource CommonGroupBox}" TargetType="GroupBox" />
+    <Style BasedOn="{StaticResource CommonScrollBar}" TargetType="ScrollBar" />
+    <Style BasedOn="{StaticResource StdToggleButton}" TargetType="ToggleButton" />
+    <Style BasedOn="{StaticResource ResouceMTabControl}" TargetType="TabControl" />
+    <Style BasedOn="{StaticResource CommonDataGridColumnHeader}" TargetType="DataGridColumnHeader"/>
+    <Style BasedOn="{StaticResource CommonDataGridRow}" TargetType="DataGridRow"/>
+    <Style BasedOn="{StaticResource CommonDataGrid}" TargetType="DataGrid"/>
+
+    <Style TargetType="{x:Type RadioButton}">
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:VsBrushes.BrandedUITextKey}}" />
+    </Style>
+    <Style TargetType="DockPanel">
+        <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.BrandedUIBackgroundKey}}"/>
+    </Style>
+</ResourceDictionary>

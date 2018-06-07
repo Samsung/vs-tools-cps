@@ -1,0 +1,401 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!-- This is the file that defines the actual layout and type of the commands.
+		It is divided in different sections (e.g. command definition, command
+		placement, ...), with each defining a specific set of properties.
+		See the comment before each section for more details about how to
+		use it. -->
+
+  <!-- The VSCT compiler (the tool that translates this file into the binary
+		format that VisualStudio will consume) has the ability to run a preprocessor
+		on the vsct file; this preprocessor is (usually) the C++ preprocessor, so
+		it is possible to define includes and macros with the same syntax used
+		in C++ files. Using this ability of the compiler here, we include some files
+		defining some of the constants that we will use inside the file. -->
+
+  <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
+  <Extern href="stdidcmd.h"/>
+
+  <!--This header contains the command ids for the menus provided by the shell. -->
+  <Extern href="vsshlids.h"/>
+
+  <!-- The Commands section is where commands, menus, and menu groups are defined.
+		This section uses a Guid to identify the package that provides the command defined inside it. -->
+  <Commands package="guidTizenExtensionPackage">
+    <!-- Inside this section we have different sub-sections: one for the menus, another
+			for the menu groups, one for the buttons (the actual commands), one for the combos
+			and the last one for the bitmaps used. Each element is identified by a command id that
+			is a unique pair of guid and numeric identifier; the guid part of the identifier is usually
+			called "command set" and is used to group different command inside a logically related
+			group; your package should define its own command set in order to avoid collisions
+			with command ids defined by other packages. -->
+
+    <!-- In this section you can define new menu groups. A menu group is a container for
+			other menus or buttons (commands); from a visual point of view you can see the
+			group as the part of a menu contained between two lines. The parent of a group
+			must be a menu. -->
+    <Groups>
+      <!-- To hold Tizen popup menu in VS Tools menu -->
+      <Group guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuRoot" priority="0x0010">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+
+      <!-- To hold Tizen menu items in popup menu-->
+      <Group guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" priority="0x0100">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuPopup"/>
+      </Group>
+
+      <!-- To hold buttons in Tizen Toolbar -->
+      <Group guid="guidTizenExtensionPackageCmdSet" id="TizenToolbarGroup" priority="0x0100">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolbar" />
+      </Group>
+
+      <!-- Tizen Tools Profiler menu items-->
+      <Group guid="guidTizenExtensionPackageCmdSet" id="TizenToolsProfilerMenuGroup" priority="0x0100">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsProfilerMenu"/>
+      </Group>
+    </Groups>
+
+    <Menus>
+      <!-- Tizen popup menu on Tools Menu -->
+      <Menu guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuPopup" priority="0x0100" type="Menu">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuRoot"/>
+        <Strings>
+          <ButtonText>Tizen</ButtonText>
+        </Strings>
+      </Menu>
+      <!-- Tizen Toolbar -->
+      <Menu guid="guidTizenExtensionPackageCmdSet" id="TizenToolbar" priority="0x0FFF" type="Toolbar">
+        <CommandFlag>DefaultDocked</CommandFlag>
+        <Strings>
+          <ButtonText>Tizen</ButtonText>
+        </Strings>
+      </Menu>
+
+      <!-- Tizen Tools Profiler menu -->
+      <Menu guid="guidTizenExtensionPackageCmdSet" id="TizenToolsProfilerMenu" priority="0x0101" type="Menu">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+
+        <!--
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        -->
+        <Strings>
+          <ButtonText>Profiler</ButtonText>
+          <CommandName>Profiler</CommandName>
+        </Strings>
+      </Menu>
+    </Menus>
+
+    <!--<Combos>
+			<Combo guid="guidTizenExtensionPackageCmdSet" id="CmdItem_ConnectCombo" priority="0x0010" type="DropDownCombo" defaultWidth="140" idCommandList="CmdItem_ConnectComboGeList">
+				<Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolbarGroup"/>
+				<CommandFlag>IconAndText</CommandFlag>
+				<CommandFlag>CommandWellOnly</CommandFlag>
+				<Strings>
+					<MenuText>Connect Device: </MenuText>
+					<ButtonText>Connect Device: </ButtonText>
+					<ToolTipText>Select String</ToolTipText>
+					<CanonicalName>DropDown Combo</CanonicalName>
+					<LocCanonicalName>DropDown Combo</LocCanonicalName>
+					<CommandName>DropDownCombo</CommandName>
+				</Strings>
+			</Combo>
+		</Combos>-->
+
+    <!--Buttons section. -->
+    <!--This section defines the elements the user can interact with, like a menu command or a button
+			or combo box in a toolbar. -->
+    <Buttons>
+      <!--To define a menu group you have to specify its ID, the parent menu and its display priority.
+				The command is visible and enabled by default. If you need to change the visibility, status, etc, you can use
+				the CommandFlag node.
+				You can add more than one CommandFlag node e.g.:
+					<CommandFlag>DefaultInvisible</CommandFlag>`
+					<CommandFlag>DynamicVisibility</CommandFlag>
+				If you do not want an image next to your command, remove the Icon node /> -->
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemTest" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Invoke MenuItemTestCommand</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemPackageManager" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="PackageMgrImage" id="pngPicPackageManager" />
+        <Strings>
+          <ButtonText>Tizen Package Manager</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemEmulatorManager" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="EmulatorMgrImage" id="pngPicEmulatorManager" />
+        <Strings>
+          <ButtonText>Tizen Emulator Manager</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemSdbPrompt" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="SdbImage" id="pngPicSdb" />
+        <Strings>
+          <ButtonText>Tizen Sdb Command Prompt</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemCertificateManager" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="CertificateMgrImage" id="pngPicCertificateManager" />
+        <Strings>
+          <ButtonText>Tizen Certificate Manager</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemDeviceManager" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="DeviceMgrImage" id="pngPicDeviceManager" />
+        <Strings>
+          <ButtonText>Tizen Device Manager</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemLogViewer" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="LogViewerImage" id="pngPicLogViewer" />
+        <Strings>
+          <ButtonText>Tizen Log Viewer</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemResourceManager" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="guidImages" id="bmpPicSdbPrompt" />
+        <Strings>
+          <ButtonText>Resource Manager</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemInstallWizard" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Install Wizard</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemAPIChecker" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="SdbImage" id="pngPicSdb" />
+        <Strings>
+          <ButtonText>Run APIChecker on Solution</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Toolbar Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_RemoteDevice" priority="0x0100" type="Button">
+        <Parent guid= "guidTizenExtensionPackageCmdSet" id="TizenToolbarGroup" />
+        <Icon guid="guidImages" id="bmpConnectionEx" />
+        <Strings>
+          <ButtonText>Remote Device Manager</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- Toolbar Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_ToolbarEmulatorManager" priority="0x0100" type="Button">
+        <Parent guid= "guidTizenExtensionPackageCmdSet" id="TizenToolbarGroup" />
+        <Icon guid="EmulatorMgrImage" id="pngPicEmulatorManager" />
+        <Strings>
+          <ButtonText>Tizen Emulator Manager</ButtonText>
+        </Strings>
+      </Button>
+    
+      <!-- Tizen Tools Profiler menu buttons -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemExplorerWindow" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsProfilerMenuGroup" />
+        <Icon guid="SessionExplorerImage" id="pngPicSessionExplorer" />
+        <!--
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        -->
+        <Strings>
+          <ButtonText>Session Explorer</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemRunProfiler" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsProfilerMenuGroup" />
+        <Icon guid="RunProfilerImage" id="pngPicRunProfiler" />
+        <!--
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        -->
+        <Strings>
+          <ButtonText>Run Profiler</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemSdbServerStart" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Restart Sdb Server</ButtonText>
+        </Strings>
+      </Button>
+
+    </Buttons>
+
+    <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
+    <Bitmaps>
+      <!--  The bitmap id is defined in a way that is a little bit different from the others:
+				the declaration starts with a guid for the bitmap strip, then there is the resource id of the
+				bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
+				inside a button definition. An important aspect of this declaration is that the element id
+				must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
+      <Bitmap guid="guidImages" href="Resources\Tizen.Extension.ToolsMenu.png"
+					usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpConnectionEx, bmpPicStrikethrough, bmpPicEmulatorManager, bmpPicSdbPrompt, bmpPicCertificate, bmpPicLogViewer"/>
+      <Bitmap guid="toolImages" href="Resources\view_tab_connection_sel.png"
+              usedList="bmpPicDeviceManager"/>
+      <Bitmap guid="EmulatorMgrImage" href="Resources\ic_tizen_emulator_mgr.png"
+              usedList="pngPicEmulatorManager"/>
+      <Bitmap guid="DeviceMgrImage" href="Resources\ic_tizen_device_mgr.png"
+              usedList="pngPicDeviceManager"/>
+      <Bitmap guid="CertificateMgrImage" href="Resources\ic_tizen_certificate_mgr.png"
+              usedList="pngPicCertificateManager"/>
+      <Bitmap guid="LogViewerImage" href="Resources\ic_tizen_log_viewer.png"
+              usedList="pngPicLogViewer"/>
+      <Bitmap guid="ApiCheckerImage" href="Resources\ic_tizen_run_api.png"
+              usedList="pngPicApiChecker"/>
+      <Bitmap guid="SdbImage" href="Resources\ic_tizen_sdb.png"
+              usedList="pngPicSdb"/>
+      <Bitmap guid="PackageMgrImage" href="Resources\ic_tizen_package_manager.png"
+              usedList="pngPicPackageManager"/>
+      <Bitmap guid="ProfilerImage" href="Resources\ic_tizen_profiler.png"
+              usedList="pngPicProfiler"/>
+      <Bitmap guid="ResourceMgrImage" href="Resources\ic_tizen_resource_manager.png"
+              usedList="pngResourceManager"/>
+      <Bitmap guid="RunProfilerImage" href="Resources\ic_tizen_run_profiler.png"
+              usedList="pngPicRunProfiler"/>
+      <Bitmap guid="SessionExplorerImage" href="Resources\ic_tizen_session_explorer.png"
+              usedList="pngPicSessionExplorer"/>
+    </Bitmaps>
+  </Commands>
+
+  <Symbols>
+    <!-- This is the package guid. -->
+    <GuidSymbol name="guidTizenExtensionPackage" value="{f6276019-8d92-4a6e-8db3-ab820a4f0ab6}" />
+
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="guidTizenExtensionPackageCmdSet" value="{14cd1b22-758c-4d5e-827e-0229a3371332}">
+      <IDSymbol name="TizenToolsMenuRoot" value="0x1001" />
+      <IDSymbol name="TizenToolsMenuPopup" value="0x1002" />
+      <IDSymbol name="TizenToolsMenuGroup" value="0x1003" />
+      <IDSymbol name="TizenToolbar" value="0x2001" />
+      <IDSymbol name="TizenToolbarGroup" value="0x2002" />
+
+      <IDSymbol name="TizenToolsProfilerMenu" value="0x2003" />
+      <IDSymbol name="TizenToolsProfilerMenuGroup" value="0x2004" />
+
+      <IDSymbol name="CmdItem_ConnectCombo" value="0x0101" />
+      <IDSymbol name="CmdItem_ConnectComboGeList" value="0x0102" />
+      <IDSymbol name="CmdItem_RemoteDevice" value="0x0103" />
+      <IDSymbol name="CmdItem_ToolbarEmulatorManager" value="0x0104" />
+
+      <IDSymbol name="CmdItem_MenuItemPackageManager" value="0x0100" />
+      <IDSymbol name="CmdItem_MenuItemEmulatorManager" value="0x0105" />
+      <IDSymbol name="CmdItem_MenuItemSdbPrompt" value="0x0107" />
+      <IDSymbol name="CmdItem_MenuItemCertificateManager" value="0x0108" />
+      <IDSymbol name="CmdItem_MenuItemLogViewer" value="0x0109" />
+      <IDSymbol name="CmdItem_MenuItemDeviceManager" value="0x0110" />
+      <IDSymbol name="CmdItem_MenuItemAPIChecker" value="0x0111" />
+      <IDSymbol name="CmdItem_MenuItemResourceManager" value="0x0112" />
+      <IDSymbol name="CmdItem_MenuItemExplorerWindow" value="0x0113" />
+      <IDSymbol name="CmdItem_MenuItemRunProfiler" value="0x0114" />
+      <IDSymbol name="CmdItem_MenuItemInstallWizard" value="0x0198" />
+      <IDSymbol name="CmdItem_MenuItemTest" value="0x0199" />
+      <IDSymbol name="CmdItem_MenuItemSdbServerStart" value="0x0200" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidImages" value="{465cd234-4abe-4837-82bc-822c9d9f7bf2}" >
+      <IDSymbol name="bmpPic1" value="1" />
+      <IDSymbol name="bmpPic2" value="2" />
+      <IDSymbol name="bmpPicSearch" value="3" />
+      <IDSymbol name="bmpPicX" value="4" />
+      <IDSymbol name="bmpConnectionEx" value="5" />
+      <IDSymbol name="bmpPicStrikethrough" value="6" />
+      <IDSymbol name="bmpPicEmulatorManager" value="7" />
+      <IDSymbol name="bmpPicSdbPrompt" value="8" />
+      <IDSymbol name="bmpPicCertificate" value="9" />
+      <IDSymbol name="bmpPicLogViewer" value="10" />
+    </GuidSymbol>
+
+    <GuidSymbol name="toolImages" value="{8533FC6A-5D2D-479E-AD5A-CE0E6F37AFAB}" >
+      <IDSymbol name="bmpPicDeviceManager" value="1" />
+    </GuidSymbol>
+
+    <GuidSymbol name="EmulatorMgrImage" value="{0EC2D771-178C-4A05-92DD-425EFFE5FF64}">
+      <IDSymbol name="pngPicEmulatorManager" value="1"/>
+    </GuidSymbol>
+
+    <GuidSymbol name="DeviceMgrImage" value="{CD855EB7-54FB-40C3-9C3B-621E3B12D39A}">
+      <IDSymbol name="pngPicDeviceManager" value="1"/>
+    </GuidSymbol>
+
+    <GuidSymbol name="CertificateMgrImage" value="{876C4CFE-CA1C-4A22-B34D-28702A225DD6}">
+      <IDSymbol name="pngPicCertificateManager" value="1"/>
+    </GuidSymbol>
+
+    <GuidSymbol name="LogViewerImage" value="{CABD990E-1EEE-4CCB-BC75-026A732C7CDC}">
+      <IDSymbol name="pngPicLogViewer" value="1"/>
+    </GuidSymbol>
+    
+    <GuidSymbol name="ApiCheckerImage" value="{A9CE78E6-EA14-4840-9CCD-F3C9A12CC036}">
+      <IDSymbol name="pngPicApiChecker" value="1"/>
+    </GuidSymbol>
+    
+    <GuidSymbol name="SdbImage" value="{1ED616F3-D99C-4EC0-ACA5-973B4C882D69}">
+      <IDSymbol name="pngPicSdb" value="1"/>
+    </GuidSymbol>
+    
+    <GuidSymbol name="PackageMgrImage" value="{EEF0A196-7B21-4755-B6D1-4B56A7E3DDA8}">
+      <IDSymbol name="pngPicPackageManager" value="1"/>
+    </GuidSymbol>
+
+    <GuidSymbol name="ProfilerImage" value="{BE427EFF-7787-4A0F-9D2E-ED7C3435C908}">
+      <IDSymbol name="pngPicProfiler" value="1"/>
+    </GuidSymbol>
+
+    <GuidSymbol name="ResourceMgrImage" value="{C68B0FE4-F861-4AA2-A3C3-6C4E7F8BCFD4}">
+      <IDSymbol name="pngResourceManager" value="1"/>
+    </GuidSymbol>
+
+    <GuidSymbol name="RunProfilerImage" value="{2F0F1EE9-536C-4A13-883E-461D0EC8CDDD}">
+      <IDSymbol name="pngPicRunProfiler" value="1"/>
+    </GuidSymbol>
+
+    <GuidSymbol name="SessionExplorerImage" value="{8224CDB8-B9AC-4CF1-8A3B-82E8A59D0505}">
+      <IDSymbol name="pngPicSessionExplorer" value="1"/>
+    </GuidSymbol>
+    
+  </Symbols>
+</CommandTable>
+
+<!-- URLs
+	Adding Toolbar: https://msdn.microsoft.com/en-us/library/bb164715.aspx
+	Adding Submenu: https://msdn.microsoft.com/en-us/library/bb165739.aspx
+-->

@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{FCF895E7-92F0-43FD-AE98-CF3FDBF3B766}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NetCore.Profiler.Analytics</RootNamespace>
+    <AssemblyName>NetCore.Profiler.Analytics</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>TizenNET.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DataProvider\ApplicationStatistics.cs" />
+    <Compile Include="DataProvider\DataTypeAllocationStatistics.cs" />
+    <Compile Include="DataProvider\DataTypeMemoryStatistics.cs" />
+    <Compile Include="DataProvider\MemoryProfilingDataProvider.cs" />
+    <Compile Include="DataProvider\ProfilingDataProvider.cs" />
+    <Compile Include="DataProvider\FunctionCall.cs" />
+    <Compile Include="DataProvider\HotPathItem.cs" />
+    <Compile Include="DataProvider\HotPath.cs" />
+    <Compile Include="DataProvider\MethodStatistics.cs" />
+    <Compile Include="DataProvider\ProfilingStatisticsTotals.cs" />
+    <Compile Include="DataProvider\SelectedTimeFrame.cs" />
+    <Compile Include="DataProvider\SessionThreadBase.cs" />
+    <Compile Include="DataProvider\SourceLineStatistics.cs" />
+    <Compile Include="DataProvider\StatisticsData.cs" />
+    <Compile Include="DataProvider\ThreadStatistics.cs" />
+    <Compile Include="DataProvider\ThreadStatisticsData.cs" />
+    <Compile Include="DataProvider\ThreadStatisticsRaw.cs" />
+    <Compile Include="Model\ClrJob.cs" />
+    <Compile Include="Model\UnmanagedMemoryData.cs" />
+    <Compile Include="Model\IApplicationStatistics.cs" />
+    <Compile Include="Model\ICallStatisticsTreeNode.cs" />
+    <Compile Include="Model\IDataProvider.cs" />
+    <Compile Include="Model\IHotPathItem.cs" />
+    <Compile Include="Model\IHotPath.cs" />
+    <Compile Include="Model\IMethodStatistics.cs" />
+    <Compile Include="Model\IProfiledObjectStatistics.cs" />
+    <Compile Include="Model\IProfilingStatisticsTotals.cs" />
+    <Compile Include="Model\ISelectedTimeFrame.cs" />
+    <Compile Include="Model\ISessionThreadBase.cs" />
+    <Compile Include="Model\ISourceLineStatistics.cs" />
+    <Compile Include="Model\IThreadStatistics.cs" />
+    <Compile Include="Model\IThreadStatisticsRaw.cs" />
+    <Compile Include="Model\ManagedMemoryData.cs" />
+    <Compile Include="Model\MemoryData.cs" />
+    <Compile Include="Model\StatisticsType.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TizenNET.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetCore.Profiler.Cperf.Core\NetCore.Profiler.Cperf.Core.csproj">
+      <Project>{f0720e54-b379-4dae-a95e-a4d115cb48fb}</Project>
+      <Name>NetCore.Profiler.Cperf.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NetCore.Profiler.Lttng.Core\NetCore.Profiler.Lttng.Core.csproj">
+      <Project>{d10f56ce-e54b-45d2-a30d-fa7034f599c6}</Project>
+      <Name>NetCore.Profiler.Lttng.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

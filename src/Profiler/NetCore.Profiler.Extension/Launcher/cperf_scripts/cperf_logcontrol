@@ -1,0 +1,8 @@
+# 1 - host code
+# 2 - trace directory
+echo 1 $1 2 $2 >> /opt/usr/home/owner/share/errors
+rm -f $2/share/trace.log
+mkfifo $2/share/trace.log
+cat $2/share/trace.log
+#cat $2/trace.log | tee $2/trace.dump
+exit

@@ -1,0 +1,58 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Colors.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <Style x:Key="CommonDataGrid" TargetType="{x:Type DataGrid}">
+        <Setter Property="Background" Value="{StaticResource NormalBackgroundKey}"/>
+        <Setter Property="Foreground" Value="{StaticResource ActiveTextKey}" />
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource DataGrid.HorizontalGridLines}"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+    </Style>
+
+    <Style x:Key="CommonDataGridColumnHeader" TargetType="{x:Type DataGridColumnHeader}">
+        <Setter Property="Background" Value="{StaticResource DataGrid.ColumnHeader.Background}"/>
+        <Setter Property="Foreground" Value="{StaticResource ActiveTextKey}" />
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
+                    <Grid Background="{TemplateBinding Background}">
+                        <Border x:Name="columnHeaderBorder" BorderThickness="1" Padding="3,0,3,0" BorderBrush="{StaticResource DataGrid.BorderBrush}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" Value="{StaticResource NormalBackgroundKey}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CommonDataGridRow" TargetType="{x:Type DataGridRow}">
+        <!--<Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="Foreground" Value="Red"/>
+            </Trigger>
+        </Style.Triggers>-->
+        <Setter Property="Background" Value="{StaticResource NormalBackgroundKey}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource DataGrid.BorderBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type DataGridRow}">
+                    <Border BorderBrush="{StaticResource DataGrid.BorderBrush}">
+                        <SelectiveScrollingGrid>
+                            <DataGridCellsPresenter Grid.Column="1" />
+                        </SelectiveScrollingGrid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

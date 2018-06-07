@@ -1,0 +1,29 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Button.xaml" />
+        <ResourceDictionary Source="ComboBox.xaml" />
+        <ResourceDictionary Source="ListBox.xaml" />
+        <ResourceDictionary Source="ListView.xaml" />
+        <!--<ResourceDictionary Source="TabControl.xaml" />-->
+        <ResourceDictionary Source="TextBox.xaml" />
+        <ResourceDictionary Source="Label.xaml" />
+        <ResourceDictionary Source="GroupBox.xaml" />
+        <ResourceDictionary Source="TextBlock.xaml"/>
+        <ResourceDictionary Source="UserControl.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <Style BasedOn="{StaticResource StandardButton}" TargetType="Button" />
+    <Style BasedOn="{StaticResource StandardComboBox}" TargetType="ComboBox" />
+    <Style BasedOn="{StaticResource StandardListBox}" TargetType="ListBox" />
+    <Style BasedOn="{StaticResource StandardListView}" TargetType="ListView" />
+    <!--<Style BasedOn="{StaticResource StandardTabControl}" TargetType="TabControl" />-->
+    <Style BasedOn="{StaticResource StandardTextBox}" TargetType="TextBox" />
+    <Style BasedOn="{StaticResource StandardTextBlock}" TargetType="TextBlock" />
+    <Style BasedOn="{StaticResource StandardLabel}" TargetType="Label" />
+    <Style BasedOn="{StaticResource StandardGroupBox}" TargetType="GroupBox" />
+    <Style BasedOn="{StaticResource StandardUserControl}" TargetType="UserControl" />
+
+</ResourceDictionary>

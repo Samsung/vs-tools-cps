@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="ProjectGroup" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Blank App (Xamarin.Forms)</Name>
+    <Description>A multiproject template for building apps with Xamarin.Forms, sharing code using a .NET Standard library.</Description>
+    <Icon>Tizen.NET.Template.Cross.NETStandard.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>2588b34d-8bfc-4965-822c-ce0013273d97</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>CrossTemplate</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <CustomParameters>
+      <CustomParameter Name="$hasCommon$" Value="true"/>
+      <CustomParameter Name="$hasMobile$" Value="true"/>
+      <CustomParameter Name="$hasTV$" Value="true"/>
+      <CustomParameter Name="$hasWearable$" Value="true"/>
+      <CustomParameter Name="$hasSharedLib$" Value="true"/>
+    </CustomParameters>
+    <ProjectCollection>
+      <ProjectTemplateLink ProjectName="$lib_prjName$" CopyParameters="true">NETStandardUI\Project.NETStandardUI.vstemplate</ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$tv_prjName$" CopyParameters="true">Tizen.TV\Project.Tizen.TV.vstemplate</ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$mobile_prjName$" CopyParameters="true">Tizen.Mobile\Project.Tizen.Mobile.vstemplate</ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$wearable_prjName$" CopyParameters="true">Tizen.Wearable\Project.Tizen.Wearable.vstemplate</ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$common_prjName$" CopyParameters="true">Tizen.Common\Project.Tizen.vstemplate</ProjectTemplateLink>
+    </ProjectCollection>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Tizen.VisualStudio.ProjectSystem.VS, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=afa3293746f785f3</Assembly>
+    <FullClassName>Tizen.VisualStudio.ProjectWizard.ProjectWizardTizenCrossPlatform</FullClassName>
+  </WizardExtension>
+</VSTemplate>
