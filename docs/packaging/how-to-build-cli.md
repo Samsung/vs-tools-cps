@@ -10,13 +10,11 @@ If Tizen .NET Core project refers to the `Tizen.NET.Sdk` package, TPK file will 
  
 1. Add feed to Nuget.config to restore `Tizen.NET.Sdk`
     - NuGet.Config file location : https://docs.microsoft.com/en-us/nuget/consume-packages/configuring-nuget-behavior#config-file-locations-and-uses
-    - Develop channel : https://tizen.myget.org/F/dotnet/api/v3/index.json
     
     ```xml
     <configuration>
       <packageSources>
         <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
-        <add key="TizenMyGET" value="https://tizen.myget.org/F/dotnet/api/v3/index.json" />
       </packageSources>
     </configuration>
     ```
