@@ -14,8 +14,6 @@ The Visual Studio Tools for Tizen provides Visual Studio extension that enables 
    - Alphabetic Windows user account name is recommended. (NO GLOBAL CHARACTER SET OR WHITE SPACE)
 - Require Intel [HAXM](https://software.intel.com/en-us/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-windows) for Emulator
    - Hyper-V should be disabled
-- Add Tizen Device API Myget Server address for using Tizen Build Task
-   - https://tizen.myget.org/F/dotnet/api/v3/index.json
 
 ### Restrictions ###
 - Xamarin.forms projects cannot be built by CLI tool
