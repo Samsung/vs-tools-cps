@@ -4,7 +4,7 @@
 The Visual Studio Tools for Tizen provides Visual Studio extension that enables developing Tizen .NET applications.
 
 ### Architecture on Visual Studio ###
-![Architecture](./docs/image/arch.png)
+![Architecture](./docs/image/arch.PNG)
 
 ---
 
