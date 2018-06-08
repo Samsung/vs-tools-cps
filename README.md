@@ -41,11 +41,10 @@ The Visual Studio Tools for Tizen provides Visual Studio extension that enables 
 ### Document List ###
 
 #### Usage Guide ####
-   1. [Install Guide](docs/how-to-install.md)
-   2. [Tizen Package Creation Guide](docs/packaging/how-to-create-tpk.md) - Guide to build and publish Tizen Applications
-   3. [Tizen Project Customization Guide](docs/packaging/how-to-customize-tpk.md) : Guide to include or exclude your libraries / resources in tizen project
-   4. [Migration Guide](docs/packaging/how-to-migrate-to-csproj.md) - If you had a tizen project used in preview version, you can migrate for working new tools
-   5. Build Guide
+   1. [Tizen Package Creation Guide](docs/packaging/how-to-create-tpk.md) - Guide to build and publish Tizen Applications
+   2. [Tizen Project Customization Guide](docs/packaging/how-to-customize-tpk.md) : Guide to include or exclude your libraries / resources in tizen project
+   3. [Migration Guide](docs/packaging/how-to-migrate-to-csproj.md) - If you had a tizen project used in preview version, you can migrate for working new tools
+   4. Build Guide
       1. [Use Visual Studio](docs/packaging/how-to-build-vs.md)
       2. [Use dotnet cli](docs/packaging/how-to-build-cli.md)
 
