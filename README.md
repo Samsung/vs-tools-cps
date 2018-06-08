@@ -21,7 +21,7 @@ The Visual Studio Tools for Tizen provides Visual Studio extension that enables 
 - Xamarin.forms projects cannot be built by CLI tool
 
 ## How to install ###
-- refer [How to Install] :  https://developer.tizen.org/development/visual-studio-tools-tizen/installing-visual-studio-tools-tizen 
+- refer : https://developer.tizen.org/development/visual-studio-tools-tizen/installing-visual-studio-tools-tizen 
 
 ### How to build this project ###
 * Clone the sources: git clone https://github.com/Samsung/vs-tools-cps.git
