@@ -414,5 +414,5 @@ Example Code :
 
 
 ## See Also
-- [Packaging tpk with Tizen.NET.Sdk](https://github.sec.samsung.net/dotnet/build-task-tizen/blob/master/doc/tizen.net.sdk-packaging-tpk.md)
-- [Tizen.NET.Sdk Reference](https://github.sec.samsung.net/dotnet/build-task-tizen/blob/master/doc/tizen.net.sdk-reference.md)
+- [Packaging tpk with Tizen.NET.Sdk](https://github.com/Samsung/build-task-tizen/blob/master/doc/tizen.net.sdk-packaging-tpk.md)
+- [Tizen.NET.Sdk Reference](https://github.com/Samsung/build-task-tizen/blob/master/doc/tizen.net.sdk-reference.md)
