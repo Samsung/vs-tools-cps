@@ -16,13 +16,15 @@
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
-    public class DataTypeMemoryUsage
+    /// <summary>
+    /// A <see cref="MemoryProfilingDataProvider"/> data model class.
+    /// </summary>
+    public class DataTypeMemoryUsage : ITimeStamped
     {
-        public ulong Timestamp { get; set; }
+        public ulong TimeMilliseconds { get; set; }
 
         public ulong ObjectsCount { get; set; }
 
         public ulong MemorySize { get; set; }
-
     }
 }

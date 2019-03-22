@@ -205,18 +205,6 @@ namespace Tizen.VisualStudio.ManifestEditor
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://tizen.org/ns/packages")]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
-    public enum DisplaySplashScreenType
-    {
-        [System.Xml.Serialization.XmlEnumAttribute("true")]
-        True,
-        [System.Xml.Serialization.XmlEnumAttribute("false")]
-        False,
-    }
-
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://tizen.org/ns/packages")]
-    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
     public enum NoDisplayType
     {
         None,
@@ -235,6 +223,32 @@ namespace Tizen.VisualStudio.ManifestEditor
         None,
         on,
         off,
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public enum NewDisplaySplashType
+    {
+        None,
+        [System.Xml.Serialization.XmlEnumAttribute("true")]
+        True,
+        [System.Xml.Serialization.XmlEnumAttribute("false")]
+        False,
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public enum AmbientType
+    {
+        None,
+        [System.Xml.Serialization.XmlEnumAttribute("true")]
+        True,
+        [System.Xml.Serialization.XmlEnumAttribute("false")]
+        False,
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
@@ -400,7 +414,7 @@ namespace Tizen.VisualStudio.ManifestEditor
             {
                 if (this.applicationField == null)
                 {
-                    this.applicationField = new uiapplication();
+                    this.applicationField = new uiapplication(); //FIXME : other application type
                 }
                 var itemLabel = this.applicationField.Items
                                             .FirstOrDefault(x => x is label);
@@ -758,7 +772,7 @@ namespace Tizen.VisualStudio.ManifestEditor
             {
                 if (this.applicationField == null)
                 {
-                    this.applicationField = new uiapplication();
+                    this.applicationField = new uiapplication(); //FIXME : other application type
                 }
 
                 var item = this.applicationField.Items.FirstOrDefault(x => x is icon);
@@ -876,6 +890,8 @@ namespace Tizen.VisualStudio.ManifestEditor
         [System.Xml.Serialization.XmlElementAttribute("notifications", typeof(object))]
         [System.Xml.Serialization.XmlElementAttribute("ui-application", typeof(uiapplication))]
         [System.Xml.Serialization.XmlElementAttribute("service-application", typeof(serviceapplication))]
+        [System.Xml.Serialization.XmlElementAttribute("widget-application", typeof(widgetapplication))]
+        [System.Xml.Serialization.XmlElementAttribute("watch-application", typeof(watchapplication))]
         [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
         public object[] Items
         {
@@ -1961,20 +1977,39 @@ namespace Tizen.VisualStudio.ManifestEditor
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute("widget-application", Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class widgetapplication : application
+    {
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute("watch-application", Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class watchapplication : application
+    {
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
     [System.Xml.Serialization.XmlRootAttribute("application", Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
     public partial class application : object, System.ComponentModel.INotifyPropertyChanged
     {
         private object[] itemsField;
         private string appidField;
+        private string updateperiodField;
         private string execField;
         private bool multipleField;
         private bool multipleFieldSpecified;
         private NoDisplayType nodisplayField;
         private bool nodisplayFieldSpecified;
         private ManageTaskType taskmanageField;
-        private DisplaySplashScreenType displaysplashField;
         private bool taskmanageFieldSpecified;
-        private bool displaysplashFieldSpecified;
         private bool enabledField;
         private bool enabledFieldSpecified;
         private TypeType typeField;
@@ -1982,6 +2017,10 @@ namespace Tizen.VisualStudio.ManifestEditor
         private string extraidField;
         private NewHWaccelerationType hwaccelerationField;
         private bool hwaccelerationFieldSpecified;
+        private NewDisplaySplashType newdisplaysplashField;
+        private bool newdisplaysplashFieldSpecified;
+        private AmbientType ambientField;
+        private bool ambientFieldSpecified;
         private ScreenReaderType screenreaderField;
         private bool screenreaderFieldSpecified;
         private RecentImage recentimageField;
@@ -2027,6 +2066,7 @@ namespace Tizen.VisualStudio.ManifestEditor
         [System.Xml.Serialization.XmlElementAttribute("application-service", typeof(applicationservice))]
         [System.Xml.Serialization.XmlElementAttribute("category", typeof(category))]
         [System.Xml.Serialization.XmlElementAttribute("datacontrol", typeof(datacontrol))]
+        [System.Xml.Serialization.XmlElementAttribute("support-size", typeof(supportsize))]
         [System.Xml.Serialization.XmlElementAttribute("eventsystem", typeof(eventsystem))]
         [System.Xml.Serialization.XmlElementAttribute("label", typeof(label))]
         [System.Xml.Serialization.XmlElementAttribute("icon", typeof(icon))]
@@ -2065,7 +2105,7 @@ namespace Tizen.VisualStudio.ManifestEditor
         {
             get
             {
-                return this.splashscreenField;
+                return this.splashscreenField; //FIXME : null splash screen
             }
 
             set
@@ -2085,6 +2125,20 @@ namespace Tizen.VisualStudio.ManifestEditor
             set
             {
                 this.appidField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("update-period")]
+        public string updateperiod
+        {
+            get
+            {
+                return this.updateperiodField;
+            }
+
+            set
+            {
+                this.updateperiodField = value;
             }
         }
 
@@ -2158,7 +2212,7 @@ namespace Tizen.VisualStudio.ManifestEditor
             }
         }
 
-        [System.Xml.Serialization.XmlAttributeAttribute()]
+        [System.Xml.Serialization.XmlAttributeAttribute("taskmanage")]
         public ManageTaskType taskmanage
         {
             get
@@ -2169,20 +2223,6 @@ namespace Tizen.VisualStudio.ManifestEditor
             set
             {
                 this.taskmanageField = value;
-            }
-        }
-
-        [System.Xml.Serialization.XmlAttributeAttribute("splash-screen-display")]
-        public DisplaySplashScreenType displaysplashscreen
-        {
-            get
-            {
-                return this.displaysplashField;
-            }
-
-            set
-            {
-                this.displaysplashField = value;
             }
         }
 
@@ -2197,20 +2237,6 @@ namespace Tizen.VisualStudio.ManifestEditor
             set
             {
                 this.taskmanageFieldSpecified = value;
-            }
-        }
-
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool displaysplashSpecified
-        {
-            get
-            {
-                return this.displaysplashFieldSpecified;
-            }
-
-            set
-            {
-                this.displaysplashFieldSpecified = value;
             }
         }
 
@@ -2309,6 +2335,62 @@ namespace Tizen.VisualStudio.ManifestEditor
             set
             {
                 this.hwaccelerationFieldSpecified = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("splash-screen-display")]
+        public NewDisplaySplashType newdisplaysplash
+        {
+            get
+            {
+                return this.newdisplaysplashField;
+            }
+
+            set
+            {
+                this.newdisplaysplashField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool newdisplaysplashSpecified
+        {
+            get
+            {
+                return this.newdisplaysplashFieldSpecified;
+            }
+
+            set
+            {
+                this.newdisplaysplashFieldSpecified = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("ambient-support")]
+        public AmbientType ambientsupport
+        {
+            get
+            {
+                return this.ambientField;
+            }
+
+            set
+            {
+                this.ambientField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool ambientsupportSpecified
+        {
+            get
+            {
+                return this.ambientFieldSpecified;
+            }
+
+            set
+            {
+                this.ambientFieldSpecified = value;
             }
         }
 
@@ -3013,6 +3095,53 @@ namespace Tizen.VisualStudio.ManifestEditor
                 this.anyAttrField = value;
             }
         }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class supportsize : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private string previewField;
+        private string textField;
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add { }
+            remove { }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string preview
+        {
+            get
+            {
+                return this.previewField;
+            }
+
+            set
+            {
+                this.previewField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlTextAttribute()]
+        public string Text
+        {
+            get
+            {
+                return this.textField;
+            }
+
+            set
+            {
+                this.textField = value;
+            }
+        }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
@@ -3793,14 +3922,20 @@ namespace Tizen.VisualStudio.ManifestEditor
 
         profile,
 
-        [System.Xml.Serialization.XmlEnumAttribute("service-application")]
-        serviceapplication,
-
         [System.Xml.Serialization.XmlEnumAttribute("shortcut-list")]
         shortcutlist,
 
         [System.Xml.Serialization.XmlEnumAttribute("ui-application")]
         uiapplication,
+
+        [System.Xml.Serialization.XmlEnumAttribute("service-application")]
+        serviceapplication,
+
+        [System.Xml.Serialization.XmlEnumAttribute("widget-application")]
+        widgetapplication,
+
+        [System.Xml.Serialization.XmlEnumAttribute("watch-application")]
+        watchapplication,
 
         description,
 

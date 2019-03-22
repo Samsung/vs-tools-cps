@@ -21,7 +21,7 @@ using Tizen.VisualStudio.Tools.ExternalTool;
 namespace Tizen.VisualStudio.Tools.ExternalTool
 {
     /// <summary>
-    /// Launch Tizen Certificate ManagerLauncher using ProgressLauncher Class
+    /// Launch %Tizen Certificate Manager
     /// </summary>
     public sealed class CertificateManagerLauncher : ExternalToolLauncher
     {

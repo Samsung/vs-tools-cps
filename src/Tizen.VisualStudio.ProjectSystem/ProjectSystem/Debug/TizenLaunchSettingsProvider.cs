@@ -184,16 +184,29 @@ namespace Tizen.VisualStudio.ProjectSystem.Debug
         {
             if (projectSubscriptionUpdate.Value.CurrentState.TryGetValue(ProjectDebugger.SchemaName, out IProjectRuleSnapshot ruleSnapshot))
             {
-                ruleSnapshot.Properties.TryGetValue(ProjectDebugger.ActiveDebugProfileProperty, out string activeProfile);
-
                 await Task.Run(() =>
                 {
-                    DeviceManager.SelectDevice(
-                        isProjectLoadingTime ?
-                        DeviceManager.DeviceInfoList?.FindLast(_ => true) :
-                        DeviceManager.DeviceInfoList.Find(device => activeProfile.Split('#')[0].Equals(device.Serial)));
+                    SDBDeviceInfo selectedDevice = null;
 
-                    isProjectLoadingTime = false;
+                    if (isProjectLoadingTime)
+                    {
+                        selectedDevice = DeviceManager.DeviceInfoList?.FindLast(_ => true);
+
+                        isProjectLoadingTime = false;
+                    }
+                    else
+                    {
+                        ruleSnapshot.Properties.TryGetValue(ProjectDebugger.ActiveDebugProfileProperty, out string activeProfile);
+
+                        selectedDevice = DeviceManager.DeviceInfoList.Find(device => activeProfile.Split('#')[0].Equals(device.Serial));
+                    }
+
+                    if (selectedDevice != null)
+                    {
+                        DeviceManager.SelectDevice(selectedDevice);
+
+                        DeviceManager.UpdateDebugTargetList(false);
+                    }
                 });
             }
         }

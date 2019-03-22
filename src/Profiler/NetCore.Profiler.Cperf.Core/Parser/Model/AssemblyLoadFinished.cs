@@ -16,6 +16,10 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for assembly load finished ("asm ldf")
+    /// %Core %Profiler trace log records. Notifies that an assembly has finished loading.
+    /// </summary>
     public class AssemblyLoadFinished
     {
         public ulong InternalId { get; }
@@ -33,6 +37,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
             ModuleId = moduleId;
             Name = name;
         }
-
     }
 }

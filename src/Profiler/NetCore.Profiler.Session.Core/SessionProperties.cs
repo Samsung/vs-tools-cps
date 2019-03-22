@@ -75,7 +75,6 @@ namespace NetCore.Profiler.Session.Core
                 default:
                     return defaultValue;
             }
-
         }
 
         public int GetIntProperty(string mainKey, string key, int defaultValue)
@@ -101,7 +100,6 @@ namespace NetCore.Profiler.Session.Core
             SetContainerProperty(_sessionProps, mainKey, key, value.ToString());
             Save();
         }
-
 
         public bool PropertyExists(string mainKey)
         {
@@ -154,9 +152,7 @@ namespace NetCore.Profiler.Session.Core
                 }
 
                 fs.WriteLine("</Session>");
-                fs.Close();
             }
-
         }
 
         private static string GetContainerProperty(IReadOnlyDictionary<string, Dictionary<string, string>> container,
@@ -180,7 +176,6 @@ namespace NetCore.Profiler.Session.Core
             return (container.ContainsKey(mainKey) && container[mainKey].ContainsKey(key));
         }
 
-
         private void SetContainerProperty(IDictionary<string, Dictionary<string, string>> container, string mainKey, string key, string value)
         {
             Dictionary<string, string> propContainer;
@@ -200,7 +195,5 @@ namespace NetCore.Profiler.Session.Core
 
             propContainer.Add(key, value);
         }
-
-
     }
 }

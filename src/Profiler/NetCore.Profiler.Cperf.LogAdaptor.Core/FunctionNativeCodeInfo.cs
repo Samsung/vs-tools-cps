@@ -18,7 +18,10 @@ using System.Collections.Generic;
 
 namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 {
-    public class FunctionNativeCodeInfo
+    /// <summary>
+    /// A native code information item used in <see cref = "Function"/> objects.
+    /// </summary>
+    internal class FunctionNativeCodeInfo
     {
         public uint Size { get; set; }
 
@@ -31,6 +34,5 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
             StartAddress = startAddress;
             Size = size;
         }
-
     }
 }

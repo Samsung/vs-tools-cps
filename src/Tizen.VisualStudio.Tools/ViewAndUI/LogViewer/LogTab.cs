@@ -20,6 +20,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -50,6 +51,10 @@ namespace Tizen.VisualStudio.LogViewer
         private List<Log> tempLogList = new List<Log>();
         private string tempHeader = string.Empty;
         private string tempMessage = string.Empty;
+
+        private static Regex regex = new Regex("([P|T])\\s{0,1}(\\d+),{0,1}");
+        private static Regex regex2 = new Regex("(^\\s*\\[\\s*)|(\\s*\\]\\s*)");
+        private static Regex regex3 = new Regex("\\s+|/");
 
         public LogTab(SDBDeviceInfo device, LogViewerControl parent)
         {
@@ -157,6 +162,7 @@ namespace Tizen.VisualStudio.LogViewer
                 logProcess.StartInfo.RedirectStandardOutput = true;
                 logProcess.StartInfo.RedirectStandardError = true;
                 logProcess.OutputDataReceived += new DataReceivedEventHandler(Sdb_OutputDataReceived);
+                Debug.WriteLine("{0} {1} ExcuteLogProcess command '{2}'", DateTime.Now, this.ToString(), logProcess.StartInfo.Arguments);
                 logProcess.Start();
                 logProcess.BeginErrorReadLine();
                 logProcess.BeginOutputReadLine();
@@ -175,7 +181,10 @@ namespace Tizen.VisualStudio.LogViewer
                     }
                     else
                     {
-                        Log input = new Log(tempHeader.Substring(1, tempHeader.Length - 2).Split(logHeaderDelimiter, StringSplitOptions.RemoveEmptyEntries), e.Data);
+                        tempHeader = regex.Replace(tempHeader, "$1 $2");
+                        tempHeader = regex2.Replace(tempHeader, "");
+                        tempHeader = regex3.Replace(tempHeader, " ");
+                        Log input = new Log(tempHeader.Split(' '), e.Data);
                         lock (tempLogList)
                         {
                             tempLogList.Add(input);

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NetCore.Profiler.Common;
 using NetCore.Profiler.Cperf.Core.Model;
@@ -26,12 +27,15 @@ using SourceLine = NetCore.Profiler.Cperf.Core.Model.SourceLine;
 
 namespace NetCore.Profiler.Cperf.Core
 {
+    /// <summary>
+    /// A data container used to load and store in memory structures the data from saved (already completed) %Core %Profiler
+    /// profiling sessions so they can be used by <see cref="ProfilingDataProvider"/>.
+    /// </summary>
     public class DataContainer
     {
-
         private readonly string _filePath;
 
-        public CpuUtilizationHistory CpuUtilizationHistory { get; } = new CpuUtilizationHistory();
+        public CpuUtilizationHistory CpuUtilizationHistory { get; private set; }
 
         public Dictionary<ulong, ApplicationDomain> ApplicationDomains { get; } = new Dictionary<ulong, ApplicationDomain>();
 
@@ -43,7 +47,50 @@ namespace NetCore.Profiler.Cperf.Core
 
         public Dictionary<ulong, Function> Functions { get; } = new Dictionary<ulong, Function>();
 
-        public Dictionary<ulong, Thread> Threads { get; } = new Dictionary<ulong, Thread>();
+        public class ThreadContainer
+        {
+            internal ThreadContainer()
+            {
+                // create & add stub thread, to present common events
+                Add(FakeThread = new Thread() { InternalId = Thread.FakeThreadId });
+            }
+
+            public void Add(Thread thread)
+            {
+                threadByInternalId.Add(thread.InternalId, thread);
+            }
+
+            public Thread GetByInternalId(ulong internalId)
+            {
+                Thread result;
+                threadByInternalId.TryGetValue(internalId, out result);
+                return result;
+            }
+
+            public Thread GetByOsThreadId(ulong osThreadId)
+            {
+                return threadByInternalId.FirstOrDefault(pair => (pair.Value.OsThreadId == osThreadId)).Value;
+            }
+
+            public void ClearOsThreadId(ulong osThreadId)
+            {
+                foreach (var pair in threadByInternalId.Where(p => (p.Value.OsThreadId == osThreadId)))
+                {
+                    pair.Value.OsThreadId = 0;
+                }
+            }
+
+            public ICollection<Thread> Collection
+            {
+                get { return threadByInternalId.Values; }
+            }
+
+            public Thread FakeThread { get; private set; }
+
+            private Dictionary<ulong, Thread> threadByInternalId = new Dictionary<ulong, Thread>();
+        }
+
+        public ThreadContainer Threads = new ThreadContainer();
 
         public Dictionary<ulong, SourceFile> SourceFiles { get; } = new Dictionary<ulong, SourceFile>();
 
@@ -57,15 +104,28 @@ namespace NetCore.Profiler.Cperf.Core
 
         public ulong TotalAllocatedMemory { get; private set; }
 
-        private ulong _globalTimestamp;
+        private ulong _globalTimeMilliseconds;
 
-        private ulong _resumeTimestamp;
+        private ulong _resumeTimeMilliseconds;
 
         private bool _profilingPaused;
 
+        /// <summary>
+        /// This value shall be added to profiling events' timestamps to get correct time for display
+        /// </summary>
+        private ulong _profilingEventsDeltaMilliseconds;
+
+        // key: internal thread Id
         private readonly Dictionary<ulong, ThreadStackInfo> _stackByThread = new Dictionary<ulong, ThreadStackInfo>();
 
-        public DataContainer(string filePath)
+        /// <summary>
+        /// Create a data container for the specified profiling session file (but don't load the data at the moment).
+        /// </summary>
+        /// <param name="filePath">The profiling session file path and name.</param>
+        /// <param name="cpuCoreCount">
+        /// The target system CPU core count
+        /// </param>
+        public DataContainer(string filePath, int cpuCoreCount)
         {
             if (string.IsNullOrEmpty(filePath))
             {
@@ -74,44 +134,105 @@ namespace NetCore.Profiler.Cperf.Core
 
             _filePath = filePath;
 
+            CpuUtilizationHistory = new CpuUtilizationHistory(cpuCoreCount);
+
             var rootFunc = new Function { Name = "<ROOT>", Signature = "<EMPTY>" };
             Functions.Add(rootFunc.InternalId, rootFunc);
-
-            // create & add stub thread, to present common events
-            var stubThread = new Thread() { InternalId = Thread.FakeThreadId };
-            Threads.Add(stubThread.InternalId, stubThread);
         }
 
-        public void Load(ProgressMonitor progressMonitor)
+        /// <summary>
+        /// Load the data from the profiling session file set in the constructor.
+        /// </summary>
+        /// <param name="progressMonitor">Used to report the profiling session file load progress.</param>
+        /// <param name="sysInfoStartTime">
+        /// The system information start time (used to correct the times of profiling events)
+        /// </param>
+        /// <param name="profilerStartTime">
+        /// The profiler start time (according to a clock of a target Tizen system) is returned in this output parameter.
+        /// </param>
+        public void Load(ProgressMonitor progressMonitor, DateTime sysInfoStartTime, out DateTime profilerStartTime)
         {
-            _globalTimestamp = 0;
-            var parser = new CperfParser
+            _globalTimeMilliseconds = 0;
+            _profilingEventsDeltaMilliseconds = 0;
+
+            var parser = new CperfParser();
+
+            Action<string> lineReadCallback = (s => progressMonitor.Tick());
+
+            DateTime startTimeFromParser = DateTime.MinValue;
+            Action<DateTime> startTimeCallback = (DateTime startTime) =>
             {
-                LineReadCallback = s => progressMonitor.Tick(),
-                ApplicationDomainCreationFinishedCallback = ApplicationDomainCreationFinishedCallback,
-                AssemblyLoadFinishedCallback = AssemblyLoadFinishedCallback,
-                ModuleAttachedToAssemblyCallback = ModuleAttachedToAssemblyCallback,
-                ModuleLoadFinishedCallback = ModuleLoadFinishedCallback,
-                ClassLoadFinishedCallback = ClassLoadFinishedCallback,
-                ClassNameReadCallback = ClassNameReadCallback,
-                FunctionNameReadCallback = FunctionNameReadCallback,
-                CachedFunctionSearchFinishedCallback = CachedFunctionSearchFinishedCallback,
-                CompilationFinishedCallback = CompilationFinishedCallback,
-                SourceLineReadCallback = SourceLineReadCallback,
-                SourceFileReadCallback = SourceFileReadCallback,
-                CpuReadCallback = CpuReadCallback,
-                ProfilerTpsReadCallback = ProfilerTpsReadCallback,
-                ProfilerTrsReadCallback = ProfilerTrsReadCallback,
-                ThreadAssignedToOsThreadCallback = ThreadAssignedToOsThreadCallback,
-                ThreadTimesReadCallback = ThreadTimesReadCallback,
-                ThreadCreatedCallback = ThreadCreatedCallback,
-                ThreadDestroyedCallback = ThreadDestroyedCallback,
-                StackSampleReadCallback = StackSampleReadCallback,
-                AllocationSampleReadCallback = AllocationSampleReadCallback
+                startTimeFromParser = startTime;
+                if ((startTime.Kind == DateTimeKind.Utc) && (sysInfoStartTime != DateTime.MinValue) && (startTime > sysInfoStartTime))
+                {
+                    _profilingEventsDeltaMilliseconds = (ulong)Math.Round((startTime - sysInfoStartTime).TotalMilliseconds);
+                }
             };
+
+            parser.LineReadCallback += lineReadCallback;
+            parser.StartTimeCallback += startTimeCallback;
+            parser.ApplicationDomainCreationFinishedCallback += ApplicationDomainCreationFinishedCallback;
+            parser.AssemblyLoadFinishedCallback += AssemblyLoadFinishedCallback;
+            parser.ModuleAttachedToAssemblyCallback += ModuleAttachedToAssemblyCallback;
+            parser.ModuleLoadFinishedCallback += ModuleLoadFinishedCallback;
+            parser.ClassLoadFinishedCallback += ClassLoadFinishedCallback;
+            parser.ClassNameReadCallback += ClassNameReadCallback;
+            parser.FunctionNameReadCallback += FunctionNameReadCallback;
+            parser.FunctionInfoCallback += FunctionInfoCallback;
+            parser.JitCompilationStartedCallback += JitCompilationStartedCallback;
+            parser.JitCompilationFinishedCallback += JitCompilationFinishedCallback;
+            parser.JitCachedFunctionSearchStartedCallback += JitCachedFunctionSearchStartedCallback;
+            parser.JitCachedFunctionSearchFinishedCallback += JitCachedFunctionSearchFinishedCallback;
+            parser.GarbageCollectionStartedCallback += GarbageCollectionStartedCallback;
+            parser.GarbageCollectionFinishedCallback += GarbageCollectionFinishedCallback;
+            parser.SourceLineReadCallback += SourceLineReadCallback;
+            parser.SourceFileReadCallback += SourceFileReadCallback;
+            parser.CpuReadCallback += CpuReadCallback;
+            parser.ProfilerTpsReadCallback += ProfilerTpsReadCallback;
+            parser.ProfilerTrsReadCallback += ProfilerTrsReadCallback;
+            parser.ThreadAssignedToOsThreadCallback += ThreadAssignedToOsThreadCallback;
+            parser.ThreadTimesReadCallback += ThreadTimesReadCallback;
+            parser.ThreadCreatedCallback += ThreadCreatedCallback;
+            parser.ThreadDestroyedCallback += ThreadDestroyedCallback;
+            parser.StackSampleReadCallback += StackSampleReadCallback;
+            parser.AllocationSampleReadCallback += AllocationSampleReadCallback;
 
             parser.Parse(_filePath);
 
+            profilerStartTime = startTimeFromParser;
+
+            parser.LineReadCallback -= lineReadCallback;
+            parser.StartTimeCallback -= startTimeCallback;
+            parser.ApplicationDomainCreationFinishedCallback -= ApplicationDomainCreationFinishedCallback;
+            parser.AssemblyLoadFinishedCallback -= AssemblyLoadFinishedCallback;
+            parser.ModuleAttachedToAssemblyCallback -= ModuleAttachedToAssemblyCallback;
+            parser.ModuleLoadFinishedCallback -= ModuleLoadFinishedCallback;
+            parser.ClassLoadFinishedCallback -= ClassLoadFinishedCallback;
+            parser.ClassNameReadCallback -= ClassNameReadCallback;
+            parser.FunctionNameReadCallback -= FunctionNameReadCallback;
+            parser.FunctionInfoCallback -= FunctionInfoCallback;
+            parser.JitCompilationStartedCallback -= JitCompilationStartedCallback;
+            parser.JitCompilationFinishedCallback -= JitCompilationFinishedCallback;
+            parser.JitCachedFunctionSearchStartedCallback -= JitCachedFunctionSearchStartedCallback;
+            parser.JitCachedFunctionSearchFinishedCallback -= JitCachedFunctionSearchFinishedCallback;
+            parser.GarbageCollectionStartedCallback -= GarbageCollectionStartedCallback;
+            parser.GarbageCollectionFinishedCallback -= GarbageCollectionFinishedCallback;
+            parser.SourceLineReadCallback -= SourceLineReadCallback;
+            parser.SourceFileReadCallback -= SourceFileReadCallback;
+            parser.CpuReadCallback -= CpuReadCallback;
+            parser.ProfilerTpsReadCallback -= ProfilerTpsReadCallback;
+            parser.ProfilerTrsReadCallback -= ProfilerTrsReadCallback;
+            parser.ThreadAssignedToOsThreadCallback -= ThreadAssignedToOsThreadCallback;
+            parser.ThreadTimesReadCallback -= ThreadTimesReadCallback;
+            parser.ThreadCreatedCallback -= ThreadCreatedCallback;
+            parser.ThreadDestroyedCallback -= ThreadDestroyedCallback;
+            parser.StackSampleReadCallback -= StackSampleReadCallback;
+            parser.AllocationSampleReadCallback -= AllocationSampleReadCallback;
+        }
+
+        private Event CreateEvent(object sourceObject, ulong timeMilliseconds, EventType type)
+        {
+            return new Event(sourceObject, timeMilliseconds + _profilingEventsDeltaMilliseconds, type);
         }
 
         private void ApplicationDomainCreationFinishedCallback(ApplicationDomainCreationFinished arg)
@@ -124,22 +245,20 @@ namespace NetCore.Profiler.Cperf.Core
             };
             AddApplicationDomain(applicationDomain);
 
-            Threads.Values.ToList().Find(item => item.OsThreadId == applicationDomain.ProcessId).Events
-                .Add(new Event(applicationDomain, _globalTimestamp, EventType.CreationFinished));
-
+            Threads.GetByOsThreadId(applicationDomain.ProcessId).Events
+                .Add(CreateEvent(applicationDomain, _globalTimeMilliseconds, EventType.CreationFinished));
         }
 
         private void AssemblyLoadFinishedCallback(AssemblyLoadFinished arg)
         {
             var assembly = new Assembly(arg.ApplicationDomainId, arg.InternalId, arg.ModuleId, arg.Name);
             AddAssembly(assembly);
-            AddGlobalEvent(new Event(assembly, _globalTimestamp, EventType.LoadFinished));
-
+            AddGlobalEvent(CreateEvent(assembly, _globalTimeMilliseconds, EventType.LoadFinished));
         }
 
         private void ModuleAttachedToAssemblyCallback(ModuleAttachedToAssembly arg)
         {
-            var module = GetModule(arg.ModuleId);
+            Module module = GetModule(arg.ModuleId);
             if (module == null)
             {
                 AddModule(module = new Module { InternalId = arg.ModuleId, AssemblyId = arg.AssemblyId });
@@ -149,13 +268,12 @@ namespace NetCore.Profiler.Cperf.Core
                 module.AssemblyId = arg.AssemblyId;
             }
 
-            AddGlobalEvent(new Event(module, _globalTimestamp, EventType.AttachedToAssembly));
-
+            AddGlobalEvent(CreateEvent(module, _globalTimeMilliseconds, EventType.AttachedToAssembly));
         }
 
         private void ModuleLoadFinishedCallback(ModuleLoadFinished arg)
         {
-            var module = GetModule(arg.ModuleId);
+            Module module = GetModule(arg.ModuleId);
             if (module == null)
             {
                 AddModule(module = new Module { InternalId = arg.ModuleId, AssemblyId = arg.AssemblyId, Name = arg.ModuleName });
@@ -168,13 +286,12 @@ namespace NetCore.Profiler.Cperf.Core
 
             module.ModuleLoadRecords.Add(new ModuleLoadInfo { BaseLoadAddress = arg.BaseLoadAddress });
 
-            AddGlobalEvent(new Event(module, _globalTimestamp, EventType.LoadFinished));
-
+            AddGlobalEvent(CreateEvent(module, _globalTimeMilliseconds, EventType.LoadFinished));
         }
 
         private void ClassLoadFinishedCallback(ClassLoadFinished arg)
         {
-            var @class = GetClass(arg.InternalId);
+            Class @class = GetClass(arg.InternalId);
             if (@class == null)
             {
                 AddClass(@class = new Class
@@ -192,13 +309,12 @@ namespace NetCore.Profiler.Cperf.Core
                 @class.Token = arg.ClassToken;
             }
 
-            AddGlobalEvent(new Event(@class, _globalTimestamp, EventType.LoadFinished));
-
+            AddGlobalEvent(CreateEvent(@class, _globalTimeMilliseconds, EventType.LoadFinished));
         }
 
         private void ClassNameReadCallback(ClassName arg)
         {
-            var @class = GetClass(arg.InternalId);
+            Class @class = GetClass(arg.InternalId);
             if (@class == null)
             {
                 AddClass(new Class { InternalId = arg.InternalId, Name = arg.Name });
@@ -207,12 +323,11 @@ namespace NetCore.Profiler.Cperf.Core
             {
                 @class.Name = arg.Name;
             }
-
         }
 
         private void FunctionNameReadCallback(FunctionName arg)
         {
-            var function = GetFunction(arg.InternalId);
+            Function function = GetFunction(arg.InternalId);
             if (function == null)
             {
                 AddFunction(new Function { InternalId = arg.InternalId, Name = arg.FullName, Signature = arg.ReturnType + arg.Signature });
@@ -222,12 +337,11 @@ namespace NetCore.Profiler.Cperf.Core
                 function.Name = arg.FullName;
                 function.Signature = arg.ReturnType + arg.Signature;
             }
-
         }
 
-        private void CachedFunctionSearchFinishedCallback(CachedFunctionSearchFinished arg)
+        private void FunctionInfoCallback(FunctionInfo arg)
         {
-            var function = GetFunction(arg.InternalId);
+            Function function = GetFunction(arg.InternalId);
             if (function == null)
             {
                 AddFunction(function = new Function { InternalId = arg.InternalId, Id = arg.Id, ClassId = arg.ClassId, ModuleId = arg.ModuleId });
@@ -238,32 +352,41 @@ namespace NetCore.Profiler.Cperf.Core
                 function.ClassId = arg.ClassId;
                 function.ModuleId = arg.ModuleId;
             }
-
-            AddGlobalEvent(new Event(function, _globalTimestamp, EventType.CachedFunctionSearchFinished));
-
         }
 
-        private void CompilationFinishedCallback(CompilationFinished arg)
+        private void JitCompilationStartedCallback(JitCompilationStarted arg)
         {
-            var function = GetFunction(arg.InternalId);
-            if (function == null)
-            {
-                AddFunction(function = new Function { InternalId = arg.InternalId, Id = arg.Id, ClassId = arg.ClassId, ModuleId = arg.ModuleId });
-            }
-            else
-            {
-                function.Id = arg.Id;
-                function.ClassId = arg.ClassId;
-                function.ModuleId = arg.ModuleId;
-            }
+            AddEvent(arg.OsThreadId, CreateEvent(arg, arg.Timestamp, EventType.CompilationStarted));
+        }
 
-            AddGlobalEvent(new Event(function, _globalTimestamp, EventType.CompilationFinished));
+        private void JitCompilationFinishedCallback(JitCompilationFinished arg)
+        {
+            AddEvent(arg.OsThreadId, CreateEvent(arg, arg.Timestamp, EventType.CompilationFinished));
+        }
 
+        private void JitCachedFunctionSearchStartedCallback(JitCachedFunctionSearchStarted arg)
+        {
+            AddEvent(arg.OsThreadId, CreateEvent(arg, arg.Timestamp, EventType.CachedFunctionSearchStarted));
+        }
+
+        private void JitCachedFunctionSearchFinishedCallback(JitCachedFunctionSearchFinished arg)
+        {
+            AddEvent(arg.OsThreadId, CreateEvent(arg, arg.Timestamp, EventType.CachedFunctionSearchFinished));
+        }
+
+        private void GarbageCollectionStartedCallback(GarbageCollectionStarted arg)
+        {
+            AddEvent(arg.OsThreadId, CreateEvent(arg, arg.Timestamp, EventType.GarbageCollectionStarted));
+        }
+
+        private void GarbageCollectionFinishedCallback(GarbageCollectionFinished arg)
+        {
+            AddEvent(arg.OsThreadId, CreateEvent(arg, arg.Timestamp, EventType.GarbageCollectionFinished));
         }
 
         private void SourceLineReadCallback(Parser.Model.SourceLine arg)
         {
-            var sourceLine = GetSourceLine(arg.Id);
+            SourceLine sourceLine = GetSourceLine(arg.Id);
             if (sourceLine == null)
             {
                 AddSourceLine(new SourceLine
@@ -287,12 +410,11 @@ namespace NetCore.Profiler.Cperf.Core
                 sourceLine.EndLine = arg.EndLine;
                 sourceLine.EndColumn = arg.EndColumn;
             }
-
         }
 
         private void SourceFileReadCallback(Parser.Model.SourceFile arg)
         {
-            var sourceFile = GetSourceFile(arg.InternalId);
+            SourceFile sourceFile = GetSourceFile(arg.InternalId);
             if (sourceFile == null)
             {
                 AddSourceFile(new SourceFile { InternalId = arg.InternalId, Name = arg.Path });
@@ -301,7 +423,6 @@ namespace NetCore.Profiler.Cperf.Core
             {
                 sourceFile.Name = arg.Path;
             }
-
         }
 
         private void CpuReadCallback(Cpu arg)
@@ -312,10 +433,10 @@ namespace NetCore.Profiler.Cperf.Core
         private void ProfilerTpsReadCallback(ProfilerTps arg)
         {
             _profilingPaused = true;
-            _resumeTimestamp = 0;
+            _resumeTimeMilliseconds = 0;
 
             CpuUtilizationHistory.RecordProfilingPaused();
-            foreach (var thread in Threads.Values)
+            foreach (var thread in Threads.Collection)
             {
                 thread.CpuUtilizationHistory.RecordProfilingPaused();
             }
@@ -324,66 +445,64 @@ namespace NetCore.Profiler.Cperf.Core
         private void ProfilerTrsReadCallback(ProfilerTrs arg)
         {
             _profilingPaused = false;
-            _resumeTimestamp = arg.Value;
+            _resumeTimeMilliseconds = arg.Value;
 
             CpuUtilizationHistory.RecordProfilingResumed();
-            foreach (var thread in Threads.Values)
+            foreach (var thread in Threads.Collection)
             {
                 thread.CpuUtilizationHistory.RecordProfilingResumed();
             }
-
         }
 
         private void ThreadAssignedToOsThreadCallback(ThreadAssignedToOsThread arg)
         {
-            var thread = GetThread(arg.InternalId);
+            Thread thread = GetThreadByInternalId(arg.InternalId);
             if (thread == null)
             {
                 thread = new Thread { InternalId = arg.InternalId, OsThreadId = arg.OsThreadId };
-                AddThread(thread, _globalTimestamp);
+                AddThread(thread, _globalTimeMilliseconds);
             }
             else
             {
+                // CLR can reassign managed threads to different OS threads
+                Threads.ClearOsThreadId(arg.OsThreadId);
                 thread.OsThreadId = arg.OsThreadId;
             }
 
-            AddGlobalEvent(new Event(thread, _globalTimestamp, EventType.AssignedToOsThread));
-
+            AddGlobalEvent(CreateEvent(thread, _globalTimeMilliseconds, EventType.AssignedToOsThread));
         }
 
         private void ThreadTimesReadCallback(ThreadTimes arg)
         {
             //Temporary solution until situation with missing thread create record is cleared
-            if (GetThread(arg.InternalId) == null)
+            if (GetThreadByInternalId(arg.InternalId) == null)
             {
                 AddThread(new Thread { InternalId = arg.InternalId }, arg.TicksFromStart);
             }
 
-            Threads[arg.InternalId].CpuUtilizationHistory.RecordCpuUsage(arg.TicksFromStart, arg.UserTime);
+            Threads.GetByInternalId(arg.InternalId).CpuUtilizationHistory.RecordCpuUsage(arg.TicksFromStart, arg.UserTime);
         }
 
         private void ThreadCreatedCallback(ThreadCreated arg)
         {
-            var thread = GetThread(arg.InternalId);
+            Thread thread = GetThreadByInternalId(arg.InternalId);
             if (thread == null)
             {
                 thread = new Thread { InternalId = arg.InternalId, Id = arg.ThreadId };
-                AddThread(thread, _globalTimestamp);
+                AddThread(thread, _globalTimeMilliseconds);
             }
             else
             {
                 thread.Id = arg.ThreadId;
             }
 
-            AddGlobalEvent(new Event(thread, _globalTimestamp, EventType.ThreadCreated));
-
+            AddGlobalEvent(CreateEvent(thread, _globalTimeMilliseconds, EventType.ThreadCreated));
         }
 
         private void ThreadDestroyedCallback(ThreadDestroyed arg)
         {
-            AddGlobalEvent(new Event(null, _globalTimestamp, EventType.ThreadDestroyed));
+            AddGlobalEvent(CreateEvent(null, _globalTimeMilliseconds, EventType.ThreadDestroyed));
         }
-
 
         private void StackSampleReadCallback(StackSample arg)
         {
@@ -393,7 +512,7 @@ namespace NetCore.Profiler.Cperf.Core
             }
 
             var thread = _stackByThread[arg.InternalId];
-            var duration = arg.Ticks - Math.Max(thread.LastSampleTimestamp, _resumeTimestamp);
+            var duration = arg.Ticks - Math.Max(thread.LastSampleTimestamp, _resumeTimeMilliseconds);
 
             if (UpdateCallTree(arg, thread))
             {
@@ -402,17 +521,15 @@ namespace NetCore.Profiler.Cperf.Core
 
             if (arg.Count > 0) //Do not account empty records preceding the memory samples just to set stack frame
             {
-
                 TotalSamples += arg.Count;
                 TotalTime += duration;
 
                 thread.LastSampleTimestamp = arg.Ticks;
 
-
                 var sample = new Sample
                 {
                     ThreadIntId = arg.InternalId,
-                    Timestamp = arg.Ticks,
+                    TimeMilliseconds = arg.Ticks,
                     Samples = arg.Count,
                     Time = duration
                 };
@@ -420,8 +537,7 @@ namespace NetCore.Profiler.Cperf.Core
                 StoreSample(sample);
             }
 
-            _globalTimestamp = arg.Ticks;
-
+            _globalTimeMilliseconds = arg.Ticks;
         }
 
         private bool UpdateCallTree(StackSample arg, ThreadStackInfo thread)
@@ -499,7 +615,7 @@ namespace NetCore.Profiler.Cperf.Core
             var sample = new Sample
             {
                 ThreadIntId = arg.InternalId,
-                Timestamp = arg.Ticks,
+                TimeMilliseconds = arg.Ticks,
                 AllocatedMemory = allocated
             };
 
@@ -538,7 +654,7 @@ namespace NetCore.Profiler.Cperf.Core
             }
         }
 
-        public void AddSourceFile(SourceFile sourceFile)
+        private void AddSourceFile(SourceFile sourceFile)
         {
             AddToDictionary(SourceFiles, sourceFile);
         }
@@ -548,7 +664,7 @@ namespace NetCore.Profiler.Cperf.Core
             return GetFromDictionary(SourceFiles, id);
         }
 
-        public void AddSourceLine(SourceLine sourceLine)
+        private void AddSourceLine(SourceLine sourceLine)
         {
             AddToDictionary(SourceLines, sourceLine);
         }
@@ -558,9 +674,9 @@ namespace NetCore.Profiler.Cperf.Core
             return GetFromDictionary(SourceLines, id);
         }
 
-        public void AddThread(Thread thread, ulong lastSampleTimestamp)
+        private void AddThread(Thread thread, ulong lastSampleTimestamp)
         {
-            AddToDictionary(Threads, thread);
+            Threads.Add(thread);
             if (!_stackByThread.ContainsKey(thread.InternalId))
             {
                 var rootStackFrame = new StackFrame
@@ -581,12 +697,12 @@ namespace NetCore.Profiler.Cperf.Core
             }
         }
 
-        public Thread GetThread(ulong id)
+        public Thread GetThreadByInternalId(ulong internalId)
         {
-            return GetFromDictionary(Threads, id);
+            return Threads.GetByInternalId(internalId);
         }
 
-        public void AddFunction(Function function)
+        private void AddFunction(Function function)
         {
             AddToDictionary(Functions, function);
         }
@@ -596,7 +712,7 @@ namespace NetCore.Profiler.Cperf.Core
             return GetFromDictionary(Functions, id);
         }
 
-        public void AddClass(Class cls)
+        private void AddClass(Class cls)
         {
             AddToDictionary(Classes, cls);
         }
@@ -606,7 +722,7 @@ namespace NetCore.Profiler.Cperf.Core
             return GetFromDictionary(Classes, id);
         }
 
-        public void AddModule(Module module)
+        private void AddModule(Module module)
         {
             AddToDictionary(Modules, module);
         }
@@ -616,7 +732,7 @@ namespace NetCore.Profiler.Cperf.Core
             return GetFromDictionary(Modules, id);
         }
 
-        public void AddAssembly(Assembly assembly)
+        private void AddAssembly(Assembly assembly)
         {
             AddToDictionary(Assemblies, assembly);
         }
@@ -626,7 +742,7 @@ namespace NetCore.Profiler.Cperf.Core
             return GetFromDictionary(Assemblies, id);
         }
 
-        public void AddApplicationDomain(ApplicationDomain domain)
+        private void AddApplicationDomain(ApplicationDomain domain)
         {
             AddToDictionary(ApplicationDomains, domain);
         }
@@ -636,16 +752,36 @@ namespace NetCore.Profiler.Cperf.Core
             return GetFromDictionary(ApplicationDomains, id);
         }
 
-        public void AddGlobalEvent(Event evnt)
+        private void AddGlobalEvent(Event evnt)
         {
-            Threads[Thread.FakeThreadId].Events.Add(evnt);
+            Threads.FakeThread.Events.Add(evnt);
         }
 
-        public void AddEvent(ulong threadId, Event evnt)
-        {
-            Threads[threadId].Events.Add(evnt);
-        }
+#if DEBUG
+        // tuple's Item1: osThreadId
+        private HashSet<Tuple<ulong, EventType>> threadEventsNotFound = new HashSet<Tuple<ulong, EventType>>();
+#endif
 
+        private void AddEvent(ulong osThreadId, Event evnt)
+        {
+            Thread thread = Threads.GetByOsThreadId(osThreadId);
+            if (thread != null)
+            {
+                thread.Events.Add(evnt);
+            }
+#if DEBUG
+            else
+            {
+                var t = new Tuple<ulong, EventType>(osThreadId, evnt.EventType);
+                if (!threadEventsNotFound.Contains(t))
+                {
+                    threadEventsNotFound.Add(t);
+                    Debug.WriteLine(String.Format("Error in {0}.AddEvent: cannot add event {1} to thread OsThreadId=={2} (thread not found)",
+                        GetType().Name, evnt.EventType, osThreadId));
+                }
+            }
+#endif
+        }
 
         private void AddToDictionary<T>(IDictionary<ulong, T> col, T target) where T : IIdentifiable
         {
@@ -678,7 +814,6 @@ namespace NetCore.Profiler.Cperf.Core
             public StackFrame Parent { get; set; }
 
             public ulong? Ip { get; set; }
-
         }
     }
 }

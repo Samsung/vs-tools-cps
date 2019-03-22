@@ -29,11 +29,11 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             MasterChart.ViewPortChanged += sender => UpdateViewPort();
         }
 
-        public ulong RangeMaxValue => MasterChart.RangeMaxValue;
+        public ulong RangeMaxValueMilliseconds => MasterChart.RangeMaxValueMilliseconds;
 
-        public ulong ViewPortMinValue => MasterChart.ViewPortMinValue;
+        public ulong ViewPortMinValueMilliseconds => MasterChart.ViewPortMinValueMilliseconds;
 
-        public ulong ViewPortMaxValue => MasterChart.ViewPortMaxValue;
+        public ulong ViewPortMaxValueMilliseconds => MasterChart.ViewPortMaxValueMilliseconds;
 
         public List<TimeLineSection> PauseSections => MasterChart.PauseSections;
 

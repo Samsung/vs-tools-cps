@@ -26,9 +26,9 @@ namespace Tizen.VisualStudio.Tools.DebugBridge.SDBCommand
         public bool IsTargetFound { get; }
         public List<string> ConsoleOutput { get; }
 
-        public SDBAppCmd(params string[] args)
+        public SDBAppCmd(SDBDeviceInfo device, params string[] args)
         {
-            List<string> rawItemList = SDBLib.RequestToTargetSync(DeviceManager.SelectedDevice.Serial, SDBProtocol.appcmd, CombineArgs(args));
+            List<string> rawItemList = SDBLib.RequestToTargetSync(device.Serial, SDBProtocol.appcmd, CombineArgs(args));
             ConsoleOutput = new List<string>();
 
             IsTargetFound = (rawItemList != null);

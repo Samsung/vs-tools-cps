@@ -22,6 +22,8 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Tizen.VisualStudio.Tools.Data;
 using System.IO;
+using System.Windows;
+using Tizen.VisualStudio.InstallLauncher;
 
 namespace Tizen.VisualStudio.Tools.ExternalTool
 {
@@ -41,8 +43,19 @@ namespace Tizen.VisualStudio.Tools.ExternalTool
         {
             Process proc = new Process();
             proc.StartInfo.FileName = "cmd.exe";
-            proc.StartInfo.WorkingDirectory = Path.GetDirectoryName(sdbpath);
-            proc.Start();
+            try
+            {
+                proc.StartInfo.WorkingDirectory = Path.GetDirectoryName(sdbpath);
+                proc.Start();
+            }
+            catch
+            {
+                if (string.IsNullOrEmpty(ToolsPathInfo.SDBPath))
+                {
+                    InstallWizard iWizard = new InstallWizard();
+                    iWizard.ShowDialog();
+                }
+            }
         }
     }
 }

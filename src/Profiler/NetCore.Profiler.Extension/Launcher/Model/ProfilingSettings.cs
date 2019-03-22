@@ -15,6 +15,8 @@
 */
 
 using NetCore.Profiler.Extension.Common;
+using System;
+using System.IO;
 
 namespace NetCore.Profiler.Extension.Launcher.Model
 {
@@ -248,6 +250,45 @@ namespace NetCore.Profiler.Extension.Launcher.Model
                 StackTrack = StackTrack,
                 DelayedStart = DelayedStart
             };
+        }
+
+        private static int toInt(bool value)
+        {
+            return value ? 1 : 0;
+        }
+
+        public bool WriteCperfStartFile(string filePath)
+        {
+            try
+            {
+                using (var writer = new StreamWriter(filePath))
+                {
+                    writer.NewLine = "\n";
+                    writer.WriteLine($"PROF_COLLECT_METHOD={CollectMethod}");
+                    if (CollectMethod == ProfilingMethod.Sampling)
+                    {
+                        writer.WriteLine($"PROF_SAMPLING_TIMEOUT={SamplingInterval}");
+                        writer.WriteLine($"PROF_CPU_TRACE_TIMEOUT={CpuTraceInterval}");
+                    }
+
+                    writer.WriteLine($"PROF_EXECUTION_TRACE={toInt(TraceExecution)}");
+                    writer.WriteLine($"PROF_CPU_TRACE={toInt(TraceCpu)}");
+                    writer.WriteLine($"PROF_CPU_TRACE_PROC={toInt(TraceProcessCpu)}");
+                    writer.WriteLine($"PROF_CPU_TRACE_THREAD={toInt(TraceThreadCpu)}");
+                    writer.WriteLine($"PROF_MEMORY_TRACE={toInt(TraceMemoryAllocation)}");
+                    writer.WriteLine($"PROF_LINE_TRACE={toInt(TraceSourceLines)}");
+                    writer.WriteLine($"PROF_HIGH_GRAN={toInt(HighGranularitySampling)}");
+                    writer.WriteLine($"PROF_STACK_TRACK={toInt(StackTrack)}");
+                    writer.WriteLine($"PROF_DELAYED_START={toInt(DelayedStart)}");
+                    writer.WriteLine($"PROF_GC_TRACE={toInt(TraceGarbageCollection)}");
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

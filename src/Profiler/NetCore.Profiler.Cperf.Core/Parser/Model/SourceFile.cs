@@ -16,6 +16,10 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for source file information ("fil src") %Core %Profiler
+    /// trace log records.
+    /// </summary>
     public class SourceFile
     {
         public ulong InternalId { get; }
@@ -27,6 +31,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
             InternalId = internalId;
             Path = path;
         }
-
     }
 }

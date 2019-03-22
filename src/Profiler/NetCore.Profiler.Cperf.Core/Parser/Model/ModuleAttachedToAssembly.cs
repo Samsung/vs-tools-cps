@@ -16,6 +16,10 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for module attached to assembly ("mod ata") %Core %Profiler
+    /// trace log records. Notifies that a module is being attached to its parent assembly.
+    /// </summary>
     public class ModuleAttachedToAssembly
     {
         public ulong ModuleId { get; }

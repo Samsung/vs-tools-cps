@@ -21,6 +21,5 @@ namespace NetCore.Profiler.Analytics.Model
         public ulong Timestamp { get; set; }
 
         public ulong Unmanaged { get; set; }
-
     }
 }

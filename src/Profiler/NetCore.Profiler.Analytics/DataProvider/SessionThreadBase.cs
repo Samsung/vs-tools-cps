@@ -29,8 +29,5 @@ namespace NetCore.Profiler.Analytics.DataProvider
         public List<CpuUtilization> CpuUtilization { get; set; }
 
         public List<ClrJob> ClrJobs { get; set; }
-
-
-
     }
 }

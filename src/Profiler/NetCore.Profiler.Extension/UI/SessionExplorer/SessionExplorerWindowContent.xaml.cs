@@ -18,6 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using NetCore.Profiler.Extension.Common;
 using NetCore.Profiler.Extension.VSPackage;
 using NetCore.Profiler.Session.Core;
+using Tizen.VisualStudio.Utilities;
 
 namespace NetCore.Profiler.Extension.UI.SessionExplorer
 {
@@ -35,9 +37,13 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
     /// </summary>
     public partial class SessionExplorerWindowContent : INotifyPropertyChanged
     {
-        private bool _openProfilePossible;
+        private Visibility _openProfilePossible;
 
-        private bool _openMemoryProfilePossible;
+        private Visibility _openMemoryProfilePossible;
+
+        private Visibility _openHeaptrackProfileManagedPossible;
+
+        private Visibility _openHeaptrackProfileManagedHideUnmanagedStacksPossible;
 
         private ITrackSelection _trackSelection;
 
@@ -67,7 +73,7 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
 
         public ObservableCollection<SessionListItem> Sessions { get; set; } = new ObservableCollection<SessionListItem>();
 
-        public bool OpenProfilePossible
+        public Visibility OpenProfilePossible
         {
             get => _openProfilePossible;
             set
@@ -77,13 +83,33 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
             }
         }
 
-        public bool OpenMemoryProfilePossible
+        public Visibility OpenMemoryProfilePossible
         {
             get => _openMemoryProfilePossible;
             set
             {
                 _openMemoryProfilePossible = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OpenMemoryProfilePossible)));
+            }
+        }
+
+        public Visibility OpenHeaptrackProfilePossible
+        {
+            get => _openHeaptrackProfileManagedPossible;
+            set
+            {
+                _openHeaptrackProfileManagedPossible = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OpenHeaptrackProfilePossible)));
+            }
+        }
+
+        public Visibility OpenHeaptrackProfileManagedHideUnmanagedStacksPossible
+        {
+            get => _openHeaptrackProfileManagedHideUnmanagedStacksPossible;
+            set
+            {
+                _openHeaptrackProfileManagedHideUnmanagedStacksPossible = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(OpenHeaptrackProfileManagedHideUnmanagedStacksPossible)));
             }
         }
 
@@ -97,12 +123,22 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
             OpenCurrentSession(true);
         }
 
+        private void OnClickMemoryProfileManaged(object sender, RoutedEventArgs e)
+        {
+            OpenCurrentSession(false, "--managed ");
+        }
+
+        private void OnClickMemoryProfileManagedHideUnmanagedStacks(object sender, RoutedEventArgs e)
+        {
+            OpenCurrentSession(false, "--hide-unmanaged-stacks --managed ");
+        }
+
         private void OnClickDelete(object sender, RoutedEventArgs e)
         {
             if (SessionsGrid.SelectedIndex != -1 && SessionsGrid.SelectedItem is SessionListItem item)
             {
-                if (ProfilerPlugin.Instance.ShowMessage(ProfilerPlugin.MessageType.Question, "Delete Session.",
-                        "Are you sure want to delete session?") == 6)
+                if (ProfilerPlugin.Instance.ShowMessage(MessageDialogType.Question,
+                    "Do you really want to delete the selected session?") == 6)
                 {
                     ProfilerPlugin.Instance.SessionsContainer.DeleteSession(item.Session);
                 }
@@ -130,21 +166,27 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
                 UpdateSelection((SessionListItem)e.AddedItems[0]);
             }
 
-            var openMemoryProfilePossible = false;
-            var openProfilePossible = false;
+            Visibility openMemoryProfilePossible = Visibility.Collapsed;
+            Visibility openProfilePossible = Visibility.Collapsed;
+            Visibility openHeaptrackProfilePossible = Visibility.Collapsed;
+            Visibility openHeaptrackProfileManagedHideUnmanagedStacksPossible = Visibility.Collapsed;
             if (SessionsGrid.SelectedIndex != -1 && SessionsGrid.SelectedItem is SessionListItem item)
             {
-                openMemoryProfilePossible = item.Session.Properties.GetBoolProperty("ProfilingOptions", "ProfMemoryTrace", false);
-                openProfilePossible = item.Session.Properties.GetBoolProperty("ProfilingOptions", "ProfExecutionTrace", false);
+                openMemoryProfilePossible = item.Session.Properties.GetBoolProperty("ProfilingOptions", "ProfMemoryTrace", false) ? Visibility.Visible : Visibility.Collapsed;
+                openProfilePossible = item.Session.Properties.GetBoolProperty("ProfilingOptions", "ProfExecutionTrace", false) ? Visibility.Visible : Visibility.Collapsed;
+                openHeaptrackProfilePossible = item.Preset == "Memory Profiling" ? Visibility.Visible : Visibility.Collapsed;
+                openHeaptrackProfileManagedHideUnmanagedStacksPossible = item.Preset == "Memory Profiling" ? Visibility.Visible : Visibility.Collapsed;
             }
 
             OpenMemoryProfilePossible = openMemoryProfilePossible;
             OpenProfilePossible = openProfilePossible;
+            OpenHeaptrackProfilePossible = openHeaptrackProfilePossible;
+            OpenHeaptrackProfileManagedHideUnmanagedStacksPossible = openHeaptrackProfileManagedHideUnmanagedStacksPossible;
         }
 
         private void SessionsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            OpenCurrentSession(OpenMemoryProfilePossible && !OpenProfilePossible);
+            OpenCurrentSession((OpenMemoryProfilePossible == Visibility.Visible) && !(OpenProfilePossible == Visibility.Visible));
         }
 
         private void UpdateSelection(SessionListItem o)
@@ -155,7 +197,7 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
         private void UpdateList()
         {
             Sessions.Clear();
-            foreach (var x in ProfilerPlugin.Instance.SessionsContainer.Sessions.Select(s => new SessionListItem(s)))
+            foreach (var x in ProfilerPlugin.Instance.SessionsContainer.Sessions.Select(s => new SessionListItem(s)).OrderBy(s => s.CreatedAt))
             {
                 Sessions.Add(x);
             }
@@ -172,8 +214,7 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
             return result;
         }
 
-
-        private void OpenCurrentSession(bool openMemorySession)
+        private void OpenCurrentSession(bool openMemorySession, string args = null)
         {
             lock (_lock)
             {
@@ -182,6 +223,16 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
                 {
                     _documentLoading = true;
                     ShowProgressBar();
+
+                    if (OpenHeaptrackProfilePossible == Visibility.Visible)
+                    {
+                        string path = Path.GetDirectoryName(item.Path);
+                        args = args ?? "--managed ";
+                        ProfilerPlugin.Instance.MemoryProfilerGuiOpenSession(path, args);
+                        HideProgressBar();
+                        return;
+                    }
+
                     if (openMemorySession)
                     {
                         ProfilerPlugin.Instance.ShowMemorySession(item.Path, HideProgressBar);
@@ -201,7 +252,7 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
 
         private void HideProgressBar()
         {
-            Dispatcher.InvokeAsync(delegate
+            Dispatcher.InvokeAsync(delegate()
             {
                 lock (_lock)
                 {
@@ -210,7 +261,6 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
                 }
             });
         }
-
 
         public class SessionListItem : NotifyPropertyChanged
         {
@@ -223,7 +273,6 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
                 var dateString = (now.Date.Equals(dt.Date) ? "Today" : now.Date.Year == dt.Date.Year ? $"{dt:MM/dd}" : $"{dt:MM/dd/yy}")
                     + $" {dt:HH:mm}";
                 CreatedAt = dateString;
-
             }
 
             public ISavedSession Session { get; }
@@ -313,7 +362,6 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
             [DisplayName("Trace Memory Allocation")]
             public bool TraceMemoryAllocation => _sessionItem.Session.Properties.GetBoolProperty("ProfilingOptions", "ProfMemoryTrace", false);
 
-
             [Category("Sampling Options")]
             [DisplayName("Trace Garbage Collection")]
             public bool TraceGarbageCollection => _sessionItem.Session.Properties.GetBoolProperty("ProfilingOptions", "ProfTraceGarbageCollection", false);
@@ -350,6 +398,5 @@ namespace NetCore.Profiler.Extension.UI.SessionExplorer
             [DisplayName("Sleep")]
             public int SleepTime => _sessionItem.Session.Properties.GetIntProperty("ProfilingOptions", "Sleep", 0);
         }
-
     }
 }

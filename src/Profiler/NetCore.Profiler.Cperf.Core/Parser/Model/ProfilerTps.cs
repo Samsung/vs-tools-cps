@@ -16,8 +16,15 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for profiler pause ("prf tps") %Core %Profiler
+    /// trace log records. Notifies that a profiling is paused.
+    /// </summary>
     public class ProfilerTps
     {
+        /// <summary>
+        /// The event timestamp in milliseconds from the start of profiling.
+        /// </summary>
         public ulong Value { get; }
 
         public ProfilerTps(ulong value)

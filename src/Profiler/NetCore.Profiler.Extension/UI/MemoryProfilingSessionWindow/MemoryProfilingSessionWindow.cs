@@ -24,7 +24,7 @@ using NetCore.Profiler.Extension.UI.SessionWindow;
 namespace NetCore.Profiler.Extension.UI.MemoryProfilingSessionWindow
 {
     [Guid("6f20f593-9f5c-467b-9a3e-4dd09608abb3")]
-    public class MemoryProfilingSessionWindow : ToolWindowPane
+    public class MemoryProfilingSessionWindow : ToolWindowPane, ISessionWindow
     {
         private IMemoryProfilingSession _activeSession;
 
@@ -61,5 +61,10 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingSessionWindow
             (Frame as IVsWindowFrame)?.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
         }
 
+        public void ShowSession(object session)
+        {
+            SetActiveSession((IMemoryProfilingSession)session);
+            Show();
+        }
     }
 }

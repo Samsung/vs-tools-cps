@@ -14,30 +14,46 @@
  * limitations under the License.
 */
 
+using System;
 using System.Collections.Generic;
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A container for <see cref="CpuUtilization"/> objects.
+    /// </summary>
     public class CpuUtilizationHistory
     {
         public List<CpuUtilization> CpuList { get; } = new List<CpuUtilization>();
 
+        private int _cpuCoreCount;
+
         private bool _profilingResumed;
+
+        public CpuUtilizationHistory(int cpuCoreCount)
+        {
+            _cpuCoreCount = Math.Max(cpuCoreCount, 1);
+        }
 
         public void RecordCpuUsage(ulong timestamp, ulong duration)
         {
-            CpuList.Add(new CpuUtilization
+            int cpuListCount = CpuList.Count;
+            double cpu = (cpuListCount > 0) ? CalculateCpuUtilization(CpuList[cpuListCount - 1], timestamp, duration) : 0;
+            if (_profilingResumed && (cpu < 0))
             {
-                Timestamp = timestamp,
-                Utilization = CpuList.Count > 0
-                    ? CalculateCpuUtilization(CpuList[CpuList.Count - 1], timestamp, duration)
-                    : 0,
-                ProfilingWasResumed = _profilingResumed
-            });
-            if (_profilingResumed)
-            {
-                _profilingResumed = false;
+                cpu = 0;
             }
+            if (cpu >= 0)
+            {
+                cpu = Math.Min(cpu, 100);
+                CpuList.Add(new CpuUtilization
+                {
+                    TimeMilliseconds = timestamp,
+                    Utilization = cpu,
+                    ProfilingWasResumed = _profilingResumed
+                });
+            }
+            _profilingResumed = false;
         }
 
         public void RecordProfilingPaused()
@@ -61,23 +77,22 @@ namespace NetCore.Profiler.Cperf.Core.Model
             }
         }
 
-        private static double CalculateCpuUtilization(CpuUtilization prev, ulong timestamp, ulong duration)
+        private double CalculateCpuUtilization(CpuUtilization prev, ulong timestamp, ulong duration)
         {
-
             //TODO. To prevent errors for log records like the following
             //thr cpu 0x00000000 85403 18446744073709551586
             if (duration >= int.MaxValue)
             {
-                return 1.0;
+                return -1;
             }
 
-            var interval = timestamp - prev.Timestamp;
-            if (interval == 0)
+            ulong interval = timestamp - prev.TimeMilliseconds;
+            if (interval <= 0)
             {
-                return 1.0;
+                return -1;
             }
 
-            return (duration / ((interval) * 1000.0)) * 100;
+            return (duration / (interval * 1000.0)) * 100 / _cpuCoreCount;
         }
     }
 }

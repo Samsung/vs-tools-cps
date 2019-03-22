@@ -19,6 +19,9 @@ using System.Linq;
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A <see cref="DataContainer"/> data model class for an assembly.
+    /// </summary>
     public class Assembly : IIdentifiable
     {
         public ulong InternalId { get; }

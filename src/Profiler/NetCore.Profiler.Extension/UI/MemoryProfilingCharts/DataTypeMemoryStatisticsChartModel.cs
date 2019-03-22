@@ -94,7 +94,7 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
             {
                 result.Add(new DataTypeMemoryUsage()
                 {
-                    Timestamp = valueSeries[i].Timestamp,
+                    TimeMilliseconds = valueSeries[i].TimeMilliseconds,
                     ObjectsCount = valueSeries[i].ObjectsCount,
                     MemorySize = valueSeries[i].MemorySize
                 });
@@ -134,7 +134,7 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
         {
             int i;
             var e = valueSeries.Count;
-            for (i = 0; i < e && valueSeries[i].Timestamp < minValue; i++)
+            for (i = 0; i < e && valueSeries[i].TimeMilliseconds < minValue; i++)
             {
             }
 
@@ -146,7 +146,7 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
             if (i < e)
             {
                 int j;
-                for (j = i + 1; j < e && valueSeries[j].Timestamp <= maxValue; j++)
+                for (j = i + 1; j < e && valueSeries[j].TimeMilliseconds <= maxValue; j++)
                 {
                 }
 
@@ -182,13 +182,13 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
                 min = Math.Min(
                     min,
                     s.Values.Count > 0
-                        ? s.Values[0].Timestamp
+                        ? s.Values[0].TimeMilliseconds
                         : 0);
 
                 max = Math.Max(
                     max,
                     s.Values.Count > 0
-                        ? s.Values[s.Values.Count - 1].Timestamp
+                        ? s.Values[s.Values.Count - 1].TimeMilliseconds
                         : 0);
             }
 

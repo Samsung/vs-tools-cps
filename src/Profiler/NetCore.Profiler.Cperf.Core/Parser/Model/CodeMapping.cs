@@ -14,17 +14,14 @@
  * limitations under the License.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A MSIL to native code mapping information item used in <see cref="FunctionInfo"/>.
+    /// </summary>
     public class CodeMapping
     {
-        public uint  Offset { get; }
+        public uint Offset { get; }
 
         public uint NativeStartOffset { get; }
 
@@ -36,6 +33,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
             NativeStartOffset = nativeStartOffset;
             NativeEndOffset = nativeEndOffset;
         }
-
     }
 }

@@ -18,6 +18,11 @@ using System.Collections.Generic;
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for memory sample ("sam mem") %Core %Profiler trace log records.
+    /// Describes memory allocations occurred from a previous memory sample (or from a start of a program - for
+    /// a first record of a trace log).
+    /// </summary>
     public class AllocationSample
     {
         public ulong InternalId { get; }

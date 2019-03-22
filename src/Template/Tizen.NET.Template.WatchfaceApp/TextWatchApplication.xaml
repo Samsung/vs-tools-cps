@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Application xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="$safeprojectname$.TextWatchApplication">
+    <Application.MainPage>
+        <ContentPage>
+            <StackLayout>
+                <Label
+                    x:Name="TimeLabel"
+                    FontSize="Large"
+                    HorizontalOptions="CenterAndExpand"
+                    Text="{Binding Time, StringFormat='{0:hh\\:mm\\:ss}'}"
+                    VerticalOptions="CenterAndExpand" />
+            </StackLayout>
+        </ContentPage>
+    </Application.MainPage>
+</Application>

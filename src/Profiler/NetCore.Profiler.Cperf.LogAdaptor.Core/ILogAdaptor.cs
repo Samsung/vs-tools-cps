@@ -14,19 +14,20 @@
  * limitations under the License.
 */
 
+using System;
 using System.IO;
 
 namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 {
+    /// <summary>
+    /// A %Core %Profiler log adapter interface.
+    /// </summary>
     public interface ILogAdaptor
     {
-
-        StreamReader Input { get; set; }
-
         StreamWriter Output { get; set; }
-        
+
         string PdbDirectory { get; set; }
 
-        void Process();
+        void Process(Func<string> readFunc);
     }
 }

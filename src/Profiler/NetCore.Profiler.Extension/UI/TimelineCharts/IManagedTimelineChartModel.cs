@@ -19,7 +19,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
     public interface IManagedTimelineChartModel : ITimelineChartModelBase
     {
 
-        ulong Offset { get; set; }
+        ulong OffsetMilliseconds { get; set; }
 
         void ZoomIn(double itemUnderCursor, double speed);
 

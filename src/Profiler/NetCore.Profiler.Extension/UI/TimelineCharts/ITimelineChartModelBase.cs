@@ -27,17 +27,17 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         /// <summary>
         /// Maximum timestamp value available
         /// </summary>
-        ulong RangeMaxValue { get; }
+        ulong RangeMaxValueMilliseconds { get; }
 
         /// <summary>
         /// Displayed interval minimal value
         /// </summary>
-        ulong ViewPortMinValue { get; }
+        ulong ViewPortMinValueMilliseconds { get; }
 
         /// <summary>
         /// Displayed interval maximum value
         /// </summary>
-        ulong ViewPortMaxValue { get; }
+        ulong ViewPortMaxValueMilliseconds { get; }
 
         /// <summary>
         /// Regions of the timeline when profiling was paused

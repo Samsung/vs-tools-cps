@@ -16,12 +16,25 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for application domain creation finished ("apd crf")
+    /// %Core %Profiler trace log records. Notifies that an application domain has been created.
+    /// </summary>
     public class ApplicationDomainCreationFinished
     {
+        /// <summary>
+        /// The ID of the application domain which has been created.
+        /// </summary>
         public ulong InternalId { get; }
 
+        /// <summary>
+        /// The full or partial application domain name.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// The ID of the process that contains the application domain.
+        /// </summary>
         public ulong ProcessId { get; }
 
         public ApplicationDomainCreationFinished(ulong internalId, string name, ulong processId)

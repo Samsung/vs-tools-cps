@@ -16,9 +16,11 @@
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A module load information item used in <see cref="Module"/> objects.
+    /// </summary>
     public class ModuleLoadInfo
     {
-
         public ulong BaseLoadAddress { get; set; }
 
         public override string ToString()

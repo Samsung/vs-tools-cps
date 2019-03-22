@@ -2,12 +2,19 @@
 
 ## Prerequisites
 
-1. .NET CLI
+Add feed to Nuget.config (https://tizen.myget.org/F/dotnet/api/v3/index.json) (develop channel) to restore Tizen.NET.Sdk develop version.
+
+1. Visual Studio 2017
+
+![Nuget Tizen.Net.Sdk](../image/nuget-tizen.net.sdk.png)
+
+2. .NET CLI
 
     ```
       dotnet add package Tizen.NET.Sdk --version 0.9.18-pre1 --source https://tizen.myget.org/F/dotnet/api/v3/index.json
     ```
-2. .CSPROJ
+
+3. .CSPROJ
     ```xml
     <ItemGroup>
       <PackageReference Include="Tizen.NET.Sdk" Version="0.9.18-pre1" />

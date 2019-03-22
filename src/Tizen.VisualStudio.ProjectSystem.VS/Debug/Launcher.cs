@@ -15,18 +15,11 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Tizen.VisualStudio.Tools.DebugBridge;
-using Tizen.VisualStudio.Tools.Utilities;
 using Tizen.VisualStudio.Tools.DebugBridge.SDBCommand;
-using EnvDTE;
-using System.Text.RegularExpressions;
+using Tizen.VisualStudio.Tools.Utilities;
 
 namespace Tizen.VisualStudio.Debug
 {
@@ -60,24 +53,21 @@ namespace Tizen.VisualStudio.Debug
 
         private Launcher()
         {
-
         }
 
-        private bool TargetHasTizenDotNET(out string lastErrorMessage)
+        private bool TargetHasTizenDotNET(SDBDeviceInfo device, out string lastErrorMessage)
         {
             bool isDotnetSupported = false;
-
             try
             {
-                Version platformVersion = new SDBCapability().GetVersionByKey("platform_version");
-                isDotnetSupported = platformVersion >= new Version("4.0");
+                var cap = new SDBCapability(device);
+                isDotnetSupported = DeployHelper.IsTizenVersionSupported(cap.GetValueByKey("platform_version"));
             }
             catch
             {
             }
-
-            lastErrorMessage = isDotnetSupported ? string.Empty : "Failed to identify the .NET support on current platform version. Tizen .NET is supported on Tizen 4.0 or higher.";
-
+            lastErrorMessage = isDotnetSupported ? string.Empty
+                : "Failed to identify the .NET support on current platform version. Tizen .NET is supported on Tizen 4.0 or higher.";
             return isDotnetSupported;
         }
 
@@ -101,11 +91,10 @@ namespace Tizen.VisualStudio.Debug
             try
             {
                 // don't put this in same try block of Delete
-                // it's ok to fail Delete but if throws excpetion
+                // it's ok to fail Delete but if throws exception
                 // it won't create the file
                 using (File.Create(fileInstall))
                 {
-
                 }
             }
             catch (Exception)
@@ -113,17 +102,13 @@ namespace Tizen.VisualStudio.Debug
             }
         }
 
-        private bool NeedToInstall(string pathTpkFile, bool forceInstall)
+        private bool NeedToInstall(SDBDeviceInfo device, string pathTpkFile, bool forceInstall)
         {
-            string pathInstall;
-            string fileInstall;
+            string fileInstall = Path.GetFileNameWithoutExtension(pathTpkFile) + ".tpi";
+            string pathInstall = Path.Combine(Path.GetDirectoryName(pathTpkFile), fileInstall);
 
-            pathInstall = Path.GetDirectoryName(pathTpkFile);
-            fileInstall = Path.GetFileNameWithoutExtension(pathTpkFile) + ".tpi";
-            pathInstall = Path.Combine(pathInstall, fileInstall);
-
-            //check whether the package is installed on target/emaultor or not.
-            SDBLauncher sdbLauncher = SDBLauncher.Create(outputPane);
+            //check whether the package is installed on target/emulator or not.
+            var sdbLauncher = SDBLauncher.Create(outputPane);
             VsProjectHelper projectHelper = VsProjectHelper.GetInstance;
 
             if (!sdbLauncher.ConnectBridge())
@@ -133,7 +118,7 @@ namespace Tizen.VisualStudio.Debug
 
             string curPkgId = projectHelper.GetPackageId(pathTpkFile);//.GetAppId(curProject);
 
-            if (forceInstall || !sdbLauncher.IsPackageDetected(curPkgId))
+            if (forceInstall || !sdbLauncher.IsPackageDetected(device, curPkgId))
             {
                 ClearInstallCheckFile(pathInstall);
             }
@@ -155,40 +140,6 @@ namespace Tizen.VisualStudio.Debug
             return true;
         }
 
-        private bool DoInstallSetRootOff(out string lastErrorMessage)
-        {
-            bool result = true;
-            System.Diagnostics.Process process = SDBLib.CreateSdbProcess(true, true);
-            if (process == null)
-            {
-                lastErrorMessage = "Failed to get sdb.exe program";
-                return false;
-            }
-
-            string arguments = DeviceManager.AdjustSdbArgument("root off");
-
-            process.StartInfo.Arguments = arguments;
-            lastErrorMessage = String.Empty;
-
-            try
-            {
-                if (!process.Start())
-                {
-                    lastErrorMessage = "Failed to set SDB root off. App can not be installed by root.";
-                    return false;
-                }
-
-                process.WaitForExit(5 * 1000);
-            }
-            catch (Exception e)
-            {
-                lastErrorMessage = e.Message;
-                result = false;
-            }
-
-            return result;
-        }
-
         private InstallResult GetInstallResultFromMsg(string lastErrorMessage)
         {
             try
@@ -205,32 +156,48 @@ namespace Tizen.VisualStudio.Debug
             return InstallResult.UNDEFINED_BY_VS_ERROR;
         }
 
-        private InstallResult DoInstallTizenPackage(string tpkPath,
-                                           out string lastErrorMessage)
+        private InstallResult DoInstallTizenPackage(SDBDeviceInfo device, string tpkPath, out string lastErrorMessage)
         {
-            InstallWaiter waiter = new InstallWaiter(this as ILauncherEvents);
-            System.Diagnostics.Process process = SDBLib.CreateSdbProcess(true, true);
-            if (process == null)
+            var waiter = new InstallWaiter(this);
+/*!!
+            DeployHelper.InstallTpk(device, tpkPath,
+                (bool isStdOut, string line) => waiter.IsWaiterSet(line),
+                out lastErrorMessage, TimeSpan.FromMinutes(5));
+*/
+            InstallResult result;
+            int exitCode = 0;
+
+            switch (SDBLib.RunSdbCommand(device, "install \"" + tpkPath + "\"",
+                (bool isStdOut, string line) => waiter.IsWaiterSet(line),
+                out exitCode,
+                TimeSpan.FromMinutes(5))) // 5 minutes will be enough?
             {
-                lastErrorMessage = "Failed to get sdb.exe program";
-                return InstallResult.INSTALL_NOT_TRIED;
+                case SDBLib.SdbRunResult.Success:
+                    lastErrorMessage = waiter.LastErrorMessage;
+                    result = (exitCode == 0 ? InstallResult.OK : GetInstallResultFromMsg(lastErrorMessage));
+                    break;
+
+                case SDBLib.SdbRunResult.CreateProcessError:
+                    lastErrorMessage = "Failed to get sdb.exe program";
+                    result = InstallResult.INSTALL_NOT_TRIED;
+                    break;
+
+                case SDBLib.SdbRunResult.Timeout:
+                    lastErrorMessage = "Installation timeout";
+                    result = InstallResult.TIMEOUT;
+                    break;
+
+                default:
+                    lastErrorMessage = "Installation error";
+                    lastErrorMessage = (string.IsNullOrEmpty(waiter.LastErrorMessage) ? waiter.LastErrorMessage : "Installation error");
+                    result = (exitCode == 0 ? InstallResult.OK : InstallResult.GENERAL_ERROR);
+                    break;
             }
 
-            string argument = DeviceManager.AdjustSdbArgument("install \"" + tpkPath + "\"");
-            var sdbTaskRet = SDBLib.RunSdbProcessAsync(process, argument, true, waiter);
-
-            if (waiter.Waiter.WaitOne(300 * 1000)) // 5 minutes will be enough?
-            {
-                lastErrorMessage = waiter.LastErrorMessage;
-
-                return string.IsNullOrEmpty(lastErrorMessage) ? InstallResult.OK : GetInstallResultFromMsg(lastErrorMessage);
-            }
-
-            lastErrorMessage = "Installation Timeout.";
-            return InstallResult.TIMEOUT;
+            return result;
         }
 
-        public InstallResult InstallTizenPackage(string tpkPath,
+        public InstallResult InstallTizenPackage(SDBDeviceInfo device, string tpkPath,
                                         IVsOutputWindowPane outputPane,
                                         IVsThreadedWaitDialogFactory dlgFactory,
                                         bool forceInstall,
@@ -239,12 +206,12 @@ namespace Tizen.VisualStudio.Debug
             this.outputPane = outputPane;
             this.outputPane?.Activate();
 
-            if (!TargetHasTizenDotNET(out lastErrorMessage) || !DoInstallSetRootOff(out lastErrorMessage))
+            if (!TargetHasTizenDotNET(device, out lastErrorMessage))
             {
                 return InstallResult.INSTALL_NOT_TRIED;
             }
 
-            if (!NeedToInstall(tpkPath, forceInstall))
+            if (!NeedToInstall(device, tpkPath, forceInstall))
             {
                 lastErrorMessage = string.Format("  Skip install ({0})", tpkPath);
                 return InstallResult.OK;
@@ -259,12 +226,12 @@ namespace Tizen.VisualStudio.Debug
                     "Tizen application install in progress...",
                     0, false, true);
 
-            int usercancel;
+            int userCancel;
 
-            SDBAppCmd appUninstallCmd = new SDBAppCmd(SDBProtocol.uninstall, VsProjectHelper.GetInstance.GetPackageId(tpkPath));
-            InstallResult result = DoInstallTizenPackage(tpkPath, out lastErrorMessage);
+            var appUninstallCmd = new SDBAppCmd(device, SDBProtocol.uninstall, VsProjectHelper.GetInstance.GetPackageId(tpkPath));
+            InstallResult result = DoInstallTizenPackage(device, tpkPath, out lastErrorMessage);
 
-            this.waitDialog?.EndWaitDialog(out usercancel);
+            this.waitDialog?.EndWaitDialog(out userCancel);
 
             return result;
         }
@@ -292,30 +259,20 @@ namespace Tizen.VisualStudio.Debug
         }
     }
 
-    class InstallWaiter : TizenAutoWaiter
+    class InstallWaiter
     {
         private ILauncherEvents eventsHandler;
-        private bool installResult;
-        private string lastErrorMessage;
         private int currentPercent;
 
-        public bool InstallResult
-        {
-            get { return installResult; }
-        }
+        public bool InstallResult { get; private set; }
 
-        public string LastErrorMessage
-        {
-            get { return lastErrorMessage; }
-        }
+        public string LastErrorMessage { get; private set; }
 
         public InstallWaiter(ILauncherEvents eventsHandler)
-            : base()
         {
             this.eventsHandler = eventsHandler;
-            this.installResult = false;
-            this.lastErrorMessage = string.Empty;
-            this.currentPercent = 0;
+            LastErrorMessage = string.Empty;
+            currentPercent = 0;
         }
 
         private int ParseInstallPercent(string value)
@@ -341,48 +298,56 @@ namespace Tizen.VisualStudio.Debug
             return percent;
         }
 
-        private bool HasError(string value, out string lastErrorMessage)
+        private static bool HasError(string value, out string lastErrorMessage)
         {
-            const string errorPrefix = "processing result : ";
-            const string closeErrorString = "error: failed to close";
-
-            bool hasGeneralError = value.StartsWith(errorPrefix, StringComparison.OrdinalIgnoreCase);
-            bool hasCloseError = value.StartsWith(closeErrorString, StringComparison.OrdinalIgnoreCase);
-
-            lastErrorMessage = hasCloseError ? value :
-                (hasGeneralError ? value.Remove(0, errorPrefix.Length) : string.Empty);
-
-            return hasCloseError || hasGeneralError;
+            const string FailedErrorPrefix = "error: failed ";
+            const string ProcessingResultPrefix = "processing result : ";
+            bool error = value.StartsWith(FailedErrorPrefix, StringComparison.OrdinalIgnoreCase);
+            if (error)
+            {
+                lastErrorMessage = value;
+            }
+            else if (value.StartsWith(ProcessingResultPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                lastErrorMessage = value.Remove(0, ProcessingResultPrefix.Length);
+                error = true;
+            }
+            else
+            {
+                lastErrorMessage = value;
+            }
+            return error;
         }
 
-        public override bool IsWaiterSet(string value)
+        public bool IsWaiterSet(string value)
         {
             if (!String.IsNullOrEmpty(value))
             {
-                VsPackage.outputPaneTizen?.Activate();
-                VsPackage.outputPaneTizen?.OutputStringThreadSafe(string.Format("\t{0}\n", value));
+                if (!value.StartsWith("__return_cb")) // don't show useless progress percent lines
+                {
+                    VsPackage.outputPaneTizen?.Activate();
+                    VsPackage.outputPaneTizen?.OutputStringThreadSafe(string.Format("\t{0}\n", value));
+                }
+
+                string lastErrorMessage = "";
+                if (value.StartsWith("spend time for pkgcmd is", StringComparison.OrdinalIgnoreCase) ||
+                    !(InstallResult = !HasError(value, out lastErrorMessage)))
+                {
+                    LastErrorMessage = lastErrorMessage;
+                    // end this waiting
+                    return true;
+                }
 
                 if (this.eventsHandler != null)
                 {
                     int percent = ParseInstallPercent(value);
                     this.currentPercent = Math.Max(percent, this.currentPercent);
-                    this.eventsHandler.OnMessage(Modules.Installing, value);
+                    this.eventsHandler.OnMessage("Installing...", value);
                     this.eventsHandler.OnUpdateProgress(this.currentPercent);
-                }
-                
-                if (value.StartsWith("spend time for pkgcmd is", StringComparison.OrdinalIgnoreCase) ||
-                    !(installResult = !HasError(value, out lastErrorMessage)))
-                {
-                    // end this waiting
-                    return true;
                 }
             }
 
             return false;
-        }
-
-        public override void OnExit()
-        {
         }
     }
 
@@ -390,22 +355,5 @@ namespace Tizen.VisualStudio.Debug
     {
         void OnMessage(string module, string message);
         void OnUpdateProgress(int percent);
-    }
-
-    public class Modules
-    {
-        public const string Installing = "Installing...";
-
-        private static Modules instance;
-
-        protected Modules()
-        {
-        }
-
-        public static Modules Instance()
-        {
-            instance = new Modules();
-            return instance;
-        }
     }
 }

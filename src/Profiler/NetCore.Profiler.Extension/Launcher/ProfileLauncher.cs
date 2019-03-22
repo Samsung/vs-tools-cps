@@ -15,15 +15,19 @@
 */
 
 using System;
-using NetCore.Profiler.Cperf.Core.Model;
+using System.Diagnostics;
+using Microsoft.VisualStudio.Shell.Interop;
 using NetCore.Profiler.Extension.Launcher.Model;
-using NetCore.Profiler.Extension.Session;
+using NetCore.Profiler.Extension.VSPackage;
+using Tizen.VisualStudio.Tools.DebugBridge;
 
 namespace NetCore.Profiler.Extension.Launcher
 {
+    /// <summary>
+    /// A singleton launcher for %Core %Profiler sessions used by <see cref="ProfilerPlugin">.
+    /// </summary>
     public class ProfileLauncher
     {
-
         private ProfileSession _currentSession;
 
         private ProfileLauncher()
@@ -37,52 +41,75 @@ namespace NetCore.Profiler.Extension.Launcher
             Instance = new ProfileLauncher();
         }
 
-        public bool SessionActive => _currentSession != null;
+        public bool SessionActive => (_currentSession != null);
 
-        public IProfileSession CreateSession(ProfileSessionConfiguration sessionConfiguration)
+        public ProfileSession CreateSession(SDBDeviceInfo device, ProfileSessionConfiguration sessionConfiguration,
+            bool isLiveProfiling)
         {
-            return new ProfileSession(sessionConfiguration);
+            string details;
+            if (ProfilerPlugin.Instance.BuildSolution())
+            {
+                try
+                {
+                    return new ProfileSession(device, sessionConfiguration, isLiveProfiling);
+                }
+                catch (Exception ex)
+                {
+                    details = ex.Message;
+                }
+            }
+            else
+            {
+                details = "Solution build failed";
+            }
+            string errMsg = $"Cannot start profiling session. {details}";
+            ProfilerPlugin.Instance.WriteToOutput(errMsg);
+            ProfilerPlugin.Instance.ShowError(errMsg);
+            return null;
         }
 
-        public void StartSession(IProfileSession session)
+        public void StartSession(ProfileSession session)
         {
             if (SessionActive)
             {
                 throw new InvalidOperationException();
             }
 
-            _currentSession = (ProfileSession)session;
-            _currentSession.AddListener(new ProfileSessionListener(delegate(ProfileSessionState state)
-            {
-                if (state == ProfileSessionState.Finished || state == ProfileSessionState.Failed)
-                {
-                    _currentSession = null;
-                }
-            }));
+            _currentSession = session;
+            _currentSession.AddListener(new ProfileSessionListener { OnStateChanged = StateChangedHandler });
             _currentSession.Start();
-
         }
 
-        private class ProfileSessionListener : IProfileSessionListener
+        private void StateChangedHandler(ProfileSessionState newState)
         {
-            internal delegate void StateChangedEventHandler(ProfileSessionState newState);
-
-            private readonly StateChangedEventHandler _handler;
-
-            public ProfileSessionListener(StateChangedEventHandler handler)
+            if (newState == ProfileSessionState.Finished || newState == ProfileSessionState.Failed)
             {
-                _handler = handler;
-            }
-
-            public void StateChanged(ProfileSessionState newState)
-            {
-                _handler(newState);
-            }
-
-            public void SysInfoRead(SysInfoItem siItem)
-            {
+                ProfileSession s = _currentSession;
+                _currentSession = null;
+                if (s != null)
+                {
+                    s.Destroy();
+                }
             }
         }
 
+        public void OnModeChange(DBGMODE dbgmodeLast, DBGMODE dbgmodeNew)
+        {
+            Debug.WriteLine(String.Format($"{GetType().Name}.OnModeChange: {dbgmodeLast}=>{dbgmodeNew}"));
+
+            ProfileSession session = _currentSession;
+            if (session != null)
+            {
+                switch (dbgmodeNew)
+                {
+                    case DBGMODE.DBGMODE_Break:
+                        session.OnDebugStateChanged(true);
+                        break;
+                    case DBGMODE.DBGMODE_Run:
+                        session.OnDebugStateChanged(false);
+                        break;
+                }
+            }
+        }
     }
 }

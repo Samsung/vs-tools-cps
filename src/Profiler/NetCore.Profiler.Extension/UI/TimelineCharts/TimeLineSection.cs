@@ -18,9 +18,8 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 {
     public class TimeLineSection
     {
-        public ulong Value { get; set; }
+        public double StartSeconds;
 
-        public ulong SectionWidth { get; set; }
+        public double WidthSeconds;
     }
-
 }

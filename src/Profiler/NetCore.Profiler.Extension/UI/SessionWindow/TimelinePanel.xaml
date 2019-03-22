@@ -53,9 +53,9 @@
                                 </StackPanel>
                                 <DockPanel>
                                     <RadioButton DockPanel.Dock="Left" Margin="3,0,3,0" GroupName="ThreadGroup" IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    <Border BorderBrush="Aqua" BorderThickness="1" Margin="0">
+                                    <Border BorderBrush="LightGray" BorderThickness="1" Margin="0">
                                         <timelineCharts:ThreadTimelineChart Margin="0"
-                                            HorizontalAlignment="Stretch"  VerticalAlignment="Stretch"
+                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                             ReferenceTimeline="{Binding AppCpuTimelineChartModel}"
                                             CpuUtilizationSource="{Binding CpuUtilization}" CpuSeriesColor="Blue"
                                             GcJobsSource="{Binding GcJobsSource}" GcSeriesColor="LightGreen"

@@ -18,9 +18,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using NetCore.Profiler.Cperf.Core.Model;
 using NetCore.Profiler.Extension.Launcher.Model;
-using NetCore.Profiler.Extension.Session;
 using NetCore.Profiler.Extension.VSPackage;
 
 namespace NetCore.Profiler.Extension.UI.ProfilingProgressWindow
@@ -39,36 +37,18 @@ namespace NetCore.Profiler.Extension.UI.ProfilingProgressWindow
     [Guid("b2a1d943-c8fa-46d1-b5b2-cf362c8f0672")]
     public class ProfilingProgressWindow : ToolWindowPane
     {
-
-        private IProfileSession _session;
+        private ProfileSession _session;
 
         private readonly ProfileSessionListener _listener;
+
+        private volatile ProfileSessionState _profileSessionState;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfilingProgressWindow"/> class.
         /// </summary>
         public ProfilingProgressWindow() : base(null)
         {
-            _listener = new ProfileSessionListener(delegate(ProfileSessionState state)
-            {
-                switch (state)
-                {
-                    case ProfileSessionState.Failed:
-                    case ProfileSessionState.Finished:
-                        _session.RemoveListener(_listener);
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            ((ProfilingProgressWindowContent)Content).ClearSession();
-                            ((IVsWindowFrame)Frame).Hide();
-                            if (state == ProfileSessionState.Finished)
-                            {
-                                ProfilerPlugin.Instance.SessionsContainer.Update();
-                            }
-                        });
-                        break;
-                }
-
-            });
+            _listener = new ProfileSessionListener { OnStateChanged = StateChangedHandler };
 
             Caption = "Profiling Progress";
 
@@ -80,15 +60,49 @@ namespace NetCore.Profiler.Extension.UI.ProfilingProgressWindow
             Content = new ProfilingProgressWindowContent();
         }
 
+        private void StateChangedHandler(ProfileSessionState newState)
+        {
+            _profileSessionState = newState;
 
-        public void StartSession(IProfileSession session)
+            switch (newState)
+            {
+                case ProfileSessionState.Running:
+                    Application.Current.Dispatcher.BeginInvoke(new System.Action(() =>
+                    {
+                        // sometimes the window is not visible after Show in SetSession
+                        System.Threading.Thread.Sleep(2000);
+                        if (_profileSessionState == ProfileSessionState.Running) // still running?
+                        {
+                            Show();
+                        }
+                    }));
+                    break;
+
+                case ProfileSessionState.Failed:
+                case ProfileSessionState.Finished:
+                    _session.RemoveListener(_listener);
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        // hide the window and clear the session
+                        Hide();
+                        ((ProfilingProgressWindowContent)Content).ClearSession();
+                        if (newState == ProfileSessionState.Finished)
+                        {
+                            ProfilerPlugin.Instance.SessionsContainer.Update();
+                        }
+                    });
+                    break;
+            }
+        }
+
+        public void SetSession(ProfileSession session)
         {
             _session = session;
-            session.AddListener(_listener);
-            ((IVsWindowFrame)Frame).Show();
+            Show();
             ((ProfilingProgressWindowContent)Content).SetSession(session);
-            ProfilerPlugin.Instance.ProfileLauncher.StartSession(session);
-
+            // listener shall be added after SetSession to allow ProfilingProgressWindowContent processing events first
+            session.AddListener(_listener);
+            Show(); // why double Show: trying to fix the problem - window not visible
         }
 
         public void Show()
@@ -100,28 +114,5 @@ namespace NetCore.Profiler.Extension.UI.ProfilingProgressWindow
         {
             (Frame as IVsWindowFrame)?.Hide();
         }
-
-
-        private class ProfileSessionListener : IProfileSessionListener
-        {
-            internal delegate void StateChangedEventHandler(ProfileSessionState newState);
-
-            private readonly StateChangedEventHandler _stateHandler;
-
-            public ProfileSessionListener(StateChangedEventHandler handler)
-            {
-                _stateHandler = handler;
-            }
-
-            public void StateChanged(ProfileSessionState newState)
-            {
-                _stateHandler(newState);
-            }
-
-            public void SysInfoRead(SysInfoItem siItem)
-            {
-            }
-        }
-
     }
 }

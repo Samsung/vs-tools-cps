@@ -22,14 +22,14 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 {
     public class ClrJobItem
     {
-        public ulong Timestamp { get; set; }
+        public ulong TimeMilliseconds { get; set; }
 
         public double Value { get; set; }
     }
 
     public class ThreadClrJobTimelineChartModel : ThreadTimelineChartModelBase, ITimelineChartModelBase
     {
-        private List<ClrJob> _valuesSeries;
+        private List<ChartClrJob> _valuesSeries;
 
         private double Width = 1000;
 
@@ -37,56 +37,53 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 
         public event ViewPortChangedEventHandler ViewPortChanged;
 
-
         public ThreadClrJobTimelineChartModel(AppCpuTimelineChartModel masterChart) : base(masterChart)
         {
         }
 
-        public void SetContent(List<ClrJob> valuesSeries, ClrJobType type, ulong startTime)
+        public void SetContent(List<ClrJob> clrJobs, ClrJobType type)
         {
-            _valuesSeries = new List<ClrJob>(valuesSeries.Count);
-            ClrJob lastItem = null;
-            foreach (var job in valuesSeries)
+            _valuesSeries = new List<ChartClrJob>(clrJobs.Count);
+
+            ChartClrJob lastItem = null;
+
+            foreach (ClrJob job in clrJobs)
             {
                 if (job.Type != type)
                 {
                     continue;
                 }
 
-                var start = (job.StartTime - startTime) / 1000000;
-                var end = (job.StartTime - startTime) / 1000000;
-                if (end == start)
-                {
-                    end++;
-                }
+                ulong startMilliseconds = job.StartNanoseconds / 1000000;
+                ulong endMilliseconds = job.EndNanoseconds / 1000000;
 
-                if (lastItem == null)
+                if ((lastItem != null) && (startMilliseconds <= lastItem.EndMilliseconds))
                 {
-                    lastItem = new ClrJob
+                    if (endMilliseconds > lastItem.EndMilliseconds)
                     {
-                        StartTime = start,
-                        EndTime = end,
-                    };
-                    _valuesSeries.Add(lastItem);
+                        lastItem.EndMilliseconds = endMilliseconds;
+                    }
                     continue;
                 }
 
-                if (start <= lastItem.EndTime)
+                if (startMilliseconds == endMilliseconds)
                 {
-                    lastItem.EndTime = end;
-                    continue;
+                    ++endMilliseconds;
                 }
 
-                _valuesSeries.Add(lastItem = new ClrJob
+                lastItem = new ChartClrJob
                 {
-                    StartTime = start,
-                    EndTime = end,
-                });
+                    StartMilliseconds = startMilliseconds,
+                    EndMilliseconds = endMilliseconds,
+                };
+
+                _valuesSeries.Add(lastItem);
             }
+
+            _valuesSeries.Capacity = _valuesSeries.Count;
 
             UpdateViewPort();
         }
-
 
         protected override void UpdateViewPort()
         {
@@ -98,15 +95,15 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         protected Tuple<int, int> FindViewPortValuesRange()
         {
             int i;
-            var e = _valuesSeries.Count;
-            for (i = 0; i < e && _valuesSeries[i].StartTime < ViewPortMinValue; i++)
+            int e = _valuesSeries.Count;
+            for (i = 0; i < e && _valuesSeries[i].StartMilliseconds < ViewPortMinValueMilliseconds; i++)
             {
             }
 
             if (i < e)
             {
                 int j;
-                for (j = i + 1; j < e && _valuesSeries[j].EndTime <= ViewPortMaxValue; j++)
+                for (j = i + 1; j < e && _valuesSeries[j].EndMilliseconds <= ViewPortMaxValueMilliseconds; j++)
                 {
                 }
 
@@ -116,7 +113,6 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             return null;
         }
 
-
         protected List<ClrJobItem> GetViewPortValues(Tuple<int, int> region)
         {
             if (region == null)
@@ -124,53 +120,53 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                 return new List<ClrJobItem>();
             }
 
-            var start = region.Item1;
-            var end = region.Item2;
-            var count = end - start;
+            int start = region.Item1;
+            int end = region.Item2;
+            int count = end - start;
 
-            var compressed = new List<ClrJob>();
-            ClrJob lastItem = null;
+            var compressed = new List<ChartClrJob>();
+            ChartClrJob lastItem = null;
 
-            ulong min = (ulong)((ViewPortMaxValue - ViewPortMinValue) / Width);
-            for (var i = start; i < end;i++)
+            ulong min = (ulong)((ViewPortMaxValueMilliseconds - ViewPortMinValueMilliseconds) / Width);
+            for (int i = start; i < end; i++)
             {
                 if (lastItem == null)
                 {
-                    lastItem = new ClrJob
+                    lastItem = new ChartClrJob
                     {
-                        StartTime = _valuesSeries[i].StartTime,
-                        EndTime = _valuesSeries[i].EndTime
+                        StartMilliseconds = _valuesSeries[i].StartMilliseconds,
+                        EndMilliseconds = _valuesSeries[i].EndMilliseconds
                     };
                     compressed.Add(lastItem);
                     continue;
                 }
 
-                if ((_valuesSeries[i].StartTime - lastItem.EndTime) < min)
+                if ((_valuesSeries[i].StartMilliseconds - lastItem.EndMilliseconds) < min)
                 {
-                    lastItem.EndTime = _valuesSeries[i].EndTime;
+                    lastItem.EndMilliseconds = _valuesSeries[i].EndMilliseconds;
                     continue;
                 }
 
-                lastItem = new ClrJob
+                lastItem = new ChartClrJob
                 {
-                    StartTime = _valuesSeries[i].StartTime,
-                    EndTime = _valuesSeries[i].EndTime
+                    StartMilliseconds = _valuesSeries[i].StartMilliseconds,
+                    EndMilliseconds = _valuesSeries[i].EndMilliseconds
                 };
 
                 compressed.Add(lastItem);
             }
 
-            var result = new List<ClrJobItem>();
-            foreach (var clrJob in compressed)
+            var result = new List<ClrJobItem>(compressed.Count * 2);
+            foreach (ChartClrJob clrJob in compressed)
             {
                 result.Add(new ClrJobItem
                 {
-                    Timestamp = clrJob.StartTime,
+                    TimeMilliseconds = clrJob.StartMilliseconds,
                     Value = 1
                 });
                 result.Add(new ClrJobItem
                 {
-                    Timestamp = clrJob.EndTime,
+                    TimeMilliseconds = clrJob.EndMilliseconds,
                     Value = 0
                 });
             }
@@ -189,74 +185,81 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                 return new List<ClrJobItem>();
             }
 
-            var start = region.Item1;
-            var end = region.Item2;
-            var count = end - start;
+            int start = region.Item1;
+            int end = region.Item2;
+            int count = end - start;
 
-            var compressed = new List<ClrJob>();
-            ClrJob lastItem = null;
+            var compressed = new List<ChartClrJob>();
+            ChartClrJob lastItem = null;
 
-            ulong min = (ulong)((ViewPortMaxValue - ViewPortMinValue) / Width);
+            ulong min = (ulong)((ViewPortMaxValueMilliseconds - ViewPortMinValueMilliseconds) / Width);
             for (var i = start; i < end; i++)
             {
                 if (lastItem == null)
                 {
-                    lastItem = new ClrJob
+                    lastItem = new ChartClrJob
                     {
-                        StartTime = _valuesSeries[i].StartTime,
-                        EndTime = _valuesSeries[i].EndTime
+                        StartMilliseconds = _valuesSeries[i].StartMilliseconds,
+                        EndMilliseconds = _valuesSeries[i].EndMilliseconds
                     };
                     compressed.Add(lastItem);
                     continue;
                 }
 
-                if ((_valuesSeries[i].StartTime - lastItem.EndTime) < min)
+                if ((_valuesSeries[i].StartMilliseconds - lastItem.EndMilliseconds) < min)
                 {
-                    lastItem.EndTime = _valuesSeries[i].EndTime;
+                    lastItem.EndMilliseconds = _valuesSeries[i].EndMilliseconds;
                     continue;
                 }
 
-                lastItem = new ClrJob
+                lastItem = new ChartClrJob
                 {
-                    StartTime = _valuesSeries[i].StartTime,
-                    EndTime = _valuesSeries[i].EndTime
+                    StartMilliseconds = _valuesSeries[i].StartMilliseconds,
+                    EndMilliseconds = _valuesSeries[i].EndMilliseconds
                 };
 
                 compressed.Add(lastItem);
             }
 
-            var result = new List<ClrJobItem> { new ClrJobItem { Timestamp = 0, Value = 0 } };
-            foreach (var clrJob in compressed)
+            var result = new List<ClrJobItem> { new ClrJobItem() };
+            foreach (ChartClrJob clrJob in compressed)
             {
                 result.Add(new ClrJobItem
                 {
-                    Timestamp = clrJob.StartTime,
+                    TimeMilliseconds = clrJob.StartMilliseconds,
                     Value = 0
                 });
                 result.Add(new ClrJobItem
                 {
-                    Timestamp = clrJob.StartTime,
+                    TimeMilliseconds = clrJob.StartMilliseconds,
                     Value = 1
                 });
                 result.Add(new ClrJobItem
                 {
-                    Timestamp = clrJob.EndTime,
+                    TimeMilliseconds = clrJob.EndMilliseconds,
                     Value = 1
                 });
                 result.Add(new ClrJobItem
                 {
-                    Timestamp = clrJob.EndTime,
+                    TimeMilliseconds = clrJob.EndMilliseconds,
                     Value = 0
                 });
             }
 
             result.Add(new ClrJobItem
             {
-                Timestamp = ViewPortMaxValue + 1,
+                TimeMilliseconds = ViewPortMaxValueMilliseconds + 1,
                 Value = 0
             });
 
             return result;
+        }
+
+        private class ChartClrJob
+        {
+            public ulong StartMilliseconds { get; set; }
+
+            public ulong EndMilliseconds { get; set; }
         }
     }
 }

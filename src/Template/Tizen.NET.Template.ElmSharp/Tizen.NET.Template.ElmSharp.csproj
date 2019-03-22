@@ -62,10 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <VSTemplate Include="ElmSharp.vstemplate">
-      <OutputSubPath>Tizen</OutputSubPath>
-    </VSTemplate>
-    <VSTemplate Include="ElmSharp.vstemplate">
-      <OutputSubPath>Tizen\Native</OutputSubPath>
+      <OutputSubPath>Tizen 4.0</OutputSubPath>
     </VSTemplate>
   </ItemGroup>
   <ItemGroup>

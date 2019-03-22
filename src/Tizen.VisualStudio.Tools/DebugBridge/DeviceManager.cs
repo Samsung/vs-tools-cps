@@ -63,13 +63,12 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
         {
             get;
             private set;
-        }
+        } = new List<TransformBlock<string, IProjectVersionedValue<IReadOnlyList<IEnumValue>>>>();
 
         public static void Initialize(IVsOutputWindowPane outputPane)
         {
             deviceManager = new DeviceManager();
             deviceManager.InitDeviceMonitor(outputPane);
-            DebugProfilesBlockList = new List<TransformBlock<string, IProjectVersionedValue<IReadOnlyList<IEnumValue>>>>();
         }
 
         public static void SubscribeDeviceList(ISDBDeviceChangeListener listener)
@@ -114,21 +113,21 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             }
         }
 
-        public static string AdjustSdbArgument(string argument)
+        public static string AdjustSdbArgument(SDBDeviceInfo device, string argument)
         {
-            List<SDBDeviceInfo> devInfoList = DeviceInfoList;
-            int itemCount = devInfoList.Count;
-
-            if (itemCount > 1 &&
-                SelectedDevice != null)
+            if (device == null)
             {
-                string result;
-                result = String.Format("-s {0} {1}",
-                                       SelectedDevice.Serial,
-                                       argument);
-                return result;
+                List<SDBDeviceInfo> devInfoList = DeviceInfoList;
+                int itemCount = (devInfoList != null) ? devInfoList.Count : 0;
+                if (itemCount > 1)
+                {
+                    device = SelectedDevice;
+                }
             }
-
+            if (device != null)
+            {
+                return $"-s {device.Serial} {argument}";
+            }
             return argument;
         }
 

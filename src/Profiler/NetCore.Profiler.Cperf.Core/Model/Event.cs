@@ -14,47 +14,32 @@
  * limitations under the License.
 */
 
-using System.ComponentModel;
-
 namespace NetCore.Profiler.Cperf.Core.Model
 {
-
+    /// <summary>
+    /// A <see cref="DataContainer"/> data model class for an event (such as garbage collection started)
+    /// from a %Core %Profiler log. These events are stored in <see cref="Thread"/> objects.
+    /// </summary>
     public class Event
     {
         public object SourceObject { get; }
 
         public EventType EventType { get; }
 
-        public ulong Timestamp { get; }
+        public ulong TimeMilliseconds { get; }
 
-        public string SourceObjectType => SourceObject.GetType().Name.Substring(2);
+        public string SourceObjectType => SourceObject.GetType().Name;
 
-        public Event(object sourceObject, ulong timestamp, EventType type)
+        public Event(object sourceObject, ulong timeMilliseconds, EventType type)
         {
-            EventType = type;
-            Timestamp = timestamp;
             SourceObject = sourceObject;
+            EventType = type;
+            TimeMilliseconds = timeMilliseconds;
         }
 
         public override string ToString()
         {
-            var result = "PLEvent[";
-
-            foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(this))
-            {
-                switch (descriptor.Name)
-                {
-                    case "PLObject":
-                        break;
-                    default:
-                        result += "{" + descriptor.Name + ": " + descriptor.GetValue(this) + "}";
-                        break;
-                }
-            }
-
-            result += "]";
-
-            return result;
+            return $"{EventType} at {TimeMilliseconds} ms";
         }
     }
 }

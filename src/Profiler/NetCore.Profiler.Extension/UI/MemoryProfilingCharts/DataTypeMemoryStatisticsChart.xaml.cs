@@ -78,7 +78,7 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
         }
 
         /// <summary>
-        /// ScrollBar offset. ScrallBar Value property is bound to it.
+        /// ScrollBar offset. ScrollBar Value property is bound to it.
         /// </summary>
         public double Offset
         {
@@ -162,7 +162,7 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
         {
             LiveTimeline.Series.Add(
                 new LineSeries(Mappers.Xy<DataTypeMemoryUsage>()
-                    .X(item => item.Timestamp)
+                    .X(item => item.TimeMilliseconds)
                     .Y(item => PrepareMemorySize(item.MemorySize)))
                 {
                     Fill = Brushes.Transparent,

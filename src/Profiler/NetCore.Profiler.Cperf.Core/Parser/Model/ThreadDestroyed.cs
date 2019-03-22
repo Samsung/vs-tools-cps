@@ -16,8 +16,15 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for thread destroyed ("thr dst") %Core %Profiler
+    /// trace log records. Notifies that a thread has been destroyed.
+    /// </summary>
     public class ThreadDestroyed
     {
+        /// <summary>
+        /// An internal ID of a thread that has been destroyed.
+        /// </summary>
         public ulong InternalId { get; }
 
         public ThreadDestroyed(ulong internalId)

@@ -16,6 +16,9 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for class name dump ("cls nam") %Core %Profiler trace log records.
+    /// </summary>
     public class ClassName
     {
         public ulong InternalId { get; private set; }
@@ -27,6 +30,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
             InternalId = internalId;
             Name = name;
         }
-
     }
 }

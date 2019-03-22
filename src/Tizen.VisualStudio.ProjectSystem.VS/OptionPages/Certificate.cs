@@ -103,6 +103,10 @@ namespace Tizen.VisualStudio.OptionPages
         {
             get
             {
+                if (control != null)
+                {
+                    return control;
+                }
                 control = new CertificateControl();
                 control.Location = new System.Drawing.Point(0, 0);
                 control.page = this;
@@ -152,7 +156,10 @@ namespace Tizen.VisualStudio.OptionPages
                 CertificateProfilesManager.ProfilesChanged += delegate(object sender, CertificateProfileChangedEventArgs e)
                 {
                     UpdateInfoProfile();
-                    control.UpdateData(false);
+                    if (control != null)
+                    {
+                        control.UpdateData(false);
+                    }
                 };
             }
 

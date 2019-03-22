@@ -18,7 +18,7 @@
                 </lvc:Axis>
             </lvc:CartesianChart.AxisY>
             <lvc:CartesianChart.AxisX>
-                <lvc:Axis Title="Time (sec)" MinValue="0"></lvc:Axis>
+                <lvc:Axis Title="Time (sec)" MinValue="0" MaxValue="1"></lvc:Axis>
             </lvc:CartesianChart.AxisX>
         </lvc:CartesianChart>
 

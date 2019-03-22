@@ -24,52 +24,45 @@ namespace Tizen.VisualStudio.Tools.DebugBridge.SDBCommand
     public class SDBCapability
     {
         private Dictionary<string, string> capDic = new Dictionary<string, string>();
-        private bool isSupported;
 
-        public bool IsSupported
+        public bool IsSupported { get; private set; }
+
+        [Obsolete("Use SDBCapability(SDBDeviceInfo) instead")]
+        public SDBCapability() : this(DeviceManager.SelectedDevice)
         {
-            get
-            {
-                return isSupported;
-            }
         }
 
-        public SDBCapability()
+        public SDBCapability(SDBDeviceInfo device)
         {
-            string[] args = { "-s", DeviceManager.SelectedDevice.Serial, SDBProtocol.capability };
+            string[] args = { "-s", device.Serial, SDBProtocol.capability };
 
-            Process p = new Process();
-            p.StartInfo.FileName = SDBLib.GetSdbFilePath();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.Arguments = string.Join(" ", args);
-            p.Start();
+            string returnValue;
 
-            string returnValue = p.StandardOutput.ReadToEnd().Replace("\r", string.Empty);
-            p.WaitForExit();
-            p.Dispose();
-
-            isSupported = !string.IsNullOrEmpty(returnValue);
-
-            if (!isSupported)
+            using (ProcessProxy p = new ProcessProxy())
             {
-                return;
+                p.StartInfo.FileName = SDBLib.GetSdbFilePath();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.Arguments = string.Join(" ", args);
+                Debug.WriteLine("{0} SDBCapability command '{1}'", DateTime.Now, p.StartInfo.Arguments);
+                p.Start();
+
+                returnValue = p.StandardOutput.ReadToEnd().Replace("\r", string.Empty);
+                p.WaitForExit();
             }
 
-            GenCapDic(returnValue);
+            IsSupported = !string.IsNullOrEmpty(returnValue);
+            if (IsSupported)
+            {
+                GenCapDic(returnValue);
+            }
         }
 
         public string GetValueByKey(string key)
         {
-            if (capDic.ContainsKey(key))
-            {
-                return capDic[key];
-            }
-            else
-            {
-                return null;
-            }
+            string result;
+            return capDic.TryGetValue(key, out result) ? result : null;
         }
 
         public bool GetAvailabilityByKey(string key)
@@ -81,7 +74,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge.SDBCommand
         {
             float val;
 
-            if (float.TryParse(GetValueByKey(key), out val))
+            if (float.TryParse(GetValueByKey(key), out val)) // TODO!! culture?
             {
                 return val;
             }

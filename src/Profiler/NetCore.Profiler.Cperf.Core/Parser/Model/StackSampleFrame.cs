@@ -16,6 +16,9 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A stack sample frame information item used in <see cref="StackSample"/>.
+    /// </summary>
     public class StackSampleFrame
     {
         public ulong InternalId { get; set; }

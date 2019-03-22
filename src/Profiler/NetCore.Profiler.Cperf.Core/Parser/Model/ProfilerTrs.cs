@@ -16,8 +16,15 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for profiler resume ("prf trs") %Core %Profiler
+    /// trace log records. Notifies that a profiling is resumed after a pause.
+    /// </summary>
     public class ProfilerTrs
     {
+        /// <summary>
+        /// The event timestamp in milliseconds from the start of profiling.
+        /// </summary>
         public ulong Value { get; }
 
         public ProfilerTrs(ulong value)

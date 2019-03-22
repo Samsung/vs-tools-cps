@@ -30,6 +30,7 @@
        This is used by VS to show the list of tizen frameworks -->
   <ItemGroup>
     <SupportedTargetFramework Include="Tizen,Version=v4.0" DisplayName=".NET Tizen 4.0" />
+    <SupportedTargetFramework Include="Tizen,Version=v5.0" DisplayName=".NET Tizen 5.0" />
   </ItemGroup>
 
   <Target Name="Run">

@@ -18,9 +18,11 @@ using NetCore.Profiler.Cperf.Core.Model;
 
 namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 {
-    public class Thread : IIdentifiable
+    /// <summary>
+    /// A class used in <see cref = "DebugDataInjectionFilter"/> to represent a thread.
+    /// </summary>
+    internal class Thread : IIdentifiable
     {
-
         public ulong InternalId { get; }
 
         public FunctionCall RootFunctionCall { get; set; }
@@ -36,6 +38,5 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
         {
             TopFunctionCall = RootFunctionCall = new FunctionCall(Function.FakeFunctionId);
         }
-
     }
 }

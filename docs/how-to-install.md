@@ -41,38 +41,27 @@ Tizen emulator for Visual Studio requires an equivalent environment with an emul
 ## Visual Studio Tools for Tizen Installation ##
 The following steps are needed in installing Visual Studio Tools for Tizen.
 
-   #### 1. Set private gallery for VSIX ####
-
-   * Tools → Options.. → Extensions and Updates → Change your Extensions and Update settings or
-
-   * Tools → Options → Environment → Extensions and Updates
-   ![Extensions and Update](image/HowToInstall_ExtensionsandUpdates1.png)
-
-   * Click the Add button and set URL (Check firewall about ```IP : 10.113.138.168 / Port : 80, 443```)
-      * for Stable Version : http://10.113.138.168/packages/vsext/vsix/content.xml
-      * for Developer Version : http://10.113.138.168/packages/vsext/vsix/content_swc.xml
-   ![Extensions and Gallery](image/HowToInstall_ExtensionsandUpdates2.png)
-
-   * Click OK button
-
-   #### 2. Install VSIX ####
+   #### 1. Install public VSIX ####
 
    * TOOLS → Extensions and Updates..
-      * Select Online tab on leftside and select the private gallery you just added
+      * Select Online tab on leftside, write the keyword Tizen in the search box.
 
    * Click Download button on Visual Studio Tools for Tizen
-   ![Extensions and Updates](image/HowToInstall_ExtensionsandUpdates3.png)
 
    * Visual Studio Tools for Tizen will be installed after you close the Visual Studio
    ![VSIX Installer](image/HowToInstall_ExtensionsandUpdates4.png)
 
-   #### 3. Setup Baseline SDK ####
+   #### 2. Setup private Baseline SDK ####
 
-   For using Tizen SDK Tools, you have to install Baseline SDK. 
+   For using Tizen SDK Tools, you have to install public Baseline SDK, then you should modify Package manager configuration with private url.
    However, if you already installed Tizen Studio in your host, you can just set the tool-path instead of installation.
 
-   * For using with Visual Studio, your Tizen Studio should be installed from ```tizen_studio``` or ```tizen_studio_2.0``` distributions.
-   * You can check Package repository and distribution which you installed. (Run Package manager > Configuration)
+   * For using with Visual Studio, your Tizen Studio should be installed from ```tizen_studio_3.0``` or ```tizen_studio``` distributions.
+
+    #### Case : First install private Tizen Studio ####
+   * Install public Baseline SDK.
+   * Check Package repository and distribution which you installed. (Run Package manager > Configuration)
+   * And change configuration with private url http:/10.113.138.168/packages
    ![Package Manager](image/HowToInstall_PackageMgrConf.png)
 
    #### Case : Already installed Tizen Studio ####

@@ -16,6 +16,9 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A garbage collection sample item used in <see cref="GarbageCollectionSample"/>.
+    /// </summary>
     public class GarbageCollectionSampleItem
     {
         public GarbageCollectionSampleItem(ulong classId, ulong objectsCount, ulong memorySize)
@@ -30,6 +33,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
         public ulong ObjectsCount { get; set; }
 
         public ulong MemorySize { get; set; }
-
     }
 }

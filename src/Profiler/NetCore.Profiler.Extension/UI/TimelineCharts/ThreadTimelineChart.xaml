@@ -9,7 +9,7 @@
     <wpf:CartesianChart x:Name="LiveTimeline" Zoom="None" DisableAnimations="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <wpf:CartesianChart.AxisY>
             <wpf:Axis ShowLabels="False" IsEnabled="False" MinValue="0" MaxValue="1" Position="LeftBottom" Visibility="Collapsed"/>
-            <wpf:Axis ShowLabels="False" IsEnabled="False" MinValue="0" MaxValue="200" Position="RightTop" Visibility="Collapsed"/>
+            <wpf:Axis ShowLabels="False" IsEnabled="False" MinValue="0" MaxValue="100" Position="RightTop" Visibility="Collapsed"/>
         </wpf:CartesianChart.AxisY>
         <wpf:CartesianChart.AxisX>
             <wpf:Axis ShowLabels="False" IsEnabled="False" MinValue="0"></wpf:Axis>

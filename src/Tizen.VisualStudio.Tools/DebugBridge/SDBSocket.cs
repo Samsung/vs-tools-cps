@@ -15,6 +15,7 @@
 */
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -24,9 +25,9 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
     public class SDBSocket
     {
         public const int TimeOut = 0;//Infinite
-        public const int TimeOutStart = 7000;
 
         private Socket socket = null;
+        private int id = 0;
 
         public bool NoDelay
         {
@@ -77,12 +78,15 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
         public void Connect(IPAddress ip, int port)
         {
             Connect(new IPEndPoint(ip, port));
+            id = ((IPEndPoint)this.socket.LocalEndPoint).Port;
+            Debug.WriteLine("{0} SDBSocket({1}) connect to port {2}", DateTime.Now, id, port);
         }
 
         public void Close()
         {
             if (this.socket != null)
             {
+                Debug.WriteLine("{0} SDBSocket({1}) close", DateTime.Now, id);
                 this.socket.Close();
                 this.socket.Dispose();
                 this.socket = null;
@@ -95,6 +99,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             {
                 try
                 {
+                    Debug.WriteLine("{0} SDBSocket({1}) shutdown", DateTime.Now, id);
                     this.socket.Shutdown(SocketShutdown.Both);
                 }
                 catch (ObjectDisposedException e)
@@ -125,6 +130,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
         public bool Write(byte[] data)
         {
             bool success = true;
+
             try
             {
                 success = Write(data, -1, TimeOut);
@@ -138,10 +144,32 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             return success;
         }
 
+        public string LogData(byte[] data)
+        {
+            if (data.Length <= 0)
+            {
+                return $"";
+            }
+            string str = $"";
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (data[i] > 31 && data[i] < 127)
+                {
+                    str += System.Text.Encoding.UTF8.GetString(data, i, 1);
+                }
+                else
+                {
+                    str += String.Format("'0x{0:X}'", data[i]);
+                }
+            }
+            return str;
+        }
+
         public bool Write(byte[] data, int length, int timeout)
         {
             int count = -1;
             bool success = true;
+            Debug.WriteLine("{0} SDBSocket({1}) write: {2}", DateTime.Now, id, LogData(data));
 
             if (this.socket == null)
             {

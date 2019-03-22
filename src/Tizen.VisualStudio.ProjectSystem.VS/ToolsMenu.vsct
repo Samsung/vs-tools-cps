@@ -116,7 +116,7 @@
 					<CommandFlag>DynamicVisibility</CommandFlag>
 				If you do not want an image next to your command, remove the Icon node /> -->
       <!-- Menu Item as Button -->
-      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemTest" priority="0x0101" type="Button">
+      <!--Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemTest" priority="0x0101" type="Button">
         <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -124,7 +124,7 @@
         <Strings>
           <ButtonText>Invoke MenuItemTestCommand</ButtonText>
         </Strings>
-      </Button>
+      </Button -->
 
       <!-- Menu Item as Button -->
       <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemPackageManager" priority="0x0101" type="Button">
@@ -181,7 +181,7 @@
       <!-- Menu Item as Button -->
       <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemResourceManager" priority="0x0101" type="Button">
         <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
-        <Icon guid="guidImages" id="bmpPicSdbPrompt" />
+        <Icon guid="ResourceMgrImage" id="pngResourceManager" />
         <Strings>
           <ButtonText>Resource Manager</ButtonText>
         </Strings>
@@ -237,6 +237,18 @@
         </Strings>
       </Button>
 
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemProfilingProgressWindow" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsProfilerMenuGroup" />
+        <Icon guid="ProfilingProgressImage" id="pngPicProfilingProgress" />
+        <!--
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        -->
+        <Strings>
+          <ButtonText>Profiling Progress</ButtonText>
+        </Strings>
+      </Button>
+
       <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemRunProfiler" priority="0x0101" type="Button">
         <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsProfilerMenuGroup" />
         <Icon guid="RunProfilerImage" id="pngPicRunProfiler" />
@@ -248,6 +260,18 @@
           <ButtonText>Run Profiler</ButtonText>
         </Strings>
       </Button>
+      
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemRunHeaptrack" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsProfilerMenuGroup" />
+        <Icon guid="RunProfilerImage" id="pngPicRunProfiler" />
+        <!--
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        -->
+        <Strings>
+          <ButtonText>Run Memory Profiler</ButtonText>
+        </Strings>
+      </Button>
 
       <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemSdbServerStart" priority="0x0101" type="Button">
         <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
@@ -255,6 +279,15 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Restart Sdb Server</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemXamlPreview" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="SdbImage" id="pngPicSdb" />
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>XAML Preview</ButtonText>
         </Strings>
       </Button>
 
@@ -293,6 +326,8 @@
               usedList="pngPicRunProfiler"/>
       <Bitmap guid="SessionExplorerImage" href="Resources\ic_tizen_session_explorer.png"
               usedList="pngPicSessionExplorer"/>
+      <Bitmap guid="ProfilingProgressImage" href="Resources\ic_tizen_profiling_progress.png"
+              usedList="pngPicProfilingProgress"/>
     </Bitmaps>
   </Commands>
 
@@ -325,10 +360,16 @@
       <IDSymbol name="CmdItem_MenuItemAPIChecker" value="0x0111" />
       <IDSymbol name="CmdItem_MenuItemResourceManager" value="0x0112" />
       <IDSymbol name="CmdItem_MenuItemExplorerWindow" value="0x0113" />
-      <IDSymbol name="CmdItem_MenuItemRunProfiler" value="0x0114" />
+      <IDSymbol name="CmdItem_MenuItemProfilingProgressWindow" value="0x0114" />
+      <IDSymbol name="CmdItem_MenuItemRunProfiler" value="0x0115" />
+      <IDSymbol name="CmdItem_MenuItemRunMemoryProfiler" value="0x0116" />
+      <IDSymbol name="CmdItem_MenuItemRunHeaptrack" value="0x0117" />
+      <IDSymbol name="CmdItem_MenuItemRunManagedProfiler" value="0x0118" />
       <IDSymbol name="CmdItem_MenuItemInstallWizard" value="0x0198" />
       <IDSymbol name="CmdItem_MenuItemTest" value="0x0199" />
       <IDSymbol name="CmdItem_MenuItemSdbServerStart" value="0x0200" />
+      <IDSymbol name="CmdItem_MenuItemXamlPreview" value="0x0201" />
+      
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{465cd234-4abe-4837-82bc-822c9d9f7bf2}" >
@@ -391,7 +432,11 @@
     <GuidSymbol name="SessionExplorerImage" value="{8224CDB8-B9AC-4CF1-8A3B-82E8A59D0505}">
       <IDSymbol name="pngPicSessionExplorer" value="1"/>
     </GuidSymbol>
-    
+
+    <GuidSymbol name="ProfilingProgressImage" value="{9F4630A8-FE9F-4B70-996C-618B95465F76}">
+      <IDSymbol name="pngPicProfilingProgress" value="1"/>
+    </GuidSymbol>
+
   </Symbols>
 </CommandTable>
 

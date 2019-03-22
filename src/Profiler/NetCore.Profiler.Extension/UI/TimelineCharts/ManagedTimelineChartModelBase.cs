@@ -20,41 +20,39 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 {
     public abstract class ManagedTimelineChartModelBase
     {
-
         private readonly object _lock = new object();
 
-        public ulong RangeMaxValue { get; protected set; }
+        public ulong RangeMaxValueMilliseconds { get; protected set; }
 
-        public ulong ViewPortMinValue { get; protected set; }
+        public ulong ViewPortMinValueMilliseconds { get; protected set; }
 
-        public ulong ViewPortMaxValue { get; protected set; }
+        public ulong ViewPortMaxValueMilliseconds { get; protected set; }
 
-        public ulong Offset
+        public ulong OffsetMilliseconds
         {
-            get => ViewPortMinValue;
+            get => ViewPortMinValueMilliseconds;
             set
             {
-                var delta = value - ViewPortMinValue;
-                ViewPortMinValue = value;
-                ViewPortMaxValue += delta;
+                ulong delta = value - ViewPortMinValueMilliseconds;
+                ViewPortMinValueMilliseconds = value;
+                ViewPortMaxValueMilliseconds += delta;
                 UpdateViewPort();
             }
         }
 
-        public void ZoomTo(ulong start, ulong end)
+        public void ZoomTo(ulong startMilliseconds, ulong endMilliseconds)
         {
+            //Don't dislpay less then 100 ms
+            //TODO check number of points in the interval
+            if (endMilliseconds - startMilliseconds < 100)
+            {
+                endMilliseconds = startMilliseconds + 100;
+            }
+
             lock (_lock)
             {
-
-                //Don't dislpay less then 100 ms
-                //TODO check number of points in the interval
-                if (end - start < 100)
-                {
-                    end = start + 100;
-                }
-
-                ViewPortMinValue = Math.Max(start, 0);
-                ViewPortMaxValue = Math.Min(end, RangeMaxValue);
+                ViewPortMinValueMilliseconds = Math.Max(startMilliseconds, 0);
+                ViewPortMaxValueMilliseconds = Math.Min(endMilliseconds, RangeMaxValueMilliseconds);
             }
 
             UpdateViewPort();
@@ -64,13 +62,13 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         {
             lock (_lock)
             {
-                if (ViewPortMinValue == 0 && ViewPortMaxValue == RangeMaxValue)
+                if (ViewPortMinValueMilliseconds == 0 && ViewPortMaxValueMilliseconds == RangeMaxValueMilliseconds)
                 {
                     return;
                 }
 
-                ViewPortMinValue = 0;
-                ViewPortMaxValue = RangeMaxValue;
+                ViewPortMinValueMilliseconds = 0;
+                ViewPortMaxValueMilliseconds = RangeMaxValueMilliseconds;
             }
 
             UpdateViewPort();
@@ -80,7 +78,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         {
             lock (_lock)
             {
-                var l = ViewPortMaxValue - ViewPortMinValue;
+                var l = ViewPortMaxValueMilliseconds - ViewPortMinValueMilliseconds;
                 var target = l * speed;
 
                 //Don't dislpay less then 100 ms
@@ -90,14 +88,14 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                     return;
                 }
 
-                var rMin = (itemUnderCursor - ViewPortMinValue) / l;
+                var rMin = (itemUnderCursor - ViewPortMinValueMilliseconds) / l;
                 var rMax = 1 - rMin;
 
                 var mint = itemUnderCursor - target * rMin;
                 var maxt = itemUnderCursor + target * rMax;
 
-                ViewPortMinValue = (ulong)Math.Max(mint, 0);
-                ViewPortMaxValue = (ulong)Math.Min(maxt, RangeMaxValue);
+                ViewPortMinValueMilliseconds = (ulong)Math.Max(mint, 0);
+                ViewPortMaxValueMilliseconds = (ulong)Math.Min(maxt, RangeMaxValueMilliseconds);
             }
 
             UpdateViewPort();
@@ -107,59 +105,58 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         {
             lock (_lock)
             {
-                if (ViewPortMinValue == 0 && ViewPortMaxValue == RangeMaxValue)
+                if (ViewPortMinValueMilliseconds == 0 && ViewPortMaxValueMilliseconds == RangeMaxValueMilliseconds)
                 {
                     return;
                 }
 
-                var l = ViewPortMaxValue - ViewPortMinValue;
+                var l = ViewPortMaxValueMilliseconds - ViewPortMinValueMilliseconds;
                 var target = l / speed;
-                if (target >= RangeMaxValue)
+                if (target >= RangeMaxValueMilliseconds)
                 {
-                    ViewPortMinValue = 0;
-                    ViewPortMaxValue = RangeMaxValue;
+                    ViewPortMinValueMilliseconds = 0;
+                    ViewPortMaxValueMilliseconds = RangeMaxValueMilliseconds;
                 }
                 else
                 {
-                    var rMin = (itemUnderCursor - ViewPortMinValue) / l;
+                    var rMin = (itemUnderCursor - ViewPortMinValueMilliseconds) / l;
                     var rMax = 1 - rMin;
 
                     var mint = itemUnderCursor - target * rMin;
                     var maxt = itemUnderCursor + target * rMax;
 
-                    ViewPortMinValue = (ulong)Math.Max(mint, 0);
-                    ViewPortMaxValue = (ulong)Math.Min(maxt, RangeMaxValue);
+                    ViewPortMinValueMilliseconds = (ulong)Math.Max(mint, 0);
+                    ViewPortMaxValueMilliseconds = (ulong)Math.Min(maxt, RangeMaxValueMilliseconds);
                 }
             }
 
             UpdateViewPort();
         }
 
-        public void RevealSelection(ulong start, ulong end)
+        public void RevealSelection(ulong startMilliseconds, ulong endMilliseconds)
         {
             lock (_lock)
             {
+                var lp = ViewPortMaxValueMilliseconds - ViewPortMinValueMilliseconds;
+                var ls = endMilliseconds - startMilliseconds;
 
-                var lp = ViewPortMaxValue - ViewPortMinValue;
-                var ls = end - start;
-
-                if (start >= ViewPortMinValue && end <= ViewPortMaxValue)
+                if (startMilliseconds >= ViewPortMinValueMilliseconds && endMilliseconds <= ViewPortMaxValueMilliseconds)
                 {
                     return;
                 }
 
                 if (ls >= lp)
                 {
-                    ViewPortMinValue = start;
+                    ViewPortMinValueMilliseconds = startMilliseconds;
                 }
                 else
                 {
-                    ViewPortMinValue = (lp - ls) / 2 > start ? 0 : start - (lp - ls) / 2;
+                    ViewPortMinValueMilliseconds = (lp - ls) / 2 > startMilliseconds ? 0 : startMilliseconds - (lp - ls) / 2;
                 }
 
-                ViewPortMaxValue = ViewPortMinValue + lp;
-                ViewPortMinValue = Math.Max(ViewPortMinValue, 0);
-                ViewPortMaxValue = Math.Min(ViewPortMaxValue, RangeMaxValue);
+                ViewPortMaxValueMilliseconds = ViewPortMinValueMilliseconds + lp;
+                ViewPortMinValueMilliseconds = Math.Max(ViewPortMinValueMilliseconds, 0);
+                ViewPortMaxValueMilliseconds = Math.Min(ViewPortMaxValueMilliseconds, RangeMaxValueMilliseconds);
             }
 
             UpdateViewPort();

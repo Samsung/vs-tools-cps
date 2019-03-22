@@ -84,10 +84,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
-      <Version>15.0.751</Version>
+      <Version>15.3.224</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK.Tools">
-      <Version>15.0.751</Version>
+      <Version>15.3.224</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>10.0.3</Version>

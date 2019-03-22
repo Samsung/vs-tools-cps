@@ -16,9 +16,11 @@
 
 namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 {
-    public class CilToNativeMapping
+    /// <summary>
+    /// An IL to native code mapping information item used in <see cref="FunctionNativeCodeInfo"/>.
+    /// </summary>
+    internal class CilToNativeMapping
     {
-
         public uint Offset { get; set; }
 
         public uint NativeStartOffset { get; set; }

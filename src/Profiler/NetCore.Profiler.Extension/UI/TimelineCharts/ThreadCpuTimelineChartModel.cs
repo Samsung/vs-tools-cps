@@ -52,7 +52,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                     //"Missing Point" to indicate the end of the region
                     cpuUtilizationNew.Add(new CpuUtilization
                     {
-                        Timestamp = cpuUtilization.Timestamp,
+                        TimeMilliseconds = cpuUtilization.TimeMilliseconds,
                         Utilization = double.NaN
                     });
                 }
@@ -72,7 +72,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         {
             int i;
             var e = ValuesSeries.Count;
-            for (i = 0; i < e && ValuesSeries[i].Timestamp < ViewPortMinValue; i++)
+            for (i = 0; i < e && ValuesSeries[i].TimeMilliseconds < ViewPortMinValueMilliseconds; i++)
             {
             }
 
@@ -84,7 +84,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             if (i < e)
             {
                 int j;
-                for (j = i + 1; j < e && ValuesSeries[j].Timestamp <= ViewPortMaxValue; j++)
+                for (j = i + 1; j < e && ValuesSeries[j].TimeMilliseconds <= ViewPortMaxValueMilliseconds; j++)
                 {
                 }
 
@@ -130,14 +130,14 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                 }
 
                 var current = ValuesSeries[i].Utilization;
-                var timestamp = ValuesSeries[i].Timestamp;
+                var timestamp = ValuesSeries[i].TimeMilliseconds;
                 int j;
                 for (j = 1; j < itemsToProcess && i + j < end && !double.IsNaN(ValuesSeries[i + j].Utilization); j++)
                 {
                     if (Math.Abs(ValuesSeries[i + j].Utilization - prev) > Math.Abs(current - prev))
                     {
                         current = ValuesSeries[i + j].Utilization;
-                        timestamp = ValuesSeries[i + j].Timestamp;
+                        timestamp = ValuesSeries[i + j].TimeMilliseconds;
                     }
                 }
 
@@ -145,7 +145,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                 {
                     result.Add(new CpuUtilization
                     {
-                        Timestamp = timestamp,
+                        TimeMilliseconds = timestamp,
                         Utilization = current
                     });
                 }

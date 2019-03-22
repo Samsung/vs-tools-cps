@@ -14,8 +14,8 @@
     </Style>
 
     <Style x:Key="CommonDataGridColumnHeader" TargetType="{x:Type DataGridColumnHeader}">
-        <Setter Property="Background" Value="{StaticResource DataGrid.ColumnHeader.Background}"/>
-        <Setter Property="Foreground" Value="{StaticResource ActiveTextKey}" />
+        <Setter Property="Background" Value="{StaticResource TabItem.Background.IsSelected.False}"/>
+        <Setter Property="Foreground" Value="{StaticResource TabItem.Foregrouhnd.IsSelected.False}"/>
         <Setter Property="Height" Value="30"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -27,7 +27,8 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter Property="Background" Value="{StaticResource NormalBackgroundKey}" />
+                            <Setter Property="Foreground" Value="{StaticResource TabItem.Foregrouhnd.IsMouseOver.True}"/>
+                            <Setter Property="Background" Value="{StaticResource TabItem.Background.IsMouseOver.True}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

@@ -18,13 +18,15 @@ using System;
 
 namespace NetCore.Profiler.Common
 {
+    /// <summary>
+    /// A progress monitor class used to report operations' start, progress and stop.
+    /// </summary>
     public class ProgressMonitor
     {
         public Action Start { get; set; }
 
-        public Action Stop { get; set; }
-
         public Action Tick { get; set; }
 
+        public Action Stop { get; set; }
     }
 }

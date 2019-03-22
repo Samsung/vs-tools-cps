@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -28,6 +29,60 @@ namespace Tizen.VisualStudio.Tools.Data
     public class CertificateProfileEncDec
     {
         static private readonly string encDecKey = "KYANINYLhijklmnopqrstuvwx";
+        static private readonly string pwdFileSuff = ".pwd";
+
+        private static bool IsPwdFile(string value)
+        {
+            return value.EndsWith(pwdFileSuff);
+        }
+
+        // Example: of value = "PASSWORD:Passw0rd\r\n"
+        private static string GetPwdBody(string value)
+        {
+            string prefix = "PASSWORD:";
+            string pwdbody = value.Substring(prefix.Length);
+            pwdbody = pwdbody.TrimEnd();
+            return pwdbody;
+        }
+
+        // Command syntax of wincrypt.exe:
+        // wincrypt  --encrypt  <password>  <keyfilepath>.pwd
+        // wincrypt  --decrypt  <keyfilepath>.pwd
+        private static string WinCryptDecrypt(string value)
+        {
+            try
+            {
+                if (File.Exists(value))
+                {
+                    using (Process process = new Process())
+                    {
+                        string filename = ToolsPathInfo.CertificateEncPath;
+                        string arguments = "--decrypt " + value;
+                        process.StartInfo.FileName = filename;
+                        process.StartInfo.Arguments = arguments;
+                        process.StartInfo.CreateNoWindow = true;
+                        process.StartInfo.UseShellExecute = false;
+                        process.StartInfo.RedirectStandardOutput = true;
+                        process.StartInfo.RedirectStandardError = true;
+                        process.Start();
+                        string output = process.StandardOutput.ReadToEnd();
+                        Console.WriteLine(output);
+                        string err = process.StandardError.ReadToEnd();
+                        Console.WriteLine(err);
+                        process.WaitForExit();
+                        if (string.IsNullOrEmpty(err))
+                        {
+                            return GetPwdBody(output);
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return string.Empty;
+        }
 
         public static string Encrypt<T>(string value)
                                where T : SymmetricAlgorithm, new()
@@ -70,6 +125,11 @@ namespace Tizen.VisualStudio.Tools.Data
         public static string Decrypt<T>(string text)
                                where T : SymmetricAlgorithm, new()
         {
+            if (IsPwdFile(text))
+            {
+                return WinCryptDecrypt(text);
+            }
+
             SymmetricAlgorithm algorithm = new T();
             byte[] rgbKey = Encoding.UTF8.GetBytes(encDecKey.ToCharArray(),
                                                     0, algorithm.KeySize / 8);

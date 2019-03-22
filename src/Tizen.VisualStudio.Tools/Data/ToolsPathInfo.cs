@@ -14,18 +14,16 @@
  * limitations under the License.
 */
 
-using Microsoft.VisualStudio.Shell;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Tizen.VisualStudio.Tools.DebugBridge;
 
 namespace Tizen.VisualStudio.Tools.Data
 {
-    public abstract class ToolsPathInfo : UIElementDialogPage, INotifyPropertyChanged
+    public static class ToolsPathInfo
     {
         private const string SdkInfoFileName = "sdk.info";
         private const string PkgMgrExeName = "package-manager.exe";
@@ -33,20 +31,23 @@ namespace Tizen.VisualStudio.Tools.Data
         private const string CertificateMgrExeName = "certificate-manager.exe";
         private const string DeviceMgrExeName = "device-manager.exe";
         private const string SDBExeName = "sdb.exe";
+        private const string WinCryptExeName = "wincrypt.exe";
         private const string DefaultCertProfileName = "profiles.xml";
 
         private const string SdkInfoRelativePath = @"";
         private const string PkgMgrRelativePath = @"package-manager";
         private const string EmulatorMgrRelativePath = @"tools\emulator\bin";
         private const string CertificateMgrRelativePath = @"tools\certificate-manager\";
+        private const string CertificateEncRelativePath = @"tools\certificate-encryptor\";
         //private const string DeviceMgrRelativePFPath = @"tools\device-manager";
         private const string DeviceMgrRelativePath = @"tools\device-manager\bin";
         private const string SDBRelativePath = @"tools\";
         private const string DefaultCertProfileRelativePath = @"profile";
         private const string PlatformPathTizen40RelativePath = @"platforms\tizen-4.0\";
-        private const string OndemandRelativePath = @"platforms\tizen-4.0\common\on-demand";
-        public event PropertyChangedEventHandler PropertyChanged;
-        public static bool isDirty = false;
+        private const string MemoryProfilerRelativePath = @"tools\memory-profiler\TizenMemoryProfiler.exe";
+        private const string XamlPreviewerMobileRelativePath = @"tools\previewer\org.tizen.example.XamlPreviewer.Tizen.Mobile-1.0.0.tpk";
+        private const string XamlPreviewerTVRelativePath = @"tools\previewer\org.tizen.example.XamlPreviewer.Tizen.TV-1.0.0.tpk";
+        public static bool IsDirty = false;
 
         private static FileSystemWatcher sdbWatcher;
 
@@ -64,8 +65,8 @@ namespace Tizen.VisualStudio.Tools.Data
                     if (!IsAccessiblePath(value))
                     {
                         MessageBox.Show(
-                            "Selected Tizen SDK path is inaccessible with current permission. " +
-                            "Admin privilege can be required to use Tizen SDK.",
+                            "Selected Tizen SDK path is inaccessible with current permissions. " +
+                            "Administrator privileges may be required to use Tizen SDK.",
                             string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
 
@@ -75,24 +76,38 @@ namespace Tizen.VisualStudio.Tools.Data
             }
         }
 
-        public string ToolsPath
-        {
-            get => ToolsRootPath;
-            set
-            {
-                ToolsRootPath = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         private static string GenToolPath(string relPath) => string.IsNullOrEmpty(ToolsRootPath) ? string.Empty : Path.Combine(ToolsRootPath, relPath);
 
-        public static string OndemandFolderPath => GenToolPath(OndemandRelativePath);
+        private static int LongestCommonSubstring(string str1, string str2)
+        {
+            if (string.IsNullOrEmpty(str1) || string.IsNullOrEmpty(str2)) return 0;
+            int i;
+            for (i = 0; i < str1.Length && i < str2.Length; i++)
+            {
+                if (str1[i] != str2[i]) break;
+            }
+            return i;
+        }
+
+        public static string GetOnDemandFolderPath(string tizenVersion)
+        {
+            if (string.IsNullOrEmpty(ToolsRootPath))
+            {
+                return string.Empty;
+            }
+            string path = GenToolPath("platforms");
+            Regex regexp = new Regex("^" + Regex.Escape(ToolsRootPath + "\\platforms\\tizen-"));
+            string[] dirs = Directory.GetDirectories(path);
+
+            string found_dir = string.Empty;
+            found_dir = dirs.Where(dir => regexp.IsMatch(dir)).OrderByDescending(dir => LongestCommonSubstring(tizenVersion, dir.Replace(path + "\\tizen-", ""))).First();
+            if (string.IsNullOrEmpty(found_dir) ||
+                LongestCommonSubstring(tizenVersion, found_dir.Replace(path + "\\tizen-", "")) == 0)
+            {
+                return string.Empty;
+            }
+            return Path.Combine(found_dir, "common\\on-demand"); ;
+        }
 
         public static string PlatformPath => GenToolPath(PlatformPathTizen40RelativePath);
 
@@ -104,9 +119,17 @@ namespace Tizen.VisualStudio.Tools.Data
 
         public static string CertificateMgrPath => GenToolPath(Path.Combine(CertificateMgrRelativePath, CertificateMgrExeName));
 
+        public static string CertificateEncPath => GenToolPath(Path.Combine(CertificateEncRelativePath, WinCryptExeName));
+
         public static string DeviceMgrPath => GenToolPath(Path.Combine(DeviceMgrRelativePath, DeviceMgrExeName));
 
         public static string SDBPath => GenToolPath(Path.Combine(SDBRelativePath, SDBExeName));
+
+        public static string MemoryProfilerPath => GenToolPath(Path.Combine(ToolsRootPath, MemoryProfilerRelativePath));
+
+        public static string XamlPreviewerMobilePath => GenToolPath(Path.Combine(ToolsRootPath, XamlPreviewerMobileRelativePath));
+
+        public static string XamlPreviewerTVPath => GenToolPath(Path.Combine(ToolsRootPath, XamlPreviewerTVRelativePath));
 
         public static string DefaultCertPath
         {
@@ -165,9 +188,7 @@ namespace Tizen.VisualStudio.Tools.Data
                     1,
                     FileOptions.DeleteOnClose))
                 {
-
                 }
-
                 return true;
             }
             catch

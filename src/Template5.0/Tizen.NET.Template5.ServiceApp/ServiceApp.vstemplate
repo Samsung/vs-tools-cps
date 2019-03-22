@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Service App</Name>
+    <Description>A service app project template for building Tizen service application.</Description>
+    <Icon>Tizen.NET.Template.ServiceApp.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>FB087CA4-9205-4004-A1E0-210D596F8DA0</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>ServiceApp</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <CreateInPlace>true</CreateInPlace>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="Project.Tizen.NET.ServiceApp.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="$safeprojectname$_App.cs" OpenInEditor="true">App.cs.src</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="tizen-manifest.xml">tizen-manifest.xml.src</ProjectItem>
+      <ProjectItem TargetFileName="shared\res\$safeprojectname$.png">application.png.src</ProjectItem>
+      <Folder Name="lib"></Folder>
+      <Folder Name="res"></Folder>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

@@ -6,8 +6,12 @@ If Tizen .NET Core project refers to the `Tizen.NET.Sdk` package, TPK file will 
 
 ### Prerequisites ###
 1. Install Visual Studio Tools for Tizen
-    - Install Guide : https://developer.tizen.org/development/visual-studio-tools-tizen/installing-visual-studio-tools-tizen
+    - Install Guide : https://github.sec.samsung.net/dotnet/vs-tools-cps/blob/master/docs/how-to-install.md
  
+1. Add feed to Nuget.config to restore `Tizen.NET.Sdk`
+     - Tools > Options > NuGet Package Manager > Package Sources
+     - Develop channel : https://tizen.myget.org/F/dotnet/api/v3/index.json
+     ![How To Build Add Nuget Feed](../image/HowToBuild_AddNugetFeed.png)
 
 ### Create a TPK Package with Visual Studio ###
 

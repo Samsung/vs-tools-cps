@@ -29,7 +29,7 @@
 
   <!-- Include Nuget Package for Tizen Project building -->
   <ItemGroup>
-    <PackageReference Include="Tizen.NET" Version="_NUGET_TIZENNET_VER_" >
+    <PackageReference Include="Tizen.NET" Version="4.0.0" >
       <ExcludeAssets>Runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="Tizen.NET.Sdk" Version="_NUGET_TIZENNETSDK_VER_" />

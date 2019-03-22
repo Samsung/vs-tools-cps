@@ -46,17 +46,11 @@
     <CreateVsixContainer>False</CreateVsixContainer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="envdte100, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="envdte90, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualStudio.Designer.Interfaces, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" />
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" />
-    <Reference Include="Microsoft.VisualStudio.TemplateWizardInterface, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -111,6 +105,7 @@
       <DependentUpon>ProjectDebugger.xaml</DependentUpon>
     </Compile>
     <Compile Include="AssemblyRedirects.cs" />
+    <Compile Include="Debug\OnDemandDebuggerInstaller.cs" />
     <Compile Include="IVsEventsHandler.cs" />
     <Compile Include="OptionPages\Certificate.cs" />
     <Compile Include="OptionPages\CertificateControl.cs">
@@ -120,6 +115,7 @@
       <DependentUpon>CertificateControl.cs</DependentUpon>
     </Compile>
     <Compile Include="OptionPages\CryptoHelper.cs" />
+    <Compile Include="Preview\PreviewerTool.cs" />
     <Compile Include="ProjectSystem\VS\Build\BuildProperty.cs" />
     <Compile Include="ProjectSystem\VS\Build\CertificatePropertiesProvider.cs" />
     <Compile Include="ProjectSystem\VS\Debug\ProjectDebugLaunchProvider.cs" />
@@ -128,7 +124,6 @@
     <Compile Include="MyConfiguredProject.cs" />
     <Compile Include="MyUnconfiguredProject.cs" />
     <Compile Include="Debug\Launcher.cs" />
-    <Compile Include="Debug\OnDemandInstaller.cs" />
     <Compile Include="OptionPages\Tools.cs" />
     <Compile Include="OptionPages\ToolsControl.cs">
       <SubType>UserControl</SubType>
@@ -187,9 +182,13 @@
     <Compile Include="ProjectWizard\ProjectWizardTizenCommon.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenCrossPlatform.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenMobile.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenNative.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenWearable.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenTV.cs" />
     <Compile Include="ProjectWizard\TizenManifestData.cs" />
+    <Compile Include="ProjectWizard\View\ProjectWizardViewTizenNative.xaml.cs">
+      <DependentUpon>ProjectWizardViewTizenNative.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ProjectWizard\View\ProjectWizardViewTizenCrossPlatform.xaml.cs">
       <DependentUpon>ProjectWizardViewTizenCrossPlatform.xaml</DependentUpon>
     </Compile>
@@ -249,6 +248,7 @@
     <None Include="Resources\ic_tizen_sdb.png" />
     <None Include="Resources\ic_tizen_package_manager.png" />
     <None Include="Resources\ic_tizen_profiler.png" />
+    <None Include="Resources\ic_tizen_profiling_progress.png" />
     <None Include="Resources\ic_tizen_resource_manager.png" />
     <None Include="Resources\ic_tizen_run_profiler.png" />
     <None Include="Resources\ic_tizen_session_explorer.png" />
@@ -278,6 +278,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardViewTizenNative.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="ProjectWizard\View\ProjectWizardViewTizenCrossPlatform.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -289,12 +293,12 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build">
-      <Version>15.3.409</Version>
+      <Version>15.5.180</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" Version="15.0.751" />
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="15.0.751" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" Version="15.3.224" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="15.3.224" />
     <PackageReference Include="NuGet.VisualStudio">
-      <Version>4.3.0-preview3-4168</Version>
+      <Version>4.5.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -315,6 +319,7 @@
       <Name>Tizen.VisualStudio.APIChecker</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- TODO: This copies the build authoring to a well-known location so that on the machine this project builds on,

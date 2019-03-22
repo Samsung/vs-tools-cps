@@ -104,7 +104,12 @@ namespace Tizen.VisualStudio.APIChecker.QuickFix
                     if (task is NeedsPrivilegeTask)
                     {
                         var addPrivilegeAction = new AddPrivilegeAction((NeedsPrivilegeTask)task);
-                        return new SuggestedActionSet[] { new SuggestedActionSet(new ISuggestedAction[] { addPrivilegeAction }) };
+                        return new SuggestedActionSet[] { new SuggestedActionSet(
+                            "addPrivilegeAction",
+                            new ISuggestedAction[] { addPrivilegeAction },
+                            "addPrivilegeAction",
+                            SuggestedActionSetPriority.None,
+                            null) };
                     }
                     //TODO: Handle Unused Privilege QuickFix
                 }

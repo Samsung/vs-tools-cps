@@ -21,10 +21,7 @@ namespace NetCore.Profiler.Analytics.Model
 {
     public interface IDataProvider
     {
-
         void Load();
-
-        ulong MinimalStartTime { get; }
 
         IEnumerable<ISessionThreadBase> SessionThreads { get; }
 

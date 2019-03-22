@@ -18,6 +18,10 @@ using System.Collections.Generic;
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for stack trace sample ("sam str") %Core %Profiler
+    /// trace log records. This record describes stack changes occurred from the last known stack state.
+    /// </summary>
     public class StackSample
     {
         public ulong InternalId { get; set; }

@@ -16,6 +16,9 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A memory allocation sample item used in <see cref="AllocationSample"/>.
+    /// </summary>
     public class AllocationSampleInfo
     {
         public ulong ClassIntId { get; }
@@ -33,6 +36,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
             MemorySize = memorySize;
             Ip = ip;
         }
-
     }
 }

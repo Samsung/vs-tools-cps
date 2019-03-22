@@ -18,8 +18,27 @@ using System;
 
 namespace NetCore.Profiler.Common.Helpers
 {
+    /// <summary>
+    /// Helpers for working with timestamps.
+    /// </summary>
     public static class TimeStampHelper
     {
+        /// <summary>
+        /// Unix epoch time (POSIX time) start. By definition Unix time is the number of seconds that have elapsed since
+        /// 00:00:00 Coordinated Universal Time (UTC), Thursday, 1 January 1970.
+        /// </summary>
+        public static readonly DateTime UnixEpochTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        /// <summary>
+        /// An extension method to convert floating point (double) Unix time to DateTime.
+        /// </summary>
+        /// <param name="timeSeconds">Unix time</param>
+        /// <returns></returns>
+        public static DateTime UnixTimeToDateTime(this double timeSeconds)
+        {
+            return UnixEpochTime.AddSeconds(timeSeconds);
+        }
+
         public static string TimeStampToString(this ulong time, ulong offset, ulong freq)
         {
             ulong nano = 0;
@@ -33,8 +52,7 @@ namespace NetCore.Profiler.Common.Helpers
                     nano = tmp % 1000;
                     micro = tmp % 1000000 / 1000;
                     mili = tmp % 1000000000 / 1000000;
-                    DateTime epochTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                    DateTime result = epochTime.AddTicks((long)(tmp / 100));
+                    DateTime result = UnixEpochTime.AddTicks((long)(tmp / 100));
                     return string.Format("{0}.{1:D3} {2:D3} {3:D3}", result.ToString("HH:mm:ss"), mili, micro, nano);
             }
 
@@ -50,8 +68,7 @@ namespace NetCore.Profiler.Common.Helpers
             {
                 case 1000000000://nano
                     mili = tmp % 1000000000 / 1000000;
-                    DateTime epochTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                    DateTime result = epochTime.AddTicks((long)(tmp / 100));
+                    DateTime result = UnixEpochTime.AddTicks((long)(tmp / 100));
                     return string.Format("{0}.{1:D3}", result.ToString("HH:mm:ss"), mili);
             }
 
@@ -71,17 +88,26 @@ namespace NetCore.Profiler.Common.Helpers
                     nano = tmp % 1000;
                     micro = tmp % 1000000 / 1000;
                     mili = tmp % 1000000000 / 1000000;
-                    DateTime epochTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                    DateTime result = epochTime.AddTicks((long)(tmp / 100));
+                    DateTime result = UnixEpochTime.AddTicks((long)(tmp / 100));
                     return string.Format("{0}.{1:D3} {2:D3} {3:D3}", result.ToString("ss"), mili, micro, nano);
             }
 
             return "Error";
         }
 
-        public static string MilliSecondsToString(this ulong ms)
+        public static string MillisecondsToString(this ulong ms)
         {
             return new DateTime(0).AddMilliseconds(ms).ToString("mm:ss.fff");
+        }
+
+        public static string ToDebugString(this DateTime dateTime)
+        {
+            string result = dateTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            if (dateTime.Kind == DateTimeKind.Utc)
+            {
+                result += " Z";
+            }
+            return result;
         }
     }
 }

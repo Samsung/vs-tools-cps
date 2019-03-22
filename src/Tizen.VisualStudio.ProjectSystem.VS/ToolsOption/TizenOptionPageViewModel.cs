@@ -15,13 +15,15 @@
 */
 
 using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Shell;
 using Tizen.VisualStudio.Tools.Data;
 using Tizen.VisualStudio.InstallLauncher;
 
 namespace Tizen.VisualStudio.ToolsOption
 {
-    public class TizenOptionPageViewModel : ToolsPathInfo
+    public class TizenOptionPageViewModel : UIElementDialogPage, INotifyPropertyChanged
     {
         public string Notice;
         protected override System.Windows.UIElement Child
@@ -40,16 +42,12 @@ namespace Tizen.VisualStudio.ToolsOption
 
         protected override void OnClosed(EventArgs e)
         {
-            if (ToolsPathInfo.isDirty != true)
+            if (ToolsPathInfo.IsDirty)
             {
-                ToolsPathInfo.isDirty = false;
-                base.OnClosed(e);
+                ToolsPathInfo.IsDirty = false;
+                SaveSettingsToStorage();
             }
-            else
-            {
-                ToolsPathInfo.isDirty = false;
-                this.SaveSettingsToStorage();
-            }
+            base.OnClosed(e);
         }
 
         public static void Initialize(Package package)
@@ -58,6 +56,7 @@ namespace Tizen.VisualStudio.ToolsOption
             if (page != null)
             {
                 ToolsPathInfo.ToolsRootPath = page.ToolsPath;
+                DebuggerInfo.UseLiveProfiler = page.UseLiveProfiler;
                 InstallWizard.OnToolsDirChanged += page.OnUpdateByInstallWizard;
             }
         }
@@ -67,5 +66,38 @@ namespace Tizen.VisualStudio.ToolsOption
             ToolsPath = updatedPath;
             SaveSettingsToStorage();
         }
+
+        public string ToolsPath
+        {
+            get => ToolsPathInfo.ToolsRootPath;
+            set
+            {
+                if (ToolsPathInfo.ToolsRootPath != value)
+                {
+                    ToolsPathInfo.ToolsRootPath = value;
+                    HandlePropertyChanged();
+                }
+            }
+        }
+
+        public bool UseLiveProfiler
+        {
+            get => DebuggerInfo.UseLiveProfiler;
+            set
+            {
+                if (DebuggerInfo.UseLiveProfiler != value)
+                {
+                    DebuggerInfo.UseLiveProfiler = value;
+                    HandlePropertyChanged();
+                }
+            }
+        }
+
+        public void HandlePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

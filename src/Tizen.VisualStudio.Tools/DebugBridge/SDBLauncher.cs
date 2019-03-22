@@ -15,36 +15,31 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.Interop;
-using Tizen.VisualStudio.Tools.Utilities;
 using Tizen.VisualStudio.Tools.DebugBridge.SDBCommand;
 
 namespace Tizen.VisualStudio.Tools.DebugBridge
 {
     public class SDBLauncher
     {
-        private SDBConnection sdbconnection = null;
+        private SDBConnection sdbConnection = null;
         private IVsOutputWindowPane outputPane = null;
 
         private SDBLauncher()
         {
-
         }
 
         public static SDBLauncher Create(IVsOutputWindowPane outputPane)
         {
-            SDBLauncher launcher = new SDBLauncher();
+            var launcher = new SDBLauncher();
             launcher.outputPane = outputPane;
             return launcher;
         }
 
         public bool ConnectBridge()
         {
-            this.sdbconnection = SDBConnection.Create();
-            if (this.sdbconnection == null)
+            this.sdbConnection = SDBConnection.Create();
+            if (this.sdbConnection == null)
             {
                 return false;
             }
@@ -54,9 +49,9 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
 
         public void Dispose()
         {
-            if (this.sdbconnection != null)
+            if (this.sdbConnection != null)
             {
-                this.sdbconnection.Dispose();
+                this.sdbConnection.Dispose();
             }
         }
 
@@ -99,11 +94,11 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
         }
         */
 
-        public bool LaunchApplication(string AppId)
+        public bool LaunchApplication(SDBDeviceInfo device, string appId)
         {
-            OutputResponseMsg("Try to launch application: " + AppId);
+            OutputResponseMsg("Try to launch application: " + appId);
 
-            SDBAppCmd appCommand = new SDBAppCmd(SDBProtocol.runapp, AppId);
+            var appCommand = new SDBAppCmd(device, SDBProtocol.runapp, appId);
 
             if (!appCommand.IsTargetFound)
             {
@@ -119,11 +114,11 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             return isLaunched;
         }
 
-        public void TerminateApplication(string appid)
+        public void TerminateApplication(SDBDeviceInfo device, string appId)
         {
-            OutputResponseMsg("Try to terminate running application: " + appid);
+            OutputResponseMsg("Try to terminate running application: " + appId);
 
-            SDBAppCmd appCommand = new SDBAppCmd(SDBProtocol.killapp, appid);
+            var appCommand = new SDBAppCmd(device, SDBProtocol.killapp, appId);
 
             if (!appCommand.IsTargetFound)
             {
@@ -149,11 +144,11 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             OutputResponseMsg(string.Format("{0}: {1}", msg, appCommand?.ExitCode));
         }
 
-        public bool IsPackageDetected(string packageName)
+        public bool IsPackageDetected(SDBDeviceInfo device, string packageName)
         {
             OutputResponseMsg("Try to find installed package: " + packageName);
 
-            SDBAppCmd appCommand = new SDBAppCmd(SDBProtocol.appinfo, packageName); 
+            var appCommand = new SDBAppCmd(device, SDBProtocol.appinfo, packageName); 
 
             if (!appCommand.IsTargetFound)
             {
@@ -171,24 +166,14 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
 
         private void OutputResponseMsg(string msg)
         {
-            DateTime localDate = DateTime.Now;
-            string message =
-                String.Format("{0} : {1}\n",
-                              localDate.ToString(),
-                              msg);
+            string message = String.Format("{0} : {1}\n", DateTime.Now.ToString(), msg);
             this.outputPane?.Activate();
-            this.outputPane?.OutputString(message);
+            this.outputPane?.OutputStringThreadSafe(message);
         }
 
         private void OutputDeviceErrorMsg(string msg)
         {
-            DateTime localDate = DateTime.Now;
-            string message =
-                String.Format("{0} : {1}\n",
-                              localDate.ToString(),
-                              msg);
-            this.outputPane?.Activate();
-            this.outputPane?.OutputString(message);
+            OutputResponseMsg(msg);
         }
     }
 }

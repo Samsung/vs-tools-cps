@@ -16,6 +16,10 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for module load finished ("mod ldf") %Core %Profiler
+    /// trace log records. Notifies that a module has finished loading.
+    /// </summary>
     public class ModuleLoadFinished
     {
         public ulong ModuleId { get; }
@@ -36,6 +40,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
             Status = status;
             ModuleName = moduleName;
         }
-
     }
 }

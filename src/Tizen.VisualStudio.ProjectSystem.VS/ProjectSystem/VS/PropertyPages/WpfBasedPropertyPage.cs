@@ -36,7 +36,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
 
         protected abstract PropertyPageControl CreatePropertyPageControl();
 
-        protected async override Task OnSetObjects(bool isClosing)
+        protected async override Task OnSetObjectsAsync(bool isClosing)
         {
             if (isClosing)
             {
@@ -54,20 +54,20 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
 
             viewModel = CreatePropertyPageViewModel();
             viewModel.UnconfiguredProject = UnconfiguredProject;
-            await viewModel.Initialize().ConfigureAwait(false);
+            await viewModel.InitializeAsync().ConfigureAwait(false);
             control.InitializePropertyPage(viewModel);
         }
 
-        protected async override Task<int> OnApply()
+        protected async override Task<int> OnApplyAsync()
         {
-            return await control.Apply().ConfigureAwait(false);
+            return await control.ApplyAsync().ConfigureAwait(false);
         }
 
-        protected async override Task OnDeactivate()
+        protected async override Task OnDeactivateAsync()
         {
             if (IsDirty)
             {
-                await OnApply().ConfigureAwait(false);
+                await OnApplyAsync().ConfigureAwait(false);
             }
         }
 

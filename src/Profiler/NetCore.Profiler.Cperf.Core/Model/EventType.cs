@@ -16,6 +16,9 @@
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A type of a profiling event used in <see cref="Event"/> objects.
+    /// </summary>
     public enum EventType
     {
         Undefined,
@@ -28,8 +31,12 @@ namespace NetCore.Profiler.Cperf.Core.Model
         CreationFinished,
         LoadFinished,
         AttachedToAssembly,
+        CompilationStarted,
         CompilationFinished,
+        CachedFunctionSearchStarted,
         CachedFunctionSearchFinished,
+        GarbageCollectionStarted,
+        GarbageCollectionFinished,
         ThreadCreated,
         ThreadDestroyed,
         AssignedToOsThread,

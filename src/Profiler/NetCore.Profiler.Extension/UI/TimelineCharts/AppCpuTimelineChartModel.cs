@@ -22,7 +22,6 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 {
     public class AppCpuTimelineChartModel : ManagedTimelineChartModelBase, IManagedTimelineChartModel
     {
-
         private const int MaxPointsPerChart = 1000;
 
         protected List<CpuUtilization> ValuesSeries;
@@ -33,15 +32,19 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 
         public event ViewPortChangedEventHandler ViewPortChanged;
 
-        public void SetContent(List<CpuUtilization> valuesSeries)
+        public int CpuCoreCount { get; private set; }
+
+        public void SetContent(List<CpuUtilization> valuesSeries, int cpuCoreCount)
         {
             ValuesSeries = valuesSeries;
 
-            ViewPortMinValue = 0;
+            CpuCoreCount = cpuCoreCount;
 
-            RangeMaxValue = ViewPortMaxValue =
-                ValuesSeries.Count > 0
-                    ? ValuesSeries[ValuesSeries.Count - 1].Timestamp
+            ViewPortMinValueMilliseconds = 0;
+
+            RangeMaxValueMilliseconds = ViewPortMaxValueMilliseconds =
+                (ValuesSeries.Count > 0)
+                    ? ValuesSeries[ValuesSeries.Count - 1].TimeMilliseconds
                     : 0;
 
             ProcessPausedRegionsAndCreateSections();
@@ -61,17 +64,17 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                     //"Missing Point" to indicate the end of the region
                     cpuUtilizationNew.Add(new CpuUtilization
                     {
-                        Timestamp = cpuUtilization.Timestamp,
+                        TimeMilliseconds = cpuUtilization.TimeMilliseconds,
                         Utilization = double.NaN
                     });
                     currentSection = new TimeLineSection
                     {
-                        Value = cpuUtilization.Timestamp,
+                        StartSeconds = cpuUtilization.TimeMilliseconds / 1000.0,
                     };
                 }
-                else if (cpuUtilization.ProfilingWasResumed && currentSection != null)
+                else if (cpuUtilization.ProfilingWasResumed && (currentSection != null))
                 {
-                    currentSection.SectionWidth = cpuUtilization.Timestamp - currentSection.Value;
+                    currentSection.WidthSeconds = cpuUtilization.TimeMilliseconds / 1000.0 - currentSection.StartSeconds;
                     PauseSections.Add(currentSection);
                     currentSection = null;
                 }
@@ -79,7 +82,6 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 
             ValuesSeries = cpuUtilizationNew;
         }
-
 
         private List<CpuUtilization> CompressValues(Tuple<int, int> range, int maxLength)
         {
@@ -113,7 +115,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                 {
                     result.Add(new CpuUtilization
                     {
-                        Timestamp = ValuesSeries[i].Timestamp,
+                        TimeMilliseconds = ValuesSeries[i].TimeMilliseconds,
                         Utilization = ValuesSeries[i].Utilization
                     });
                 }
@@ -137,7 +139,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         {
             int i;
             var e = ValuesSeries.Count;
-            for (i = 0; i < e && ValuesSeries[i].Timestamp < ViewPortMinValue; i++)
+            for (i = 0; i < e && ValuesSeries[i].TimeMilliseconds < ViewPortMinValueMilliseconds; i++)
             {
             }
 
@@ -149,7 +151,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             if (i < e)
             {
                 int j;
-                for (j = i + 1; j < e && ValuesSeries[j].Timestamp <= ViewPortMaxValue; j++)
+                for (j = i + 1; j < e && ValuesSeries[j].TimeMilliseconds <= ViewPortMaxValueMilliseconds; j++)
                 {
                 }
 

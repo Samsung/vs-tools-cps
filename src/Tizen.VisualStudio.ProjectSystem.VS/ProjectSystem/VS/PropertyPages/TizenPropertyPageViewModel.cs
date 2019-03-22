@@ -35,7 +35,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
 
         //private OrderPrecedenceImportCollection<string> _uiProviders;
 
-        public override Task Initialize()
+        public override Task InitializeAsync()
         {
             /*
             _uiProviders = new OrderPrecedenceImportCollection<string>(ImportOrderPrecedenceComparer.PreferenceOrder.PreferredComesFirst, UnconfiguredProject);
@@ -62,10 +62,10 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
             return UnconfiguredProject.Services.ExportProvider.GetExports<string, IOrderPrecedenceMetadataView>();
         }
 
-        public async override Task<int> Save()
+        public async override Task<int> SaveAsync()
         {
             //throw new NotImplementedException();
-            await SaveTizenLaunchSettings().ConfigureAwait(false);
+            await SaveTizenLaunchSettingsAsync().ConfigureAwait(false);
             return VSConstants.S_OK;
         }
 
@@ -114,7 +114,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
             }
         }
 
-        public async Task SaveTizenLaunchSettings()
+        public async Task SaveTizenLaunchSettingsAsync()
         {
             ITizenLaunchSettingsProvider provider = GetTizenLaunchSetting();
 

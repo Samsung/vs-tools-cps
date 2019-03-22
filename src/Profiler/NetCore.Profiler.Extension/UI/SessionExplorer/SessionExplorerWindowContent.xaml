@@ -64,18 +64,34 @@
                 <ContextMenu 
                     Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuBackgroundGradientBeginBrushKey}}"
                     Foreground="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarTextActiveBrushKey}}">
-                    <MenuItem 
+                    <MenuItem
                         Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundBrushKey}}" 
                         theming:ImageThemingUtilities.ImageBackgroundColor="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundColorKey}}" 
-                        Header="Open Profile Session" Click="OnClickProfile" IsEnabled="{Binding OpenProfilePossible}">
+                        Header="Open Profile Session" Click="OnClickProfile" Visibility="{Binding OpenProfilePossible}">
                         <MenuItem.Icon>
                             <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Processor}" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem 
+                    <MenuItem
                         Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundBrushKey}}"
                         theming:ImageThemingUtilities.ImageBackgroundColor="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundColorKey}}"
-                        Header="Open Memory Profile Session" Click="OnClickMemoryProfile" IsEnabled="{Binding OpenMemoryProfilePossible}">
+                        Header="Open Memory Profile Session" Click="OnClickMemoryProfile" Visibility="{Binding OpenMemoryProfilePossible}">
+                        <MenuItem.Icon>
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Memory}" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem
+                        Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundBrushKey}}"
+                        theming:ImageThemingUtilities.ImageBackgroundColor="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundColorKey}}"
+                        Header="Open Memory Session (managed)" Click="OnClickMemoryProfileManaged" Visibility="{Binding OpenHeaptrackProfilePossible}">
+                        <MenuItem.Icon>
+                            <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Memory}"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem
+                        Background="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundBrushKey}}"
+                        theming:ImageThemingUtilities.ImageBackgroundColor="{DynamicResource {x:Static shell:EnvironmentColors.CommandBarMenuIconBackgroundColorKey}}"
+                        Header="Open Memory Session (hide unmanaged stacks)" Click="OnClickMemoryProfileManagedHideUnmanagedStacks" Visibility="{Binding OpenHeaptrackProfileManagedHideUnmanagedStacksPossible}">
                         <MenuItem.Icon>
                             <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Memory}" />
                         </MenuItem.Icon>
@@ -99,7 +115,7 @@
                 </ContextMenu>
             </DataGrid.ContextMenu>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Date" Binding="{Binding CreatedAt}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Date" SortDirection="Ascending" Binding="{Binding CreatedAt}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Preset" Binding="{Binding Preset}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Device" Binding="{Binding DeviceName}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Project" Binding="{Binding ProjectName}"></DataGridTextColumn>

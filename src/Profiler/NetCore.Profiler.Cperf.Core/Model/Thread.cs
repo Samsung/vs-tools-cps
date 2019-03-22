@@ -18,27 +18,27 @@ using System.Collections.Generic;
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A <see cref="DataContainer"/> data model class for a thread from a %Core %Profiler log
+    /// (stored in <see cref="DataContainer.ThreadContainer"/>).
+    /// </summary>
     public class Thread : IIdentifiable
     {
         public const ulong FakeThreadId = ulong.MaxValue;
-            
+
         public ulong InternalId { get; set; }
 
         public ulong Id { get; set; }
 
         public ulong OsThreadId { get; set; }
 
-        public CpuUtilizationHistory CpuUtilizationHistory { get; } = new CpuUtilizationHistory();
+        public CpuUtilizationHistory CpuUtilizationHistory { get; } = new CpuUtilizationHistory(1);
 
         public List<Event> Events { get; set; } = new List<Event>();
 
         public override string ToString()
         {
-            var result = "Thread[";
-            result += "]";
-
-            return result;
+            return string.Format("Thread[InternalId={0}; Id={1}; OsThreadId={2}]", InternalId, Id, OsThreadId);
         }
-
     }
 }

@@ -18,7 +18,7 @@
             </StackPanel.Resources>
 
             <StackPanel Orientation="Horizontal">
-                <RadioButton x:Name="radio_internal" GroupName="privilege" Content="Internal" Width="150" />
+                <RadioButton x:Name="radio_internal" GroupName="privilege" Content="Platform defined" Width="150" />
                 <StackPanel Orientation="Vertical">
                     <Label x:Name="label_search" Content="Search" HorizontalAlignment="Left" VerticalAlignment="Top" Width="330" IsEnabled="{Binding ElementName=radio_internal, Path=IsChecked}"/>
                     <TextBox x:Name="textBox_search" HorizontalAlignment="Left" Height="22" TextWrapping="Wrap" VerticalAlignment="Top" Width="330" TextChanged="textBox_search_TextChanged" IsEnabled="{Binding ElementName=radio_internal, Path=IsChecked}"/>

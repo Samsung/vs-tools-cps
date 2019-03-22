@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -29,12 +30,13 @@ using SourceLine = NetCore.Profiler.Cperf.Core.Model.SourceLine;
 
 namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 {
-
+    /// <summary>
+    /// A %Core %Profiler log adapter used to process and extend a %Core %Profiler output data stream during a
+    /// profiling session with information loaded from PDB files corresponding to modules of a %Tizen application
+    /// being profiled. It’s necessary because the PDB files are not copied to a target %Tizen system.
+    /// </summary>
     public class DebugDataInjectionFilter : ILogAdaptor
     {
-
-        public StreamReader Input { get; set; }
-
         public StreamWriter Output { get; set; }
 
         public string PdbDirectory { get; set; }
@@ -57,27 +59,42 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 
         private ulong _nextSourceLineId = 1;
 
+#if DEBUG
+        private HashSet<ulong> threadsNotFound = new HashSet<ulong>();
+#endif
+
         public DebugDataInjectionFilter()
         {
             // add root function
             var rootFunc = new Function(ulong.MaxValue, ulong.MaxValue, 0);
             Functions.Add(rootFunc.InternalId, rootFunc);
-
         }
 
-        public void Process()
+        public void Process(Func<string> readFunc)
         {
-            var parser = new CperfParser
-            {
-                ModuleLoadFinishedCallback = ModuleLoadFinishedCallback,
-                CompilationFinishedCallback = CompilationFinishedCallback,
-                ThreadCreatedCallback = ThreadCreatedCallback,
-                StackSampleReadCallback = StackSampleReadCallback,
-                AllocationSampleReadCallback = AllocationSampleReadCallback,
-                LineReadCallback = LineReadCallback
-            };
-            parser.Parse(Input);
+            Process(new CperfParser(), readFunc);
+        }
 
+        public void Process(CperfParser parser, Func<string> readFunc)
+        {
+#if DEBUG
+            threadsNotFound.Clear();
+#endif
+            parser.ModuleLoadFinishedCallback += ModuleLoadFinishedCallback;
+            parser.FunctionInfoCallback += FunctionInfoCallback;
+            parser.ThreadCreatedCallback += ThreadCreatedCallback;
+            parser.StackSampleReadCallback += StackSampleReadCallback;
+            parser.AllocationSampleReadCallback += AllocationSampleReadCallback;
+            parser.LineReadCallback += LineReadCallback;
+
+            parser.Parse(readFunc);
+
+            parser.ModuleLoadFinishedCallback -= ModuleLoadFinishedCallback;
+            parser.FunctionInfoCallback -= FunctionInfoCallback;
+            parser.ThreadCreatedCallback -= ThreadCreatedCallback;
+            parser.StackSampleReadCallback -= StackSampleReadCallback;
+            parser.AllocationSampleReadCallback -= AllocationSampleReadCallback;
+            parser.LineReadCallback -= LineReadCallback;
         }
 
         private void ModuleLoadFinishedCallback(ModuleLoadFinished arg)
@@ -85,7 +102,12 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
             var module = GetModule(arg.ModuleId);
             if (module == null)
             {
-                AddModule(module = new Module { InternalId = arg.ModuleId, AssemblyId = arg.AssemblyId, Name = arg.ModuleName });
+                string name = arg.ModuleName;
+                if (name.StartsWith("/proc/self/fd/"))
+                {
+                    name = name.Substring(name.IndexOf('/', 14));
+                }
+                AddModule(module = new Module { InternalId = arg.ModuleId, AssemblyId = arg.AssemblyId, Name = name });
                 InitModulePdbInfo(module);
             }
             else
@@ -95,10 +117,9 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
             }
 
             module.ModuleLoadRecords.Add(new ModuleLoadInfo { BaseLoadAddress = arg.BaseLoadAddress });
-
         }
 
-        private void CompilationFinishedCallback(CompilationFinished arg)
+        private void FunctionInfoCallback(FunctionInfo arg)
         {
             var function = GetFunction(arg.InternalId);
             if (function == null)
@@ -142,7 +163,6 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 
         private void AllocationSampleReadCallback(AllocationSample arg)
         {
-
             var thread = Threads[arg.InternalId];
 
             var result = $"sam mem 0x{arg.InternalId:X8} {arg.Ticks}";
@@ -154,7 +174,7 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
                 var function = GetFunction(thread.TopFunctionCall.FunctionIntId);
                 if (function != null)
                 {
-                    result += $":{GetSourceLineNumberFromPc(function, allocation.Ip):X}";
+                    result += $":0x{GetSourceLineNumberFromPc(function, allocation.Ip):X}";
                 }
             }
 
@@ -163,10 +183,21 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 
         private void StackSampleReadCallback(Cperf.Core.Parser.Model.StackSample arg)
         {
-
             var sample = new StackSample(arg.Count, arg.StackSize, arg.MatchPrefixSize, arg.InternalId, arg.Ticks, arg.Ip);
 
-            var thread = Threads[sample.ThreadId];
+            Thread thread;
+            if (!Threads.TryGetValue(sample.ThreadId, out thread))
+            {
+#if DEBUG
+                if (!threadsNotFound.Contains(sample.ThreadId))
+                {
+                    threadsNotFound.Add(sample.ThreadId);
+                    Debug.WriteLine(String.Format("Error in {0}.StackSampleReadCallback: cannot find thread {1}",
+                        GetType().Name, sample.ThreadId));
+                }
+#endif
+                return;
+            }
 
             var lastFunctionCall = thread.TopFunctionCall;
 
@@ -199,13 +230,11 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
                 lastFunctionCall.Ip = arg.Ip;
             }
 
-
             sample.ParentFunctionIntId = lastFunctionCall.FunctionIntId;
 
             ProcessFunctionCall(thread, lastFunctionCall, sample, arg.Frames, 0);
 
             Output.WriteLine(StackSampleFixedRecord(sample));
-
         }
 
         private void ProcessFunctionCall(Thread thread, FunctionCall call, StackSample sample, IReadOnlyList<StackSampleFrame> frames, int index)
@@ -245,13 +274,12 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
                 var function = GetFunction(sample.ParentFunctionIntId);
                 if (function != null)
                 {
-                    result += $":{GetSourceLineNumberFromPc(function, sample.Pc.Value):X}";
+                    result += $":0x{GetSourceLineNumberFromPc(function, sample.Pc.Value):X}";
                 }
             }
 
             return sample.FunctionCalls.Aggregate(result, (current, call) => current + FunctionCallFix(call));
         }
-
 
         private string FunctionCallFix(FunctionCall functionCall)
         {
@@ -262,10 +290,9 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 
             var function = GetFunction(functionCall.FunctionIntId);
             return function != null
-                ? $" 0x{functionCall.FunctionIntId:X}:{GetSourceLineNumberFromPc(function, functionCall.Ip):X}"
-                : $" 0x{functionCall.FunctionIntId:X}:{0}";
+                ? $" 0x{functionCall.FunctionIntId:X}:0x{GetSourceLineNumberFromPc(function, functionCall.Ip):X}"
+                : $" 0x{functionCall.FunctionIntId:X}:0x{0}";
         }
-
 
         private void AddThread(Thread thread)
         {
@@ -276,7 +303,6 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
         {
             return GetFromDictionary(Threads, id);
         }
-
 
         private void AddFunction(Function function)
         {
@@ -377,7 +403,7 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
                 sourceLine.EndColumn);
         }
 
-        public ulong GetSourceLineNumberFromPc(Function function, ulong? pc)
+        private ulong GetSourceLineNumberFromPc(Function function, ulong? pc)
         {
             if (!pc.HasValue || pc.Value == 0 || function.SourceLines == null || function.SourceLines.Count == 0)
             {
@@ -390,7 +416,6 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
                 ? FindSourceLineForOffset(function.SourceLines, mapping.Offset)
                 : 0;
         }
-
 
         private void InitModulePdbInfo(Module module)
         {
@@ -464,7 +489,7 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 
             try
             {
-                var mdh = MetadataTokens.MethodDefinitionHandle(function.Token);
+                var mdh = MetadataTokens.MethodDefinitionHandle((int)function.Token);
                 var mdi = pdbReader.GetMethodDebugInformation(mdh);
 
                 AddFunctionSourceLines(function, mdi.GetSequencePoints(), pdbReader);

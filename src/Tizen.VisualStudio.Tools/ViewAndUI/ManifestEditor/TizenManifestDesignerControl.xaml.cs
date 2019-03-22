@@ -80,16 +80,29 @@ namespace Tizen.VisualStudio.ManifestEditor
             this.dte = dte;
 
             string appType = GetAppType();
-
-            if (appType.Equals("service-application"))
+            if (appType != null)
             {
-                viewModel.AppType = ItemsChoiceType.serviceapplication;
+                if (appType.Equals("service-application"))
+                {
+                    viewModel.AppType = ItemsChoiceType.serviceapplication;
+                }
+                else if (appType.Equals("ui-application"))
+                {
+                    viewModel.AppType = ItemsChoiceType.uiapplication;
+                }
+                else if (appType.Equals("widget-application"))
+                {
+                    viewModel.AppType = ItemsChoiceType.widgetapplication;
+                }
+                else if (appType.Equals("watch-application"))
+                {
+                    viewModel.AppType = ItemsChoiceType.watchapplication;
+                }
+                else
+                {
+                    viewModel.AppType = ItemsChoiceType.uiapplication;
+                }
             }
-            else if (appType.Equals("ui-application"))
-            {
-                viewModel.AppType = ItemsChoiceType.uiapplication;
-            }
-
             InitializeEnv();
             OverviewSetInit();
         }
@@ -127,6 +140,25 @@ namespace Tizen.VisualStudio.ManifestEditor
                 }
             }
         }
+
+        //private void TBUpdatePeriod_TextChanged(object sender, TextChangedEventArgs e)
+        //{
+        //    IViewModelTizen viewModel = DataContext as IViewModelTizen;
+
+        //   // viewModel.UpdatePeriod = TBUpdatePeriod.Text.ToString();
+
+        //    if (viewModel != null && this.IsKeyboardFocusWithin)
+        //    {
+        //        try
+        //        {
+        //            var propertyInfo = viewModel.GetType()?.GetProperty("TBUpdatePeriod");
+        //            propertyInfo.SetValue(viewModel, (sender as TextBox).Text);
+        //        }
+        //        catch
+        //        {
+        //        }
+        //    }
+        //}
 
         private class TextboxLabelSet
         {

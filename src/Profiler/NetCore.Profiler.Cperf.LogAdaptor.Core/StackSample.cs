@@ -15,13 +15,14 @@
 */
 
 using System.Collections.Generic;
-using NetCore.Profiler.Cperf.Core.Model;
 
 namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 {
+    /// <summary>
+    /// A class used in <see cref = "DebugDataInjectionFilter"/> to represent a stack sample.
+    /// </summary>
     internal class StackSample
     {
-
         public int StackSize { get; }
 
         public int MatchPrefixSize { get; }

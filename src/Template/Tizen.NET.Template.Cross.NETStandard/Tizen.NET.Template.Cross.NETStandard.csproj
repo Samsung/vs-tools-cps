@@ -55,10 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <VSTemplate Include="NETStandard.vstemplate">
-      <OutputSubPath>Tizen</OutputSubPath>
-    </VSTemplate>
-    <VSTemplate Include="NETStandard.vstemplate">
-      <OutputSubPath>Tizen\Cross-Platform</OutputSubPath>
+      <OutputSubPath>Tizen 4.0</OutputSubPath>
     </VSTemplate>
   </ItemGroup>
   <ItemGroup>

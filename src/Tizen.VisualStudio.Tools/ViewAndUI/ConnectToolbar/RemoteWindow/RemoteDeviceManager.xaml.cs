@@ -15,7 +15,6 @@
 */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -28,6 +27,8 @@ namespace Tizen.VisualStudio.ConnectToolbar
     /// </summary>
     public partial class RemoteDeviceManager : Window
     {
+        private const string MessageDialogTitle = "Tizen Plugin";
+
         private bool IsConnect = false;
 
         public RemoteDeviceManager()
@@ -41,24 +42,23 @@ namespace Tizen.VisualStudio.ConnectToolbar
 
             if (toolsFileInfo.Exists)
             {
-                StreamReader sr = new StreamReader(remoteListPath);
-
-                while ((sr.Peek() >= 0))
+                using (StreamReader sr = new StreamReader(remoteListPath))
                 {
-                    string readstr = sr.ReadLine();
-
-                    if (readstr != null)
+                    while ((sr.Peek() >= 0))
                     {
-                        var item = GetDeviceDataFromString(readstr);
+                        string readstr = sr.ReadLine();
 
-                        if (item != null)
+                        if (readstr != null)
                         {
-                            RDMListView.Items.Add(item);
+                            var item = GetDeviceDataFromString(readstr);
+
+                            if (item != null)
+                            {
+                                RDMListView.Items.Add(item);
+                            }
                         }
                     }
                 }
-
-                sr.Close();
             }
         }
 
@@ -113,45 +113,61 @@ namespace Tizen.VisualStudio.ConnectToolbar
                 return;
             }
 
-            object selecteditem = RDMListView.Items[selectedIndex];
-            string outputMessage = string.Empty;
+            string ip = ((ItemsData)RDMListView.Items[selectedIndex]).IP;
+            string lastNonEmptyLine = "";
+            bool connected = false;
+            int exitCode;
+            SDBLib.SdbRunResult sdbResult;
 
-            using (Process process = SDBLib.CreateSdbProcess())
+            System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
+            try
             {
-                if (process != null)
-                {
-                    SDBLib.RunSdbProcess(process, "connect " + (selecteditem as ItemsData).IP);
-                    StreamReader devicesFolderReader = process?.StandardOutput;
-                    outputMessage = devicesFolderReader.ReadToEnd();
-                    process.Close();
-                }
-                else
-                {
-                    MessageBox.Show("Can't found sdb.exe");
-                }
+                sdbResult = SDBLib.RunSdbCommand(null, "connect " + ip,
+                    (bool isStdOut, string line) =>
+                    {
+                        if (isStdOut)
+                        {
+                            if (line != "")
+                            {
+                                lastNonEmptyLine = line;
+                            }
+                            if (line.StartsWith("connected to"))
+                            {
+                                connected = true;
+                                return true;
+                            }
+                        }
+                        return false;
+                    },
+                    out exitCode);
+            }
+            finally
+            {
+                System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.Default;
             }
 
-            var outputArr = outputMessage.Split(new char[] { '\n' });
+            if (sdbResult != SDBLib.SdbRunResult.Success)
+            {
+                MessageBox.Show(SDBLib.FormatSdbRunResult(sdbResult), MessageDialogTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            foreach (var line in outputArr)
+            if (connected)
             {
-                if (line.StartsWith("connected to"))
-                {
-                    this.IsConnect = true;
-                    MessageBox.Show("Complete Connection : " + (selecteditem as ItemsData).IP);
-                    this.Close();
-                    break;
-                }
+                this.IsConnect = true;
+                MessageBox.Show($"Completed connection to {ip}");
+                this.Close();
             }
-            
-            if (this.IsConnect == false)
+
+            if (lastNonEmptyLine.StartsWith("error:"))
             {
-                if (outputMessage.Split(new char[1] { ':' })[0] == "error")
-                {
-                    MessageBox.Show(outputMessage, "Error");
-                }
+                MessageBox.Show(lastNonEmptyLine, MessageDialogTitle, MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            
+            else
+            {
+                MessageBox.Show($"Got unexpected result while connecting to {ip}.\n{lastNonEmptyLine}",
+                    MessageDialogTitle, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void DisconnectButton_Click(object sender, RoutedEventArgs e)
@@ -162,32 +178,39 @@ namespace Tizen.VisualStudio.ConnectToolbar
                 return;
             }
 
-            object selecteditem = RDMListView.Items[selectedIndex];
-
-            using (Process process = SDBLib.CreateSdbProcess())
-            {
-                if (process != null)
+            ItemsData selectedItem = (ItemsData)RDMListView.Items[selectedIndex];
+            string ip = selectedItem.IP;
+            string lastNonEmptyLine = "";
+            int exitCode;
+            SDBLib.SdbRunResult sdbResult = SDBLib.RunSdbCommand(null, "disconnect " + ip,
+                (bool isStdOut, string line) =>
                 {
-                    SDBLib.RunSdbProcess(process, "disconnect " + (selecteditem as ItemsData).IP);
-                    StreamReader devicesFolderReader = process.StandardOutput;
-
-                    string outputMessage = devicesFolderReader.ReadLine();
-
-                    if (outputMessage != null)
+                    if (isStdOut)
                     {
-                        if (outputMessage.Split(new char[1] { ':' })[0] == "error")
+                        if (line != "")
                         {
-                            MessageBox.Show(outputMessage, "Error");
-                        }
-                        else
-                        {
-                            MessageBox.Show("disconnect from " + (selecteditem as ItemsData).IP
-                                            + ":" + (selecteditem as ItemsData).Port, "Disconnect");
+                            lastNonEmptyLine = line;
+                            return true;
                         }
                     }
+                    return false;
+                },
+                out exitCode);
 
-                    process.Close();
-                }
+            if (sdbResult != SDBLib.SdbRunResult.Success)
+            {
+                MessageBox.Show(SDBLib.FormatSdbRunResult(sdbResult), MessageDialogTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (lastNonEmptyLine.StartsWith("error:"))
+            {
+                MessageBox.Show(lastNonEmptyLine, MessageDialogTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                this.IsConnect = false;
+                MessageBox.Show($"Disconnected from {ip}:{selectedItem.Port}", MessageDialogTitle, MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -240,8 +263,6 @@ namespace Tizen.VisualStudio.ConnectToolbar
                         + (selecteditem as ItemsData).IP + "/"
                         + (selecteditem as ItemsData).Port + "\n");
                 }
-
-                sw.Close();
             }
         }
 

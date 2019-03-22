@@ -14,35 +14,17 @@
  * limitations under the License.
 */
 
-using System;
 using System.Collections.Generic;
 using NetCore.Profiler.Analytics.Model;
 using NetCore.Profiler.Cperf.Core.Model;
-using NetCore.Profiler.Session.Core;
 
 namespace NetCore.Profiler.Extension.Session
 {
-    public interface ISession
+    public interface ISession : IBaseSession
     {
-        string ProjectFolder { get; set; }
-
-        string ProjectName { get; }
-
-        string SessionFolder { get; }
-
-        string SessionFile { get; }
-
-        DateTime CreatedAt { get; }
-
-        DateTime StartedAt { get; set; }
-
-        ulong StartedNanoseconds { get; }
-
-        ulong Size { get; }
+        int CpuCoreCount { get; }
 
         string ProfilingType { get; }
-
-        ISessionProperties Properties { get; }
 
         IEnumerable<ISessionThread> Threads { get; }
 

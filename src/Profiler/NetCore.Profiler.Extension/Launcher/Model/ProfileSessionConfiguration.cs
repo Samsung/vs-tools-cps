@@ -19,27 +19,21 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using EnvDTE;
-using NetCore.Profiler.Extension.Common;
 using NetCore.Profiler.Extension.Options;
 using Newtonsoft.Json.Linq;
 using NetCore.Profiler.Extension.VSPackage;
 
 namespace NetCore.Profiler.Extension.Launcher.Model
 {
-    public class ProfileSessionConfiguration : NotifyPropertyChanged
+    public class ProfileSessionConfiguration : AbstractSessionConfiguration
     {
-
         public int SleepTime { get; private set; }
 
         public string ProjectConfigurationName { get; private set; }
 
         public string ProjectPlatformName { get; private set; }
 
-        public string ProjectOutputPath { get; private set; }
-
         public string TargetDll { get; private set; }
-
-        public string AppId { get; private set; }
 
         public ProfilingSettings ProfilingSettings
         {
@@ -69,34 +63,17 @@ namespace NetCore.Profiler.Extension.Launcher.Model
         public string ProjectName => Project.Name;
 
         /// <summary>
-        /// Project bin path
-        /// </summary>
-        public string ProjectHostBinPath { get; private set; }
-
-        /// <summary>
-        /// Project path on the host
-        /// </summary>
-        public string ProjectHostPath { get; private set; }
-
-        /// <summary>
         /// Project destination on the target
         /// </summary>
         public string ProjectTargetPath { get; private set; }
 
-        public string ProjectPackageVersion { get; private set; }
-
-        public string ProjectPackageName { get; private set; }
         /// <summary>
         /// Application arguments
         /// </summary>
         public string Arguments { get; set; }
 
-
-        private readonly Project Project;
-
-        public ProfileSessionConfiguration(Project project, GeneralOptions go)
+        public ProfileSessionConfiguration(Project project, GeneralOptions go) : base(project)
         {
-            Project = project;
             SleepTime = go.SleepTime;
             Arguments = "";
 
@@ -108,19 +85,14 @@ namespace NetCore.Profiler.Extension.Launcher.Model
             }
 
             ReadProjectConfiguration();
-            ProjectHostPath = Path.GetDirectoryName(Project.FullName);
+
             ProjectHostBinPath = Path.Combine(ProjectHostPath, ProjectOutputPath);
             ProjectTargetPath = "/opt/usr/home/owner";
             VsProjectHelper prjHelper = VsProjectHelper.Instance;
-            ProjectPackageVersion = prjHelper.GetManifestVersion(project);
-            ProjectPackageName = prjHelper.GetManifestPackage(project);
             TargetDll = ProjectTargetPath + "/apps_rw/" + prjHelper.GetManifestPackage(project) +
                 "/bin/" + prjHelper.GetManifestAppExec(project);
 
-            AppId = prjHelper.GetManifestApplicationId(project);
-
             ParseLaunchSettings();
-
         }
 
         private void ReadProjectConfiguration()
@@ -130,12 +102,7 @@ namespace NetCore.Profiler.Extension.Launcher.Model
                 Configuration config = Project.ConfigurationManager.ActiveConfiguration;
                 ProjectConfigurationName = config.ConfigurationName;
                 ProjectPlatformName = config.PlatformName;
-                Properties props = config.Properties;
-                Property prop = props.Item("OutputPath");
-                if (prop != null)
-                {
-                    ProjectOutputPath = prop.Value.ToString();
-                }
+                SetOutputPath(config);
             }
         }
 

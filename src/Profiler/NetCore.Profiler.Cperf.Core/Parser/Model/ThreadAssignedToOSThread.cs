@@ -16,14 +16,24 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for thread assigned to OS thread ("thr aos")
+    /// %Core %Profiler trace log records. Notifies that a managed thread is being implemented
+    /// using a particular operating system thread.
+    /// </summary>
     public class ThreadAssignedToOsThread
     {
-
+        /// <summary>
+        /// An internal ID of a managed thread.
+        /// </summary>
         public ulong InternalId { get; }
 
+        /// <summary>
+        /// An ID of an operating system thread.
+        /// </summary>
         public ulong OsThreadId { get;}
 
-        public ThreadAssignedToOsThread(ulong internalId,ulong osThreadId)
+        public ThreadAssignedToOsThread(ulong internalId, ulong osThreadId)
         {
             InternalId = internalId;
             OsThreadId = osThreadId;

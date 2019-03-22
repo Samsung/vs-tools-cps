@@ -58,7 +58,7 @@ namespace NetCore.Profiler.Extension.UI.Adaptor
                 case StatisticsType.Memory:
                     return GetRawValue(item).SizeBytesToString();
                 case StatisticsType.Time:
-                    return GetRawValue(item).MilliSecondsToString();
+                    return GetRawValue(item).MillisecondsToString();
                 default:
                     return "ERROR";
             }

@@ -32,7 +32,6 @@ namespace NetCore.Profiler.Extension.Session
 
         public IProfilingStatisticsTotals Totals { get; set; }
 
-
         public List<ICallStatisticsTreeNode> CallTree { get; set; }
 
         public Dictionary<StatisticsType, List<IMethodStatistics>> Methods { get; set; }

@@ -15,24 +15,57 @@
     </UserControl.Resources>
 
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Stretch">
-            <Button x:Name="SessionControlButton" HorizontalAlignment="Left" Width="50" Margin="5">button</Button>
-            <Button x:Name="StopButton" HorizontalAlignment="Left" Width="50" Margin="5">Stop</Button>
-        </StackPanel>
+        <Grid DockPanel.Dock="Top" HorizontalAlignment="Stretch">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <TextBlock x:Name="CaptionText" Margin="5,5" VerticalAlignment="Center" Grid.Column="0"/>
+            <Button x:Name="SessionControlButton" Width="50" Margin="5" Grid.Column="1">button</Button>
+            <Button x:Name="StopButton" Width="50" Margin="5" Grid.Column="2">Stop</Button>
+        </Grid>
         <TextBlock x:Name="Status" Margin="5" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch"></TextBlock>
         <DockPanel Margin="5" >
-            <ScrollBar x:Name="ScrollBar" Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" Value="{Binding Offset }"></ScrollBar>
+            <StackPanel Orientation="Vertical" DockPanel.Dock="Bottom">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                  <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Grid.Column="0" Margin="5">
+                  <Border Background="{Binding PausedSectionBrush}" DockPanel.Dock="Left" Width ="15" Height ="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  <TextBlock Margin="5,0" HorizontalAlignment ="Stretch" VerticalAlignment="Center">Paused</TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Column="1" Margin="5">
+                  <Border Background="{Binding JitSeriesBrush}" DockPanel.Dock="Left" Width ="15" Height ="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  <TextBlock Margin="5,0" HorizontalAlignment ="Stretch" VerticalAlignment="Center">JIT</TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Column="2" Margin="5">
+                  <Border Background="{Binding GcSeriesBrush}" DockPanel.Dock="Left" Width ="15" Height ="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  <TextBlock Margin="5,0" HorizontalAlignment ="Stretch" VerticalAlignment="Center">GC</TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Column="3" Margin="5" x:Name="LegendItemDebug">
+                  <Border Background="{Binding DebugBreakSectionBrush}" DockPanel.Dock="Left" Width ="15" Height ="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  <TextBlock Margin="5,0" HorizontalAlignment ="Stretch" VerticalAlignment="Center">Debugger</TextBlock>
+                </StackPanel>
+              </Grid>
+              <ScrollBar x:Name="ScrollBar" Orientation="Horizontal" HorizontalAlignment="Stretch" Value="{Binding Offset }"></ScrollBar>
+            </StackPanel>
             <lvc:CartesianChart x:Name="LiveTimeline" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Series="{Binding SeriesCollection}">
                 <lvc:CartesianChart.AxisY>
-                    <lvc:Axis Foreground="Blue" Title="CPU (%)" MinValue="0" MaxValue="400" Position="LeftBottom"></lvc:Axis>
-                    <lvc:Axis Foreground="Red" Title="Memory (Gb)" MinValue="0" MaxValue="1" Position="RightTop">
+                    <lvc:Axis Foreground="Blue" Title="CPU%" MinValue="0" MaxValue="100" Position="LeftBottom"></lvc:Axis>
+                    <lvc:Axis Foreground="Red" Title="Memory (MiB)" MinValue="0" MaxValue="1000" Position="RightTop">
                         <lvc:Axis.Separator>
                             <lvc:Separator IsEnabled="False"></lvc:Separator>
                         </lvc:Axis.Separator>
                     </lvc:Axis>
+                    <lvc:Axis ShowLabels="False" IsEnabled="False" Title="" MinValue="0" MaxValue="1" Position="LeftBottom" Visibility="Hidden"></lvc:Axis>
                 </lvc:CartesianChart.AxisY>
                 <lvc:CartesianChart.AxisX>
-                    <lvc:Axis Title="Time (sec)" MinValue="0"></lvc:Axis>
+                    <lvc:Axis Title="Time (sec)" MinValue="0" MaxValue="1"></lvc:Axis>
                 </lvc:CartesianChart.AxisX>
             </lvc:CartesianChart>
         </DockPanel>

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>TizenXAMLApp</Name>
+    <Description>Tizen XAML App (Xamarin.Forms) project</Description>
+    <Icon>Project.XamlApp.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>$safeprojectname$</DefaultName>
+    <CreateInPlace>true</CreateInPlace>
+    <ProvideDefaultName>true</ProvideDefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="Project.XamlApp.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.xaml.cs" OpenInEditor="true">App.xaml.cs.src</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.xaml" OpenInEditor="true">App.xaml.src</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="MainPage.xaml.cs" OpenInEditor="true">MainPage.xaml.cs.src</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="MainPage.xaml" OpenInEditor="true">MainPage.xaml.src</ProjectItem>      
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Tizen.VisualStudio.ProjectSystem.VS, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=afa3293746f785f3</Assembly>
+    <FullClassName>Tizen.VisualStudio.ProjectWizard.ProjectWizardPortableUI</FullClassName>
+  </WizardExtension>
+</VSTemplate>

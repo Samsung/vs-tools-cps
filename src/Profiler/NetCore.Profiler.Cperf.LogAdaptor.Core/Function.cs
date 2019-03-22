@@ -20,7 +20,10 @@ using NetCore.Profiler.Cperf.Core.Model;
 
 namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 {
-    public class Function : IIdentifiable
+    /// <summary>
+    /// A class used in <see cref = "DebugDataInjectionFilter"/> to represent a function.
+    /// </summary>
+    internal class Function : IIdentifiable
     {
         public const ulong FakeFunctionId = ulong.MaxValue;
 
@@ -32,12 +35,9 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 
         public ulong ModuleId { get; set; }
 
-        public int Token { get; set; }
+        public ulong Token { get; set; }
 
-        public Function(
-            ulong internalId,
-            ulong moduleId,
-            int token)
+        public Function(ulong internalId, ulong moduleId, ulong token)
         {
             InternalId = internalId;
             ModuleId = moduleId;
@@ -57,6 +57,5 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 
             return NativeCodeInfos[0].CilToNativeMappings.FirstOrDefault(mapping => offset >= mapping.NativeStartOffset && offset <= mapping.NativeEndOffset);
         }
-
     }
 }

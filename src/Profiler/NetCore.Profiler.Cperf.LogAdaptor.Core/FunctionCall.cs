@@ -19,7 +19,10 @@ using System.Linq;
 
 namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 {
-    public class FunctionCall
+    /// <summary>
+    /// A class used in <see cref = "DebugDataInjectionFilter"/> to represent a function call tree.
+    /// </summary>
+    internal class FunctionCall
     {
         public ulong FunctionIntId { get; set; }
 
@@ -38,6 +41,5 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
         {
             return Children.FirstOrDefault(call => call.FunctionIntId == functionIntId);
         }
-
     }
 }

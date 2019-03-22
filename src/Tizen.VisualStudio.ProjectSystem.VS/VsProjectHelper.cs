@@ -687,7 +687,7 @@ namespace Tizen.VisualStudio
 
         #region EnvDTEExtension
         /// <summary>
-        /// Gets the Tizen package path.
+        /// Gets the %Tizen package path.
         /// </summary>
         /// <param name="prj">project</param>
         /// <returns>Path of tpk for project</returns>

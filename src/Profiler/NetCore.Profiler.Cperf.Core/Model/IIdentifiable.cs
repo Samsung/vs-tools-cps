@@ -16,6 +16,10 @@
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// An interface of <see cref="DataContainer"/> and <see cref="Cperf.LogAdaptor.Core.DebugDataInjectionFilter"/>
+    /// data model classes which are identifiable by an internal ID.
+    /// </summary>
     public interface IIdentifiable
     {
         ulong InternalId { get; }

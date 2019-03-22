@@ -67,7 +67,7 @@ namespace NetCore.Profiler.Extension.UI.SessionWindow
             _session = session;
             session.PropertyChanged += SessionOnPropertyChanged;
             CpuUtilizationSource = new AppCpuTimelineChartModel();
-            CpuUtilizationSource.SetContent(session.SessionModel.GetApplicationCpuUtilization());
+            CpuUtilizationSource.SetContent(session.SessionModel.GetApplicationCpuUtilization(), session.SessionModel.CpuCoreCount);
 
             Threads = session.SessionModel.Threads
                 .Select<ISessionThread, IThreadListItem>(thread => new ThreadListItem(thread, session, CpuUtilizationSource)
@@ -84,17 +84,16 @@ namespace NetCore.Profiler.Extension.UI.SessionWindow
                 if (sender is AppCpuTimelineChart chart)
                 {
                     ulong from = 0;
-                    var to = ulong.MaxValue;
-                    if (chart.SelectionEnd - chart.SelectionStart > 0)
+                    ulong to = ulong.MaxValue;
+                    if (chart.SelectionEndSeconds - chart.SelectionStartSeconds > 0)
                     {
-                        from = chart.SelectionStart;
-                        to = chart.SelectionEnd;
+                        from = (ulong)Math.Round(chart.SelectionStartSeconds * 1000);
+                        to = (ulong)Math.Round(chart.SelectionEndSeconds * 1000);
                     }
 
                     session.UpdateDataForTimeFrame(new SelectedTimeFrame { Start = from, End = to });
                 }
             };
-
         }
 
         public AppCpuTimelineChartModel CpuUtilizationSource { get; }
@@ -134,6 +133,5 @@ namespace NetCore.Profiler.Extension.UI.SessionWindow
                 item.RefreshValue();
             }
         }
-
     }
 }

@@ -18,11 +18,14 @@ using System.Collections.Generic;
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
-    public class Sample
+    /// <summary>
+    /// A <see cref="DataContainer"/> data model class for a stack sample from a %Core %Profiler log.
+    /// </summary>
+    public class Sample : ITimeStamped
     {
         public ulong ThreadIntId { get; set; } = ulong.MaxValue;
 
-        public ulong Timestamp { get; set; }
+        public ulong TimeMilliseconds { get; set; }
 
         public ulong Samples { get; set; }
 
@@ -35,14 +38,19 @@ namespace NetCore.Profiler.Cperf.Core.Model
         public List<SampleAllocationItem> AllocationItems { get; } = new List<SampleAllocationItem>();
     }
 
+    /// <summary>
+    /// A stack sample item used in <see cref="Sample"> objects.
+    /// </summary>
     public class SampleStackItem
     {
         public ulong FunctionIntId { get; set; }
 
         public ulong? SourceLineId { get; set; }
-
     }
 
+    /// <summary>
+    /// A stack sample allocation item used in <see cref="Sample"> objects.
+    /// </summary>
     public class SampleAllocationItem
     {
         public ulong AllocationCount { get; set; }
@@ -50,7 +58,5 @@ namespace NetCore.Profiler.Cperf.Core.Model
         public ulong MemorySize { get; set; }
 
         public ulong? SourceLineId { get; set; }
-
     }
-
 }

@@ -32,12 +32,12 @@ namespace NetCore.Profiler.Extension.UI.AdornedSourceWindow
 {
     internal class HotLineAdornment
     {
-
+#pragma warning disable CS0169, CS0649
         [Export(typeof(AdornmentLayerDefinition))]
         [Name("HotLineAdornment")]
         [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Text)]
         private static AdornmentLayerDefinition _editorAdornmentLayer;
-
+#pragma warning restore CS0169, CS0649
 
         private List<LineData> _linesToAdorn;
 
@@ -58,7 +58,6 @@ namespace NetCore.Profiler.Extension.UI.AdornedSourceWindow
 
         public HotLineAdornment()
         {
-
         }
 
         public HotLineAdornment(IWpfTextView view, ISourceLineStatistics line, ISourceLinesQueryResult queryResult)
@@ -72,7 +71,6 @@ namespace NetCore.Profiler.Extension.UI.AdornedSourceWindow
 
             _pen = new Pen(Brushes.Blue, 0.5);
             _pen.Freeze();
-
         }
 
         internal void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
@@ -158,7 +156,6 @@ namespace NetCore.Profiler.Extension.UI.AdornedSourceWindow
             {
                 ld.Intensity = ld.Value * 100.0 / maxValue;
             }
-
         }
 
         private static ulong GetValue(StatisticsType statisticsType, bool inclusive, IProfiledObjectStatistics ld)
@@ -185,7 +182,5 @@ namespace NetCore.Profiler.Extension.UI.AdornedSourceWindow
             public ulong Value { get; set; }
             public double Intensity { get; set; }
         }
-
-
     }
 }

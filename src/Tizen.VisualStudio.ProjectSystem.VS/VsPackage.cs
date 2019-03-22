@@ -21,24 +21,25 @@ namespace Tizen.VisualStudio
     using System;
     using System.ComponentModel;
     using System.Runtime.InteropServices;
+    using System.Windows.Forms;
+    using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
-    using Tizen.VisualStudio.Tools.DebugBridge;
-    using System.Threading;
-    using Tizen.VisualStudio.LogViewer;
-    using Tizen.VisualStudio.APIChecker;
-    using Tizen.VisualStudio.ManifestEditor;
-    using Tizen.VisualStudio.ResourceManager;
     using EnvDTE;
     using EnvDTE80;
-    using NetCore.Profiler.Extension.VSPackage;
-    using NetCore.Profiler.Extension.UI.SessionExplorer;
-    using NetCore.Profiler.Extension.UI.ProfilingProgressWindow;
-    using NetCore.Profiler.Extension.UI.SessionWindow;
-    using NetCore.Profiler.Extension.UI.AdornedSourceWindow;
-    using Tizen.VisualStudio.Tools.Data;
-    using Microsoft.VisualStudio;
+    using Tizen.VisualStudio.APIChecker;
     using Tizen.VisualStudio.DebugBridge;
+    using Tizen.VisualStudio.LogViewer;
+    using Tizen.VisualStudio.ManifestEditor;
+    using Tizen.VisualStudio.ResourceManager;
+    using Tizen.VisualStudio.Tools.Data;
+    using Tizen.VisualStudio.Tools.DebugBridge;
+    using Tizen.VisualStudio.Utilities;
+    using NetCore.Profiler.Extension.VSPackage;
+    using NetCore.Profiler.Extension.UI.AdornedSourceWindow;
+    using NetCore.Profiler.Extension.UI.ProfilingProgressWindow;
+    using NetCore.Profiler.Extension.UI.SessionExplorer;
+    using NetCore.Profiler.Extension.UI.SessionWindow;
 
     /// <summary>
     /// This class implements the package exposed by this assembly.
@@ -49,10 +50,11 @@ namespace Tizen.VisualStudio
     /// Creating project extensions or project types does not actually require a VSPackage.
     /// </remarks>
     [ProvideAutoLoad(ActivationContextGuid)]
-    [ProvideUIContextRule(ActivationContextGuid, "Load Tizen Project Package",
-        "Tizen.NET",
-        new string[] { "Tizen.NET" },
-        new string[] { "SolutionHasProjectCapability: Tizen.NET & CSharp & CPS" })]
+    [ProvideUIContextRule(ActivationContextGuid,
+        name: "Load Tizen Project Package",
+        expression: "TizenNET | TizenNative",
+        termNames: new[] { "TizenNET", "TizenNative" },
+        termValues: new[] { "SolutionHasProjectCapability: Tizen.NET & CSharp & CPS", "SolutionHasProjectCapability: TizenNative" })]
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Description("Tizen project type")]
     [Guid(VsPackage.PackageGuid)]
@@ -67,7 +69,6 @@ namespace Tizen.VisualStudio
     [ProvideToolWindow(typeof(SessionWindow), Transient = true, Style = VsDockStyle.MDI, MultiInstances = true)]
     [ProvideToolWindow(typeof(HotLinesToolWindow), Transient = true, Style = VsDockStyle.MDI, MultiInstances = true)]
     [ProvideToolWindow(typeof(MemoryProfilingSessionWindow), Transient = true, Style = VsDockStyle.MDI, MultiInstances = true)]
-
 
     #region ManifestEditor
     [ProvideXmlEditorChooserDesignerView("TizenManifest", "xml", LogicalViewID.Designer, 0x60,
@@ -117,6 +118,8 @@ namespace Tizen.VisualStudio
         private IVsDebugger monitoredDebugger = null;
         private uint monitorCookie = 0;
 
+        private static VsPackage instance;
+
         protected override void Initialize() //async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             base.Initialize();
@@ -127,8 +130,7 @@ namespace Tizen.VisualStudio
             //await PrepareWindowsAsync();
             PrepareWidnows();
 
-            VsEvents.Initialize(this as IVsEventsHandler,
-                                GetService(typeof(SVsSolution)) as IVsSolution);
+            VsEvents.Initialize(this as IVsEventsHandler, GetService(typeof(SVsSolution)) as IVsSolution);
 
             DeviceManager.Initialize(VsPackage.outputPaneTizen);
 
@@ -149,13 +151,29 @@ namespace Tizen.VisualStudio
             CEvents = dte2.Events.CommandEvents[guidVSstd97, cmdidStartupPrj];
             CEvents.AfterExecute += SetStartup_AfterExecute;
 
-            ProfilerPlugin.Initialize(this, outputPaneTizen);
+            ProfilerPlugin.Initialize(this, outputPaneTizen, dialogFactory);
 
+            instance = this;
         }
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+            instance = null;
+        }
+
+        public static int ShowMessage(MessageDialogType messageType, string title, string message)
+        {
+            var vsPackage = instance;
+            if (vsPackage != null)
+            {
+                return ShellHelper.ShowMessage(vsPackage, messageType, title, message);
+            }
+            if (messageType != MessageDialogType.Question)
+            {
+                MessageBox.Show(message, title);
+            }
+            return -1;
         }
 
         protected override int QueryClose(out bool canClose)
@@ -215,14 +233,13 @@ namespace Tizen.VisualStudio
 
         private IVsDebugger StartDebuggerMonitoring()
         {
-            int hr;
             DBGMODE[] modeArray = new DBGMODE[1];
 
             monitoredDebugger = GetService(typeof(SVsShellDebugger)) as IVsDebugger;
 
             if (monitoredDebugger != null)
             {
-                hr = monitoredDebugger.AdviseDebuggerEvents(this, out monitorCookie);
+                int hr = monitoredDebugger.AdviseDebuggerEvents(this, out monitorCookie);
                 Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(hr);
 
                 hr = monitoredDebugger.GetMode(modeArray);
@@ -240,8 +257,7 @@ namespace Tizen.VisualStudio
 
         public void OnVsEventSolutionBeforeClose()
         {
-            ResourceManagerLauncher launcher =
-               ResourceManagerLauncher.getInstance();
+            ResourceManagerLauncher launcher = ResourceManagerLauncher.getInstance();
             launcher.CloseAllResourceManagerWindow(this);
         }
 
@@ -249,19 +265,13 @@ namespace Tizen.VisualStudio
         {
             if(project != null)
             {
-                ResourceManagerLauncher launcher =
-                    ResourceManagerLauncher.getInstance();
+                ResourceManagerLauncher launcher = ResourceManagerLauncher.getInstance();
                 launcher.CloseProjectResourceManagerWindow(this, project);
             }
         }
 
-        void IVsEventsHandler.OnVsEventBuildProjectDone(string Project,
-                                                        string ProjectConfig,
-                                                        string Platform,
-                                                        string SolutionConfig,
-                                                        bool Success,
-                                                        bool scdproperty,
-                                                        string arch)
+        void IVsEventsHandler.OnVsEventBuildProjectDone(string Project, string ProjectConfig, string Platform,
+            string SolutionConfig, bool Success, bool scdproperty, string arch)
         {
             Project currentProject = VsProjectHelper.GetInstance.GetCurrentProjectFromUniqueName(Project);
             // Create res.xml file while packaging
@@ -269,7 +279,6 @@ namespace Tizen.VisualStudio
             {
                 XmlWriter.updateResourceXML(currentProject);
             }
-
         }
 
         void SetStartup_AfterExecute(string Guid, int ID, object CustomIn, object CustomOut)
@@ -283,13 +292,39 @@ namespace Tizen.VisualStudio
             switch (dbgmodeNew)
             {
                 case DBGMODE.DBGMODE_Run:
+                    {
+                        // hide Profiling Progress window if not in live profiler mode
+                        if (!DebuggerInfo.UseLiveProfiler &&
+                            (ProfilerPlugin.Instance.DebugMode == DBGMODE.DBGMODE_Design))
+                        {
+                            Action closeProfilingProgressWindow = () =>
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(delegate ()
+                                {
+                                    var profilingProgressWindow = ProfilerPlugin.Instance.FindToolWindow<ProfilingProgressWindow>(0, false);
+                                    if (profilingProgressWindow != null)
+                                    {
+                                        ((IVsWindowFrame)(profilingProgressWindow.Frame)).CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
+                                    }
+                                });
+                            };
+                            System.Threading.Tasks.Task.Run(() =>
+                            {
+                                closeProfilingProgressWindow();
+                                System.Threading.Thread.Sleep(200); // we are in situation of races so try again after a small delay
+                                closeProfilingProgressWindow();
+                            });
+                        }
+                    }
                     break;
                 case DBGMODE.DBGMODE_Design:
-                    DebugBridge.TizenPackageTracer.Instance.Clear();
+                    TizenPackageTracer.Instance.Clear();
                     break;
                 default:
                     break;
             }
+
+            ProfilerPlugin.Instance.OnModeChange(dbgmodeNew);
 
             return VSConstants.S_OK;
         }

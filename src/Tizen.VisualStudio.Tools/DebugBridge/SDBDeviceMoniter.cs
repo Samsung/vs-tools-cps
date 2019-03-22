@@ -281,6 +281,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
 #if DEBUG
                     ////OutputDeviceInfoMsg("sdb host:track-devices timeout...", false);
 #endif
+                    Thread.Sleep(1);
                 }
 
                 if (cancelToken.IsCancellationRequested)
@@ -288,6 +289,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
                     ret = DeviceMonitorResult.CanceledByUser;
                     break;
                 }
+
             }
 
             this.sdbconnection.Close();

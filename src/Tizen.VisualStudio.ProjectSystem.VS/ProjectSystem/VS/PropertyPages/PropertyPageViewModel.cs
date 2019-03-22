@@ -49,8 +49,8 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
             }
         }
 
-        public abstract Task Initialize();
-        public abstract Task<int> Save();
+        public abstract Task InitializeAsync();
+        public abstract Task<int> SaveAsync();
 
         protected virtual void OnPropertyChanged(string propertyName, bool suppressInvalidation = false)
         {

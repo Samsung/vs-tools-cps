@@ -67,25 +67,34 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis">
-      <Version>2.3.1</Version>
+      <Version>2.6.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <Version>15.0.26606</Version>
+      <Version>15.6.27413</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
-      <Version>14.3.25407</Version>
+      <Version>14.3.25408</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>15.0.26606</Version>
+      <Version>15.6.27413</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices">
-      <Version>2.3.1</Version>
+      <Version>2.6.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
+      <Version>15.3.224</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-      <Version>15.0.26606</Version>
+      <Version>15.6.27413</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0">
-      <Version>10.0.30319</Version>
+      <Version>10.0.30320</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Threading">
+      <Version>15.7.17</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>10.0.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

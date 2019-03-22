@@ -32,7 +32,6 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
     /// </summary>
     public partial class HeapProfilingChart : INotifyPropertyChanged
     {
-
         private const int LohSeriesIndex = 0;
         private const int Gen2SeriesIndex = 1;
         private const int Gen1SeriesIndex = 2;
@@ -45,10 +44,10 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
 
         private readonly bool[] _seriesVisibility = { true, true, true, true};
 
-        public Color Gen0SeriesColor { get; } = Color.FromRgb(31, 138, 112);
-        public Color Gen1SeriesColor { get; } = Color.FromRgb(190, 219, 57);
-        public Color Gen2SeriesColor { get; } = Color.FromRgb(255, 225, 36);
-        public Color LohSeriesColor { get; } = Color.FromRgb(0, 67, 88);
+        public static readonly Color Gen0SeriesColor = Color.FromRgb(31, 138, 112);
+        public static readonly Color Gen1SeriesColor = Color.FromRgb(190, 219, 57);
+        public static readonly Color Gen2SeriesColor = Color.FromRgb(255, 225, 36);
+        public static readonly Color LohSeriesColor = Color.FromRgb(0, 67, 88);
 
         public bool Gen0SeriesEnabled
         {
@@ -76,14 +75,13 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
 
         private ManagedMemoryProfilingChartModel Model { get; } = new ManagedMemoryProfilingChartModel();
 
-        public SolidColorBrush Gen0SeriesBrush => new SolidColorBrush(Gen0SeriesColor);
+        public static SolidColorBrush Gen0SeriesBrush { get; } = new SolidColorBrush(Gen0SeriesColor);
 
-        public SolidColorBrush Gen1SeriesBrush => new SolidColorBrush(Gen1SeriesColor);
+        public static SolidColorBrush Gen1SeriesBrush { get; } = new SolidColorBrush(Gen1SeriesColor);
 
-        public SolidColorBrush Gen2SeriesBrush => new SolidColorBrush(Gen2SeriesColor);
+        public static SolidColorBrush Gen2SeriesBrush { get; } = new SolidColorBrush(Gen2SeriesColor);
 
-        public SolidColorBrush LohSeriesBrush => new SolidColorBrush(LohSeriesColor);
-
+        public static SolidColorBrush LohSeriesBrush { get; } = new SolidColorBrush(LohSeriesColor);
 
         private void SetSeriesVisibility(int index, bool value)
         {
@@ -152,7 +150,6 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
             LiveTimeline.DisableAnimations = true;
 
             LiveTimeline.MouseWheel += OnMouseWheel;
-
         }
 
         public delegate void SelectionChangedEventHandler(object sender, EventArgs e);
@@ -173,7 +170,7 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
         }
 
         /// <summary>
-        /// ScrollBar offset. ScrallBar Value property is bound to it.
+        /// ScrollBar offset. ScrollBar Value property is bound to it.
         /// </summary>
         public double Offset
         {
@@ -191,7 +188,6 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
         {
             Model.ResetZoom();
         }
-
 
         private void NotifyOffsetChange()
         {
@@ -285,6 +281,5 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
         {
             return Math.Round((double)value / 1024 / 1024, 6);
         }
-
     }
 }

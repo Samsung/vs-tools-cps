@@ -19,6 +19,9 @@ using System.ComponentModel;
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A <see cref="DataContainer"/> data model class for a module from a %Core %Profiler log.
+    /// </summary>
     public class Module : IIdentifiable
     {
         public ulong InternalId { get; set; }
@@ -48,7 +51,7 @@ namespace NetCore.Profiler.Cperf.Core.Model
             result += "]";
 
             return result;
-        }
+       }
 
     }
 }

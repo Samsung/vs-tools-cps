@@ -16,6 +16,10 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for class load finished ("cls ldf")
+    /// %Core %Profiler trace log records. Notifies that a class has finished loading.
+    /// </summary>
     public class ClassLoadFinished
     {
         public ulong Id { get; }
@@ -36,6 +40,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
             ClassToken = classToken;
             Status = status;
         }
-
     }
 }

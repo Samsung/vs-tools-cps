@@ -19,9 +19,11 @@ using System.Linq;
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A <see cref="DataContainer"/> data model class for a function from a %Core %Profiler log.
+    /// </summary>
     public class Function : IIdentifiable
     {
-
         public const ulong FakeFunctionId = ulong.MaxValue;
 
         public ulong InternalId { get; set; }
@@ -41,6 +43,5 @@ namespace NetCore.Profiler.Cperf.Core.Model
             return TypeDescriptor.GetProperties(this).Cast<PropertyDescriptor>()
                 .Aggregate("Function[", (current, descriptor) => current + ("{" + descriptor.Name + ": " + descriptor.GetValue(this) + "}")) + "]";
         }
-
     }
 }

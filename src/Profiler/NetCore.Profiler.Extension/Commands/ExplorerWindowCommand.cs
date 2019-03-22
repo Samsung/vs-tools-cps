@@ -14,8 +14,15 @@
  * limitations under the License.
 */
 
+using EnvDTE;
+using EnvDTE80;
 using System;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using NetCore.Profiler.Extension.VSPackage;
+using Tizen.VisualStudio.Utilities;
+using Tizen.VisualStudio.Tools.DebugBridge;
+using Tizen.VisualStudio.Tools.DebugBridge.SDBCommand;
 
 namespace NetCore.Profiler.Extension.Commands
 {
@@ -24,13 +31,86 @@ namespace NetCore.Profiler.Extension.Commands
         /// <summary>
         /// Command ID.
         /// </summary>
+
+        private Package _package;
+
         public const int CommandId = 0x0113;
 
-        public static Command Instance { get; private set; }
+        public static ExplorerWindowCommand Instance { get; private set; }
 
 
-        private ExplorerWindowCommand(IServiceProvider serviceProvider) : base(serviceProvider, CommandId, (sender, args) => ProfilerPlugin.Instance.ExplorerWindow.Show(), true)
+        private ExplorerWindowCommand(IServiceProvider serviceProvider) : base(serviceProvider, CommandId, Execute, true)
         {
+            _package = (Package) serviceProvider;
+        }
+
+        private static Project GetStartupProject()
+        {
+            try
+            {
+                string startPrjName = string.Empty;
+                Project startPrj = null;
+                DTE2 dte2 = (DTE2)Package.GetGlobalService(typeof(SDTE));
+                Property property = dte2.Solution.Properties.Item("StartupProject");
+                if (property != null)
+                {
+                    startPrjName = (string)property.Value;
+                }
+                foreach (Project prj in dte2.Solution.Projects)
+                {
+                    if (prj.Name == startPrjName)
+                    {
+                        startPrj = prj;
+                    }
+                }
+                return startPrj;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private bool IsNetCoreDbgSupported()
+        {
+            SDBDeviceInfo device = DeviceManager.SelectedDevice;
+            bool is_netcoredbg_support = false;
+            if (device != null)
+            {
+                var cap = new SDBCapability(device);
+                is_netcoredbg_support =
+                    cap.GetAvailabilityByKey("netcoredbg_support");
+            }
+            return is_netcoredbg_support;
+        }
+
+        private bool CanStart()
+        {
+            Project project = null;
+
+            project = GetStartupProject();
+            if (project == null)
+            {
+                ShellHelper.ShowMessage(_package, MessageDialogType.Info, "", "No active project");
+                return false;
+            }
+
+            if (!IsNetCoreDbgSupported())
+            {
+                ShellHelper.ShowMessage(_package, MessageDialogType.Info, "",
+                    "Profiling is supported starting from Tizen 5.0 version only");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static void Execute(object sender, EventArgs e)
+        {
+            if (Instance.CanStart())
+            {
+                ProfilerPlugin.Instance.ExplorerWindow.Show();
+            }
         }
 
         public static void Initialize(IServiceProvider serviceProvider)

@@ -19,6 +19,9 @@ using System.Linq;
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A <see cref="DataContainer"/> data model class for a source file information record from a %Core %Profiler log.
+    /// </summary>
     public class SourceFile : IIdentifiable
     {
         public ulong InternalId { get; set; }

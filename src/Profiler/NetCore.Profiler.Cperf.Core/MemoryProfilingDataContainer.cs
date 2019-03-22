@@ -24,13 +24,20 @@ using NetCore.Profiler.Cperf.Core.Parser.Model;
 
 namespace NetCore.Profiler.Cperf.Core
 {
+    /// <summary>
+    /// A data container used to load and store in memory structures the data from saved (already completed) %Core %Profiler
+    /// memory profiling sessions so they can be used by <see cref="MemoryProfilingDataProvider"/>.
+    /// </summary>
     public class MemoryProfilingDataContainer
     {
-
         private readonly Dictionary<ulong, Dictionary<ulong, DataTypeMemoryUsage>> _tempDataTypeAllocations = new Dictionary<ulong, Dictionary<ulong, DataTypeMemoryUsage>>();
 
         private readonly string _filePath;
 
+        /// <summary>
+        /// Create a data container for the specified memory profiling session file (but don't load the data at the moment).
+        /// </summary>
+        /// <param name="filePath">The memory profiling session file path and name.</param>
         public MemoryProfilingDataContainer(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
@@ -47,22 +54,52 @@ namespace NetCore.Profiler.Cperf.Core
 
         public Dictionary<ulong, List<DataTypeMemoryUsage>> DataTypeSnapshots { get; } = new Dictionary<ulong, List<DataTypeMemoryUsage>>();
 
-        public void Load(ProgressMonitor progressMonitor)
+        public List<GarbageCollectorGenerationsSample> GarbageCollectorGenerations { get; } = new List<GarbageCollectorGenerationsSample>();
+
+        public List<ManagedMemoryData> ManagedMemoryStatistics { get; } = new List<ManagedMemoryData>();
+
+        /// <summary>
+        /// Load the data from the memory profiling session file set in the constructor.
+        /// </summary>
+        /// <param name="progressMonitor">Used to report the profiling session file load progress.</param>
+        /// <param name="profilerStartTime">
+        /// The profiler start time (according to a clock of a target Tizen system) is returned in this output parameter.
+        /// </param>
+        public void Load(ProgressMonitor progressMonitor, out DateTime profilerStartTime)
         {
-            var parser = new CperfParser
+            var parser = new CperfParser();
+
+            Action<string> lineReadCallback = (s => progressMonitor.Tick());
+
+            DateTime startTimeFromParser = DateTime.MinValue;
+            Action<DateTime> startTimeCallback = (DateTime startTime) =>
             {
-                LineReadCallback = s => progressMonitor.Tick(),
-                GarbageCollectorSampleCallback = GarbageCollectorSampleCallback,
-                ClassNameReadCallback = ClassNameReadCallback,
-                AllocationSampleReadCallback = AllocationSampleReadCallback
+                startTimeFromParser = startTime;
             };
 
+            parser.LineReadCallback += lineReadCallback;
+            parser.StartTimeCallback += startTimeCallback;
+            parser.GarbageCollectorSampleCallback += GarbageCollectorSampleCallback;
+            parser.GarbageCollectorGenerationSampleCallback += GarbageCollectorGenerationsSampleCallback;
+            parser.ManagedMemorySampleCallback += ManagedMemorySampleCallback;
+            parser.ClassNameReadCallback += ClassNameReadCallback;
+            parser.AllocationSampleReadCallback += AllocationSampleReadCallback;
+
             parser.Parse(_filePath);
+
+            profilerStartTime = startTimeFromParser;
+
+            parser.LineReadCallback -= lineReadCallback;
+            parser.StartTimeCallback -= startTimeCallback;
+            parser.GarbageCollectorSampleCallback -= GarbageCollectorSampleCallback;
+            parser.GarbageCollectorGenerationSampleCallback -= GarbageCollectorGenerationsSampleCallback;
+            parser.ManagedMemorySampleCallback -= ManagedMemorySampleCallback;
+            parser.ClassNameReadCallback -= ClassNameReadCallback;
+            parser.AllocationSampleReadCallback -= AllocationSampleReadCallback;
 
             ProcessDataTypeAllocationSamples();
 
             _tempDataTypeAllocations.Clear();
-
         }
 
         private void ClassNameReadCallback(ClassName arg)
@@ -73,6 +110,16 @@ namespace NetCore.Profiler.Cperf.Core
             }
         }
 
+        private void GarbageCollectorGenerationsSampleCallback(GarbageCollectorGenerationsSample sample)
+        {
+            GarbageCollectorGenerations.Add(sample);
+        }
+
+        private void ManagedMemorySampleCallback(ManagedMemoryData sample)
+        {
+            ManagedMemoryStatistics.Add(sample);
+        }
+
         private void GarbageCollectorSampleCallback(GarbageCollectionSample sample)
         {
             foreach (var snapshot in DataTypeSnapshots)
@@ -80,12 +127,12 @@ namespace NetCore.Profiler.Cperf.Core
                 var x = sample.Items.FirstOrDefault(item => item.ClassId == snapshot.Key);
                 if (x != null)
                 {
-                    if (snapshot.Value.Count == 0 || snapshot.Value[snapshot.Value.Count - 1].Timestamp !=
+                    if (snapshot.Value.Count == 0 || snapshot.Value[snapshot.Value.Count - 1].TimeMilliseconds !=
                         sample.Timestamp)
                     {
                         snapshot.Value.Add(new DataTypeMemoryUsage
                         {
-                            Timestamp = sample.Timestamp,
+                            TimeMilliseconds = sample.Timestamp,
                             ObjectsCount = x.ObjectsCount,
                             MemorySize = x.MemorySize
                         });
@@ -104,11 +151,11 @@ namespace NetCore.Profiler.Cperf.Core
                         continue;
                     }
 
-                    if (snapshot.Value[snapshot.Value.Count - 1].Timestamp != sample.Timestamp)
+                    if (snapshot.Value[snapshot.Value.Count - 1].TimeMilliseconds != sample.Timestamp)
                     {
                         snapshot.Value.Add(new DataTypeMemoryUsage
                         {
-                            Timestamp = sample.Timestamp,
+                            TimeMilliseconds = sample.Timestamp,
                             ObjectsCount = 0,
                             MemorySize = 0
                         });
@@ -142,7 +189,7 @@ namespace NetCore.Profiler.Cperf.Core
 
             if (!dict.TryGetValue(timestamp, out DataTypeMemoryUsage sample))
             {
-                sample = new DataTypeMemoryUsage {Timestamp = timestamp };
+                sample = new DataTypeMemoryUsage {TimeMilliseconds = timestamp };
                 dict.Add(timestamp, sample);
             }
 
@@ -160,7 +207,7 @@ namespace NetCore.Profiler.Cperf.Core
                     {
                         new DataTypeMemoryUsage
                         {
-                            Timestamp = timestamp,
+                            TimeMilliseconds = timestamp,
                             ObjectsCount = allocation.AllocationCount,
                             MemorySize = allocation.MemorySize
                         }
@@ -170,7 +217,7 @@ namespace NetCore.Profiler.Cperf.Core
             }
 
             var mu = list[list.Count - 1];
-            if (mu.Timestamp == timestamp)
+            if (mu.TimeMilliseconds == timestamp)
             {
                 mu.ObjectsCount += allocation.AllocationCount;
                 mu.MemorySize += allocation.MemorySize;
@@ -179,7 +226,7 @@ namespace NetCore.Profiler.Cperf.Core
             {
                 list.Add(new DataTypeMemoryUsage
                 {
-                    Timestamp = timestamp,
+                    TimeMilliseconds = timestamp,
                     ObjectsCount = mu.ObjectsCount + allocation.AllocationCount,
                     MemorySize = mu.MemorySize + allocation.MemorySize
                 });
@@ -193,7 +240,5 @@ namespace NetCore.Profiler.Cperf.Core
                 DataTypeAllocations.Add(sample.Key, sample.Value.Values.ToList());
             }
         }
-
     }
-
 }

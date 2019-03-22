@@ -18,12 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using NetCore.Profiler.Common.Helpers;
 
 namespace NetCore.Profiler.Session.Core
 {
     public class SavedSession : ISavedSession
     {
-
         private SessionProperties _properties;
 
         public string SolutionFolder { get; set; }
@@ -58,34 +58,30 @@ namespace NetCore.Profiler.Session.Core
 
             if (SessionFolder == null || !File.Exists(Path.GetFullPath(SessionFile)))
             {
-                throw new Exception("Session File does not exist");
+                throw new Exception("Session file does not exist");
             }
-
 
             _properties = new SessionProperties(SessionFile);
             _properties.Load();
 
-            CreatedAt = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-                .AddMilliseconds(Convert.ToDouble(_properties.GetProperty("Time", "value")
-                        .Replace(',', '.'), //Temporay Fix to read sessions created before changing the format
+            CreatedAt = TimeStampHelper.UnixEpochTime
+                .AddMilliseconds(Convert.ToDouble(
+                    _properties.GetProperty("Time", "value")
+                        .Replace(',', '.'), //Temporary fix to read sessions created before changing the format
                     CultureInfo.InvariantCulture));
 
             PresetName = _properties.GetProperty("ProfilingType", "value");
-
             ProjectName = _properties.GetProperty("ProjectName", "value");
-
             var deviceName = _properties.GetProperty("DeviceName", "value");
             DeviceName = string.IsNullOrEmpty(deviceName) ? "<Unknown>" : deviceName;
 
-            foreach (var property in new List<string> { "CoreClrProfilerReport", "CoreClrProfilerReport", "CtfReport", "Proc" })
+            foreach (var property in new List<string> { "CoreClrProfilerReport", "Proc" })
             {
                 if (!_properties.PropertyExists(property))
                 {
-                    throw new Exception($"{property} Session Property not found");
+                    throw new Exception($"{property} session property not found");
                 }
             }
-
         }
-
     }
 }

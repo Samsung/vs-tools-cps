@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<packages>
+  <package id="Tizen.NET.Sdk" version="$tizen_net_sdk_version$" targetFramework="native" />
+</packages>

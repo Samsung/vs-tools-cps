@@ -35,6 +35,8 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
         public const string DefaultEncoding = "ISO-8859-1";
         private const int SDBPort = 26099;
 
+        public static readonly TimeSpan TimeOutStart = TimeSpan.FromSeconds(7);
+
         private SDBConnection()
         {
         }
@@ -121,19 +123,9 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
 
         private bool RunDaemon()
         {
-            StartServerWatier waiter = new StartServerWatier();
-            var sdbProcess = SDBLib.CreateSdbProcess(true, true);
-            if (sdbProcess == null)
-            {
-                return false;
-            }
-
-            var task = SDBLib.RunSdbProcessAsync(sdbProcess,
-                                                 "start-server",
-                                                 false,
-                                                 waiter);
-            waiter.Waiter.WaitOne(SDBSocket.TimeOutStart);
-            return true;
+            return SDBLib.RunSdbCommand(null, "start-server",
+                (isStdOut, line) => line.Trim().Equals("* server started successfully *"),
+                TimeOutStart) == SDBLib.SdbRunResult.Success;
         }
 
         public SDBResponse Send(SDBRequest request)
@@ -396,23 +388,6 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
         {
             Encoding enc = Encoding.GetEncoding(encoding);
             return enc.GetBytes(str);
-        }
-    }
-
-    internal class StartServerWatier : TizenAutoWaiter
-    {
-        public override bool IsWaiterSet(string value)
-        {
-            if (value.Trim().Equals("* server started successfully *"))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        public override void OnExit()
-        {
         }
     }
 }

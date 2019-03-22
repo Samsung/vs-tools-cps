@@ -35,8 +35,6 @@ namespace NetCore.Profiler.Extension.Session
             _dte = dte;
         }
 
-        public string SolutionFolder { get; set; }
-
         public IEnumerable<ISavedSession> Sessions => _sessions;
 
         public void DeleteSession(ISavedSession session)
@@ -45,16 +43,14 @@ namespace NetCore.Profiler.Extension.Session
             {
                 throw new ArgumentNullException(nameof(session));
             }
-
             try
             {
                 Directory.Delete(session.SessionFolder, true);
             }
-            catch
+            catch (Exception ex)
             {
-                ProfilerPlugin.Instance.ShowError("Error", $"Could not delete session {session.SessionFolder}");
+                ProfilerPlugin.Instance.ShowError($"Could not delete \"{session.SessionFolder}\". {ex.Message}");
             }
-
             Update();
         }
 
@@ -62,52 +58,36 @@ namespace NetCore.Profiler.Extension.Session
 
         public void Update()
         {
-            _sessions = new List<ISavedSession>();
+            _sessions.Clear();
             if (_dte.Solution != null)
             {
                 if (_dte.Solution is Solution2 sol2)
                 {
-                    Update(sol2.FullName);
+                    LoadSessions(sol2.FullName);
                 }
             }
-
             SessionsListUpdated?.Invoke();
         }
 
-        private void Update(string solutionFullName)
+        private void LoadSessions(string solutionFullName)
         {
             if (!string.IsNullOrEmpty(solutionFullName))
             {
-                SolutionFolder = Path.GetDirectoryName(solutionFullName);
-                var x = FindSessions();
-                foreach (var savedSession in x)
-                {
-                    if (ValidateSession(savedSession))
-                    {
-                        _sessions.Add(savedSession);
-                    }
-                }
+                string solutionFolder = Path.GetDirectoryName(solutionFullName);
+                _sessions.AddRange(
+                    Directory.GetFiles(solutionFolder, SessionConstants.SessionFileName, SearchOption.AllDirectories)
+                    .Select((sessionFile) => LoadSession(solutionFolder, sessionFile))
+                    .Where(session => (session != null)));
             }
         }
 
-        private bool ValidateSession(ISavedSession savedSession)
-        {
-            return true;
-        }
-
-
-        private List<SavedSession> FindSessions()
-        {
-            return Directory.GetFiles(SolutionFolder, SessionConstants.SessionFileName, SearchOption.AllDirectories).Select(LoadSession).Where(session => session != null).ToList();
-        }
-
-        private SavedSession LoadSession(string sessionFile)
+        private static SavedSession LoadSession(string solutionFolder, string sessionFile)
         {
             try
             {
                 var s = new SavedSession()
                 {
-                    SolutionFolder = SolutionFolder,
+                    SolutionFolder = solutionFolder,
                     ProjectFolder = Path.GetDirectoryName(Path.GetDirectoryName(sessionFile)),
                     SessionFile = sessionFile
                 };

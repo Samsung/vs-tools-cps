@@ -20,18 +20,20 @@ using System.IO;
 
 namespace NetCore.Profiler.Cperf.LogAdaptor.Core
 {
+    /// <summary>
+    /// A trivial %Core %Profiler log adapter (for debugging, unit testing, etc.).
+    /// </summary>
     public class NullLogAdaptor : ILogAdaptor
     {
-        public StreamReader Input { get; set; }
         public StreamWriter Output { get; set; }
         public string PdbDirectory { get; set; }
 
-        public void Process()
+        public void Process(Func<string> readFunc)
         {
             try
             {
                 string inputString;
-                while ((inputString = Input.ReadLine()) != null)
+                while ((inputString = readFunc()) != null)
                 {
                     Output.WriteLine(inputString);
                 }
@@ -40,7 +42,6 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
             {
                 Debug.WriteLine(e.Message);
             }
-
         }
     }
 }

@@ -16,11 +16,14 @@
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// An interface of classes which have a timestamp.
+    /// </summary>
     public interface ITimeStamped
     {
         /// <summary>
-        /// Timestamp at which utilization was measured
+        /// A timestamp
         /// </summary>
-        ulong Timestamp { get; set; }
+        ulong TimeMilliseconds { get; set; }
     }
 }

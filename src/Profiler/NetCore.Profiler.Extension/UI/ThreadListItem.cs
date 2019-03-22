@@ -41,11 +41,10 @@ namespace NetCore.Profiler.Extension.UI
             CpuUtilization.SetContent(_sessionThread.CpuUtilization);
 
             JitJobsSource = new ThreadClrJobTimelineChartModel(applicationChartModel);
-            JitJobsSource.SetContent(_sessionThread.ClrJobs, ClrJobType.JustInTimeCompilation, parent.SessionModel.StartedNanoseconds);
+            JitJobsSource.SetContent(_sessionThread.ClrJobs, ClrJobType.JustInTimeCompilation);
 
             GcJobsSource = new ThreadClrJobTimelineChartModel(applicationChartModel);
-            GcJobsSource.SetContent(_sessionThread.ClrJobs, ClrJobType.GarbageCollection, parent.SessionModel.StartedNanoseconds);
-
+            GcJobsSource.SetContent(_sessionThread.ClrJobs, ClrJobType.GarbageCollection);
         }
 
         public ulong OsThreadId => _sessionThread.OsThreadId;
@@ -100,7 +99,7 @@ namespace NetCore.Profiler.Extension.UI
                     case StatisticsType.Sample:
                         return value.ToString();
                     case StatisticsType.Time:
-                        return value.MilliSecondsToString();
+                        return value.MillisecondsToString();
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -112,13 +111,11 @@ namespace NetCore.Profiler.Extension.UI
             OnPropertyChanged("CurrentValue");
         }
 
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(string name)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
-
     }
 }

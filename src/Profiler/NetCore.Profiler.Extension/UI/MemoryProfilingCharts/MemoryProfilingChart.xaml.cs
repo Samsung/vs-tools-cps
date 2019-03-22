@@ -118,7 +118,7 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
         }
 
         /// <summary>
-        /// ScrollBar offset. ScrallBar Value property is bound to it.
+        /// ScrollBar offset. ScrollBar Value property is bound to it.
         /// </summary>
         public double Offset
         {

@@ -40,9 +40,9 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 
         private const string CpuSeriesTitle = "CPU (%)";
 
-        private static readonly SolidColorBrush PausedSectionBrush = new SolidColorBrush(Colors.AliceBlue) { Opacity = 0.4 };
+        private static readonly SolidColorBrush PausedSectionBrush = new SolidColorBrush(Colors.DarkGray) { Opacity = 0.4 };
 
-        private static readonly SolidColorBrush SelectionSectionBrush = new SolidColorBrush(Colors.LightGray) { Opacity = 0.4 };
+        private static readonly SolidColorBrush SelectionSectionBrush = new SolidColorBrush(Colors.MediumPurple) { Opacity = 0.4 };
 
         private static readonly SolidColorBrush CpuSeriesStrokeBrush = new SolidColorBrush(Colors.Blue) { Opacity = 0.4 };
 
@@ -57,7 +57,6 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             Fill = SelectionSectionBrush
         };
 
-
         public AppCpuTimelineChart()
         {
             DataContext = this;
@@ -65,7 +64,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             SeriesCollection = new SeriesCollection()
             {
                 new LineSeries(Mappers.Xy<CpuUtilization>()
-                    .X(item => item.Timestamp)
+                    .X(item => item.TimeMilliseconds / 1000.0)
                     .Y(item => item.Utilization))
                 {
                     StrokeThickness = 1,
@@ -86,7 +85,6 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             LiveTimeline.MouseWheel += OnMouseWheel;
             LiveTimeline.MouseMove += OnMouseMove;
             LiveTimeline.MouseLeftButtonUp += OnMouseUp;
-
         }
 
         public delegate void SelectionChangedEventHandler(object sender, EventArgs e);
@@ -106,18 +104,17 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         /// </summary>
         public SeriesCollection SeriesCollection { get; }
 
-
         /// <summary>
-        /// ScrollBar offset. ScrallBar Value property is bound to it.
+        /// ScrollBar offset. ScrollBar Value property is bound to it.
         /// </summary>
-        public double Offset
+        public double Offset // seconds
         {
-            get => CpuUtilizationSource?.Offset ?? 0;
+            get => CpuUtilizationSource?.OffsetMilliseconds / 1000.0 ?? 0;
             set
             {
                 if (CpuUtilizationSource != null)
                 {
-                    CpuUtilizationSource.Offset = (ulong)value;
+                    CpuUtilizationSource.OffsetMilliseconds = (ulong)Math.Round(value * 1000);
                 }
             }
         }
@@ -125,33 +122,33 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         /// <summary>
         /// Start of the selected region
         /// </summary>
-        public ulong SelectionStart => (ulong)(double.IsNaN(_selectionSection.Value) ? 0 : _selectionSection.Value);
+        public double SelectionStartSeconds => (double.IsNaN(_selectionSection.Value) ? 0 : _selectionSection.Value);
 
         /// <summary>
         /// The width of the selected region
         /// </summary>
-        public ulong SelectionWidth => (ulong)(double.IsNaN(_selectionSection.SectionWidth) ? 0 : _selectionSection.SectionWidth);
+        public double SelectionWidthSeconds => (double.IsNaN(_selectionSection.SectionWidth) ? 0 : _selectionSection.SectionWidth);
 
         /// <summary>
         /// End of the selected region
         /// </summary>
-        public ulong SelectionEnd => SelectionStart + SelectionWidth;
+        public double SelectionEndSeconds => SelectionStartSeconds + SelectionWidthSeconds;
 
+        public string SelectionLabel => SelectionWidthSeconds == 0 ? "<empty>" : $"{SelectionStartSeconds:F03} sec .. {SelectionEndSeconds:F03} sec";
 
-        public string SelectionLabel => SelectionWidth == 0 ? "<empty>" : $"{SelectionStart} : {SelectionEnd}";
+        public bool ZoomToSelectionPossible => SelectionWidthSeconds != 0;
 
-        public bool ZoomToSelectionPossible => SelectionWidth != 0;
-
-        public bool RevealSelectionPossible => SelectionWidth != 0;
+        public bool RevealSelectionPossible => SelectionWidthSeconds != 0;
 
         public void ZoomToSelection()
         {
-            if (SelectionWidth == 0)
+            if (SelectionWidthSeconds == 0)
             {
                 return;
             }
 
-            CpuUtilizationSource.ZoomTo(SelectionStart, SelectionEnd);
+            CpuUtilizationSource.ZoomTo(
+                (ulong)Math.Round(SelectionStartSeconds * 1000), (ulong)Math.Round(SelectionEndSeconds * 1000));
         }
 
         public void ResetZoom()
@@ -161,12 +158,13 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 
         public void RevealSelection()
         {
-            if (SelectionWidth == 0)
+            if (SelectionWidthSeconds == 0)
             {
                 return;
             }
 
-            CpuUtilizationSource.RevealSelection(SelectionStart, SelectionEnd);
+            CpuUtilizationSource.RevealSelection(
+                (ulong)Math.Round(SelectionStartSeconds * 1000), (ulong)Math.Round(SelectionEndSeconds * 1000));
         }
 
         private static void OnCpuUtilizationSourceChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
@@ -175,16 +173,17 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             if (chart.CpuUtilizationSource != null)
             {
                 chart.CpuUtilizationSource.ViewPortChanged += delegate
-                 {
-                     chart.UpdateViewPort();
-                     chart.UpdateScrollBar();
-                 };
+                    {
+                        chart.UpdateViewPort();
+                        chart.UpdateScrollBar();
+                    };
+                chart.LiveTimeline.AxisY[0].Title = String.Format($"CPU (% of {chart.CpuUtilizationSource.CpuCoreCount} processors)");
                 chart.LiveTimeline.AxisX[0].Sections.Add(chart._selectionSection);
                 chart.LiveTimeline.AxisX[0].Sections.AddRange(chart.CpuUtilizationSource.PauseSections.Select(
                     s => new AxisSection
                     {
-                        Value = s.Value,
-                        SectionWidth = s.SectionWidth,
+                        Value = s.StartSeconds,
+                        SectionWidth = s.WidthSeconds,
                         Fill = PausedSectionBrush
                     }));
                 chart.UpdateViewPort();
@@ -267,9 +266,9 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             double sectionWidth = 0;
             if (_selectionStart.HasValue && _selectionEnd.HasValue)
             {
-                var start = Math.Max(ChartFunctions.FromPlotArea(_selectionStart.Value, AxisOrientation.X, LiveTimeline.Model), 0);
-                var end = Math.Max(ChartFunctions.FromPlotArea(_selectionEnd.Value, AxisOrientation.X, LiveTimeline.Model), 0);
-                var diff = end - start;
+                double start = Math.Max(ChartFunctions.FromPlotArea(_selectionStart.Value, AxisOrientation.X, LiveTimeline.Model), 0);
+                double end = Math.Max(ChartFunctions.FromPlotArea(_selectionEnd.Value, AxisOrientation.X, LiveTimeline.Model), 0);
+                double diff = end - start;
                 sectionValue = diff >= 0 ? start : end;
                 sectionWidth = Math.Abs(diff);
             }
@@ -286,8 +285,8 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                 e.Handled = true;
                 var relativeX = (e.GetPosition(LiveTimeline).X - LiveTimeline.Model.DrawMargin.Left) /
                                 LiveTimeline.Model.DrawMargin.Width;
-                var itemUnderCursor = CpuUtilizationSource.ViewPortMinValue +
-                                      (CpuUtilizationSource.ViewPortMaxValue - CpuUtilizationSource.ViewPortMinValue) *
+                var itemUnderCursor = CpuUtilizationSource.ViewPortMinValueMilliseconds +
+                                      (CpuUtilizationSource.ViewPortMaxValueMilliseconds - CpuUtilizationSource.ViewPortMinValueMilliseconds) *
                                       relativeX;
                 if (e.Delta > 0)
                 {
@@ -334,30 +333,29 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 
         private void UpdateScrollBar()
         {
-            var l = CpuUtilizationSource.ViewPortMaxValue - CpuUtilizationSource.ViewPortMinValue;
-            ScrollBar.Maximum = CpuUtilizationSource.RangeMaxValue - l;
-            var change = Math.Max(10, l / 5);
+            ulong range_msec = CpuUtilizationSource.ViewPortMaxValueMilliseconds - CpuUtilizationSource.ViewPortMinValueMilliseconds;
+            ScrollBar.Maximum = (CpuUtilizationSource.RangeMaxValueMilliseconds - range_msec) / 1000.0;
+            double change = Math.Max(10, range_msec / 5) / 1000.0;
             ScrollBar.SmallChange = change;
             ScrollBar.LargeChange = change * 10;
-            ScrollBar.ViewportSize = l;
+            ScrollBar.ViewportSize = range_msec / 1000.0;
             NotifyOffsetChange();
         }
 
         private void UpdateViewPort()
         {
-            if (CpuUtilizationSource.ViewPortMaxValue - CpuUtilizationSource.ViewPortMinValue == 0)
+            if (CpuUtilizationSource.ViewPortMaxValueMilliseconds - CpuUtilizationSource.ViewPortMinValueMilliseconds == 0)
             {
                 LiveTimeline.AxisX[0].MinValue = double.NaN;
                 LiveTimeline.AxisX[0].MaxValue = double.NaN;
             }
             else
             {
-                LiveTimeline.AxisX[0].MinValue = CpuUtilizationSource.ViewPortMinValue;
-                LiveTimeline.AxisX[0].MaxValue = CpuUtilizationSource.ViewPortMaxValue;
+                LiveTimeline.AxisX[0].MinValue = CpuUtilizationSource.ViewPortMinValueMilliseconds / 1000.0;
+                LiveTimeline.AxisX[0].MaxValue = CpuUtilizationSource.ViewPortMaxValueMilliseconds / 1000.0;
             }
 
             SeriesCollection[0].Values = new ChartValues<CpuUtilization>(CpuUtilizationSource.ViewPortValues);
         }
-
     }
 }

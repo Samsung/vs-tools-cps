@@ -60,7 +60,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             typeof(ThreadTimelineChart),
             new PropertyMetadata(TimeLineType.CpuUtilization, OnTimeLineTypeChanged));
 
-        private static readonly SolidColorBrush PausedSectionBrush = new SolidColorBrush(Colors.AliceBlue) { Opacity = 0.4 };
+        private static readonly SolidColorBrush PausedSectionBrush = new SolidColorBrush(Colors.DarkGray) { Opacity = 0.4 };
 
         private SolidColorBrush _cpuNormalBrush;
 
@@ -73,7 +73,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         private readonly FilledStepLineSeries _gcSeries = new FilledStepLineSeries
         {
             Configuration = Mappers.Xy<ClrJobItem>()
-                .X(item => item.Timestamp)
+                .X(item => item.TimeMilliseconds / 1000.0)
                 .Y(item => item.Value),
             Fill = null,
             StrokeThickness = 1,
@@ -86,7 +86,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         private readonly FilledStepLineSeries _jitSeries = new FilledStepLineSeries
         {
             Configuration = Mappers.Xy<ClrJobItem>()
-                .X(item => item.Timestamp)
+                .X(item => item.TimeMilliseconds / 1000.0)
                 .Y(item => item.Value),
             Fill = null,
             StrokeThickness = 1,
@@ -98,7 +98,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 
         private readonly LineSeries _cpuSeries = new LineSeries(
             Mappers.Xy<CpuUtilization>()
-                .X(item => item.Timestamp)
+                .X(item => item.TimeMilliseconds / 1000.0)
                 .Y(item => item.Utilization))
         {
             Stroke = null,
@@ -109,7 +109,6 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             ScalesYAt = 1,
             Values = new ChartValues<CpuUtilization>()
         };
-
 
         public ThreadTimelineChart()
         {
@@ -122,7 +121,6 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             get => (ITimelineChartModelBase)GetValue(ReferenceTimelineProperty);
             set => SetValue(ReferenceTimelineProperty, value);
         }
-
 
         public ThreadCpuTimelineChartModel CpuUtilizationSource
         {
@@ -159,7 +157,7 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
         public ThreadClrJobTimelineChartModel JitJobsSource
         {
             get => (ThreadClrJobTimelineChartModel)GetValue(JitJobsSourceProperty);
-            set => SetValue(GcJobsSourceProperty, value);
+            set => SetValue(JitJobsSourceProperty, value);
         }
 
         public Color JitSeriesColor
@@ -224,7 +222,6 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             }
         }
 
-
         private static void OnReferenceTimelineChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             ((ThreadTimelineChart)o).UpdateReferenceTimelineProperty();
@@ -242,10 +239,10 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
             {
                 ReferenceTimeline.ViewPortChanged += delegate(ITimelineChartModelBase sender)
                 {
-                    LiveTimeline.AxisX[0].MinValue = sender.ViewPortMinValue;
-                    if (sender.ViewPortMaxValue != 0)
+                    LiveTimeline.AxisX[0].MinValue = sender.ViewPortMinValueMilliseconds / 1000.0;
+                    if (sender.ViewPortMaxValueMilliseconds != 0)
                     {
-                        LiveTimeline.AxisX[0].MaxValue = sender.ViewPortMaxValue;
+                        LiveTimeline.AxisX[0].MaxValue = sender.ViewPortMaxValueMilliseconds / 1000.0;
                     }
                 };
 
@@ -254,8 +251,8 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
                     .Sections.AddRange(ReferenceTimeline.PauseSections.Select(
                         s => new AxisSection
                         {
-                            Value = s.Value,
-                            SectionWidth = s.SectionWidth,
+                            Value = s.StartSeconds,
+                            SectionWidth = s.WidthSeconds,
                             Fill = PausedSectionBrush
                         }));
             }

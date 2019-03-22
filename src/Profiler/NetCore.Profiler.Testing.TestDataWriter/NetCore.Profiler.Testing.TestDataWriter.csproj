@@ -66,10 +66,6 @@
       <Project>{F0720E54-B379-4DAE-A95E-A4D115CB48FB}</Project>
       <Name>NetCore.Profiler.Cperf.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NetCore.Profiler.Lttng.Core\NetCore.Profiler.Lttng.Core.csproj">
-      <Project>{D10F56CE-E54B-45D2-A30D-FA7034F599C6}</Project>
-      <Name>NetCore.Profiler.Lttng.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NetCore.Profiler.Session.Core\NetCore.Profiler.Session.Core.csproj">
       <Project>{3a7e5fda-98f5-4c97-8ccb-3463ca95c166}</Project>
       <Name>NetCore.Profiler.Session.Core</Name>

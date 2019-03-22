@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -25,54 +26,97 @@ using NetCore.Profiler.Cperf.Core.Parser.Model;
 
 namespace NetCore.Profiler.Cperf.Core.Parser
 {
+    /// <summary>
+    /// A parser for %Core %Profiler data files.
+    /// </summary>
+    /// <remarks>
+    /// CperfParser accepts a file or a text stream containing %Core %Profiler output data and parses it.
+    /// The %Core %Profiler output is a sequence of one line statements of different types containing the profiling data.
+    /// The parser provides a number of events allowing its users (clients) to process the types of statements they need.
+    /// Every time the parser finishes processing a valid source line it invokes an event and passes the extracted data
+    /// to the event handler.
+    /// </remarks>
     public class CperfParser
     {
+        /// <summary>
+        /// Event called after reading every source line (called before parsing).
+        /// </summary>
+        /// <remarks>
+        /// This special event is the only one which reports not the parsed data but the source line itself (it may be empty or invalid).
+        /// </remarks>
+        /// <param name="line">The source line</param>
+        public event Action<string> LineReadCallback;
 
-        public Action<ApplicationDomainCreationFinished> ApplicationDomainCreationFinishedCallback { get; set; }
+        /// <summary>
+        /// Event for reporting the profiler start time (from "prf stm" statement).
+        /// </summary>
+        /// <remarks>
+        /// Reports the profiler start time which is a part of "prf stm" statement, e.g.
+        /// "prf stm 2018-06-25 07:24:28.049 +09:00".
+        /// </remarks>
+        /// <param name="startTime">The profiler start time</param>
+        public event Action<DateTime> StartTimeCallback;
 
-        public Action<AssemblyLoadFinished> AssemblyLoadFinishedCallback { get; set; }
+        /// <summary>
+        /// Event for reporting the application domain creation finished record ("apd crf" statement).
+        /// </summary>
+        public event Action<ApplicationDomainCreationFinished> ApplicationDomainCreationFinishedCallback;
 
-        public Action<ModuleAttachedToAssembly> ModuleAttachedToAssemblyCallback { get; set; }
+        public event Action<AssemblyLoadFinished> AssemblyLoadFinishedCallback;
 
-        public Action<ModuleLoadFinished> ModuleLoadFinishedCallback { get; set; }
+        public event Action<ModuleAttachedToAssembly> ModuleAttachedToAssemblyCallback;
 
-        public Action<ClassLoadFinished> ClassLoadFinishedCallback { get; set; }
+        public event Action<ModuleLoadFinished> ModuleLoadFinishedCallback;
 
-        public Action<ClassName> ClassNameReadCallback { get; set; }
+        public event Action<ClassLoadFinished> ClassLoadFinishedCallback;
 
-        public Action<FunctionName> FunctionNameReadCallback { get; set; }
+        public event Action<ClassName> ClassNameReadCallback;
 
-        public Action<CachedFunctionSearchFinished> CachedFunctionSearchFinishedCallback { get; set; }
+        public event Action<FunctionName> FunctionNameReadCallback;
 
-        public Action<CompilationFinished> CompilationFinishedCallback { get; set; }
+        public event Action<FunctionInfo> FunctionInfoCallback;
 
-        public Action<SourceLine> SourceLineReadCallback { get; set; }
+        public event Action<JitCompilationStarted> JitCompilationStartedCallback;
 
-        public Action<SourceFile> SourceFileReadCallback { get; set; }
+        public event Action<JitCompilationFinished> JitCompilationFinishedCallback;
 
-        public Action<Cpu> CpuReadCallback { get; set; }
+        public event Action<JitCachedFunctionSearchStarted> JitCachedFunctionSearchStartedCallback;
 
-        public Action<ProfilerTps> ProfilerTpsReadCallback { get; set; }
+        public event Action<JitCachedFunctionSearchFinished> JitCachedFunctionSearchFinishedCallback;
 
-        public Action<ProfilerTrs> ProfilerTrsReadCallback { get; set; }
+        public event Action<GarbageCollectionStarted> GarbageCollectionStartedCallback;
 
-        public Action<ThreadAssignedToOsThread> ThreadAssignedToOsThreadCallback { get; set; }
+        public event Action<GarbageCollectionFinished> GarbageCollectionFinishedCallback;
 
-        public Action<ThreadTimes> ThreadTimesReadCallback { get; set; }
+        public event Action<SourceLine> SourceLineReadCallback;
 
-        public Action<ThreadCreated> ThreadCreatedCallback { get; set; }
+        public event Action<SourceFile> SourceFileReadCallback;
 
-        public Action<ThreadDestroyed> ThreadDestroyedCallback { get; set; }
+        public event Action<Cpu> CpuReadCallback;
 
-        public Action<StackSample> StackSampleReadCallback { get; set; }
+        public event Action<ProfilerTps> ProfilerTpsReadCallback;
 
-        public Action<AllocationSample> AllocationSampleReadCallback { get; set; }
+        public event Action<ProfilerTrs> ProfilerTrsReadCallback;
 
-        public Action<GarbageCollectionSample> GarbageCollectorSampleCallback { get; set; }
+        public event Action<ThreadAssignedToOsThread> ThreadAssignedToOsThreadCallback;
 
-        public Action<string> UnrecognizedStringCallback { get; set; }
+        public event Action<ThreadTimes> ThreadTimesReadCallback;
 
-        public Action<string> LineReadCallback { get; set; }
+        public event Action<ThreadCreated> ThreadCreatedCallback;
+
+        public event Action<ThreadDestroyed> ThreadDestroyedCallback;
+
+        public event Action<StackSample> StackSampleReadCallback;
+
+        public event Action<AllocationSample> AllocationSampleReadCallback;
+
+        public event Action<GarbageCollectionSample> GarbageCollectorSampleCallback;
+
+        public event Action<GarbageCollectorGenerationsSample> GarbageCollectorGenerationSampleCallback;
+
+        public event Action<ManagedMemoryData> ManagedMemorySampleCallback;
+
+        public event Action<string> UnrecognizedStringCallback;
 
         private static readonly Regex ApdCrf =
             new Regex(@"(apd) (crf) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (.*)$");
@@ -90,18 +134,22 @@ namespace NetCore.Profiler.Cperf.Core.Parser
         private static readonly Regex ClsLdf = new Regex(
             @"(cls) (ldf) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+)$");
 
-
         private static readonly Regex FunNam = new Regex("(fun) (nam) (0x[A-Fa-f0-9]+) (\".*\") (\".*\") (\".*\")$");
 
-        private static readonly Regex FunCmf =
-                new Regex(
-                    @"(fun) (cmf) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+)(.*)$")
-            ;
+        private static readonly Regex FunInf = new Regex(
+            @"(fun) (inf) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+)(.*)$");
 
-        private static readonly Regex FunCsf =
-                new Regex(
-                    @"(fun) (csf) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+)(.*)$")
-            ;
+        private static readonly Regex JitCms = new Regex(@"(jit) (cms) (\d+) (\d+) (0x[A-Fa-f0-9]+)$");
+
+        private static readonly Regex JitCmf = new Regex(@"(jit) (cmf) (\d+) (\d+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+)$");
+
+        private static readonly Regex JitCss = new Regex(@"(jit) (css) (\d+) (\d+) (0x[A-Fa-f0-9]+)$");
+
+        private static readonly Regex JitCsf = new Regex(@"(jit) (csf) (\d+) (\d+) (0x[A-Fa-f0-9]+)$");
+
+        private static readonly Regex GchGcs = new Regex(@"(gch) (gcs) (\d+) (\d+) (induced|\?) (t|f)(t|f)(t|f)(t|f)$");
+
+        private static readonly Regex GchGcf = new Regex(@"(gch) (gcf) (\d+) (\d+)$");
 
         private static readonly Regex LinSrc = new Regex(
             @"(lin) (src) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (0x[A-Fa-f0-9]+) (\d+) (\d+) (\d+) (\d+)$");
@@ -122,7 +170,6 @@ namespace NetCore.Profiler.Cperf.Core.Parser
 
         private static readonly Regex ThrCpu = new Regex(@"(thr) (cpu) (0x[A-Fa-f0-9]+) (\d+) (\d+)$");
 
-
         public void Parse(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
@@ -132,23 +179,34 @@ namespace NetCore.Profiler.Cperf.Core.Parser
 
             using (var streamReader = File.OpenText(fileName))
             {
-                Parse(streamReader);
+                Parse(() => streamReader.ReadLine());
             }
         }
 
-        public void Parse(TextReader streamReader)
+        public void Parse(Func<string> readFunc)
         {
-
+            DateTime startTime = DateTime.MinValue;
+            int lineNumber = 0;
+            string inputString = "";
             try
             {
-                string inputString;
-                while ((inputString = streamReader.ReadLine()) != null)
+                while ((inputString = readFunc()) != null)
                 {
+                    ++lineNumber;
+
                     LineReadCallback?.Invoke(inputString);
 
                     if (inputString.Length < 7)
                     {
                         continue;
+                    }
+
+                    if ((startTime == DateTime.MinValue) && (StartTimeCallback != null))
+                    {
+                        if (GetProfilerStartTime(inputString, out startTime))
+                        {
+                            StartTimeCallback(startTime);
+                        }
                     }
 
                     var match = SamStr.Match(inputString);
@@ -220,17 +278,10 @@ namespace NetCore.Profiler.Cperf.Core.Parser
                         continue;
                     }
 
-                    match = FunCmf.Match(inputString);
+                    match = FunInf.Match(inputString);
                     if (match.Success)
                     {
-                        ParseCompilationFinished(match);
-                        continue;
-                    }
-
-                    match = FunCsf.Match(inputString);
-                    if (match.Success)
-                    {
-                        ParseCachedFunctionSearchFinished(match);
+                        ParseFunctionInfo(match);
                         continue;
                     }
 
@@ -239,6 +290,64 @@ namespace NetCore.Profiler.Cperf.Core.Parser
                     {
                         FunctionNameReadCallback?.Invoke(new FunctionName(match.Groups[3].HexToUInt64(), match.Groups[4].Value.Replace("\"", string.Empty),
                             match.Groups[5].Value.Replace("\"", string.Empty), match.Groups[6].Value.Replace("\"", string.Empty)));
+                        continue;
+                    }
+
+                    match = JitCms.Match(inputString);
+                    if (match.Success)
+                    {
+                        JitCompilationStartedCallback?.Invoke(new JitCompilationStarted(
+                            match.Groups[3].ToUInt64(),
+                            match.Groups[4].ToUInt64(),
+                            match.Groups[5].HexToUInt64()));
+
+                        continue;
+                    }
+
+                    match = JitCmf.Match(inputString);
+                    if (match.Success)
+                    {
+                        JitCompilationFinishedCallback?.Invoke(new JitCompilationFinished(
+                            match.Groups[3].ToUInt64(),
+                            match.Groups[4].ToUInt64(),
+                            match.Groups[5].HexToUInt64(),
+                            match.Groups[6].HexToUInt64()));
+                        continue;
+                    }
+
+                    match = JitCss.Match(inputString);
+                    if (match.Success)
+                    {
+                        JitCachedFunctionSearchStartedCallback?.Invoke(new JitCachedFunctionSearchStarted(
+                            match.Groups[3].ToUInt64(),
+                            match.Groups[4].ToUInt64(),
+                            match.Groups[5].HexToUInt64()));
+                        continue;
+                    }
+
+                    match = JitCsf.Match(inputString);
+                    if (match.Success)
+                    {
+                        JitCachedFunctionSearchFinishedCallback?.Invoke(new JitCachedFunctionSearchFinished(
+                            match.Groups[3].ToUInt64(),
+                            match.Groups[4].ToUInt64(),
+                            match.Groups[5].HexToUInt64()));
+                        continue;
+                    }
+
+                    match = GchGcs.Match(inputString);
+                    if (match.Success)
+                    {
+                        ParseGarbageCollectionStarted(match);
+                        continue;
+                    }
+
+                    match = GchGcf.Match(inputString);
+                    if (match.Success)
+                    {
+                        GarbageCollectionFinishedCallback?.Invoke(new GarbageCollectionFinished(
+                            match.Groups[3].ToUInt64(),
+                            match.Groups[4].ToUInt64()));
                         continue;
                     }
 
@@ -319,43 +428,94 @@ namespace NetCore.Profiler.Cperf.Core.Parser
                         continue;
                     }
 
+                    match = GchGen.Match(inputString);
+                    if (match.Success)
+                    {
+                        ParseGchGen(match);
+                        continue;
+                    }
+
                     UnrecognizedStringCallback?.Invoke(inputString);
                 }
             }
             catch (Exception e)
             {
-                Debug.WriteLine(e.Message);
+                Debug.WriteLine(String.Format("Error in {0}.Parse when parsing line {1} ({2}). {3}",
+                    GetType().Name, lineNumber, inputString, e.Message));
             }
         }
 
+        private static bool GetProfilerStartTime(string line, out DateTime startTime)
+        {
+            if (line.StartsWith("prf stm "))
+            {
+                startTime = ParseProfilerStartTime(line.Substring(8));
+                return true;
+            }
+            startTime = DateTime.MinValue;
+            return false;
+        }
 
+        private static DateTime ParseProfilerStartTime(string profilerTimeText)
+        {
+            const string DateTimeFormatLocal = "yyyy-MM-dd HH:mm:ss.fff";
+            const string DateTimeFormatUtc = DateTimeFormatLocal + " zzz";
+            DateTime result = DateTime.MinValue;
+            if (profilerTimeText.Length == DateTimeFormatLocal.Length)
+            {
+                DateTime.TryParseExact(profilerTimeText.Substring(0, DateTimeFormatLocal.Length), DateTimeFormatLocal,
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
+            }
+            else
+            {
+                DateTime.TryParseExact(profilerTimeText, DateTimeFormatUtc, CultureInfo.InvariantCulture,
+                    DateTimeStyles.AdjustToUniversal, out result);
+            }
+            return result;
+        }
 
         private static readonly Regex CodeInfo = new Regex(@"\s(0x[A-Fa-f0-9]+):(0x[A-Fa-f0-9]+)(\s|$)");
         private static readonly Regex CodeMapping = new Regex(@"\s(0x[A-Fa-f0-9]+):(0x[A-Fa-f0-9]+):(0x[A-Fa-f0-9]+)(\s|$)");
 
-        private void ParseCachedFunctionSearchFinished(Match match)
+        private void ParseFunctionInfo(Match match)
         {
-            var result = new CachedFunctionSearchFinished(match.Groups[3].HexToUInt64(),
+            var result = new FunctionInfo(match.Groups[3].HexToUInt64(),
                 match.Groups[4].HexToUInt64(),
                 match.Groups[5].HexToUInt64(), match.Groups[6].HexToUInt64(), match.Groups[7].HexToUInt64());
 
             result.CodeInfos.AddRange(ParseCodeInfos(match.Groups[8].Value));
             result.CodeMappings.AddRange(ParseCodeMappings(match.Groups[8].Value));
 
-            CachedFunctionSearchFinishedCallback?.Invoke(result);
+            FunctionInfoCallback?.Invoke(result);
         }
 
-        private void ParseCompilationFinished(Match match)
+        private void ParseGarbageCollectionStarted(Match match)
         {
-            var result = new CompilationFinished(match.Groups[3].HexToUInt64(),
-                match.Groups[4].HexToUInt64(),
-                match.Groups[5].HexToUInt64(), match.Groups[6].HexToUInt64(), match.Groups[7].HexToInt32(),
-                match.Groups[8].HexToUInt64());
-
-            result.CodeInfos.AddRange(ParseCodeInfos(match.Groups[9].Value));
-            result.CodeMappings.AddRange(ParseCodeMappings(match.Groups[9].Value));
-
-            CompilationFinishedCallback?.Invoke(result);
+            GarbageCollectionGenerations generations = GarbageCollectionGenerations.None;
+            if (match.Groups[6].Value == "t")
+            {
+                generations |= GarbageCollectionGenerations.Generation0;
+            }
+            if (match.Groups[7].Value == "t")
+            {
+                generations |= GarbageCollectionGenerations.Generation1;
+            }
+            if (match.Groups[8].Value == "t")
+            {
+                generations |= GarbageCollectionGenerations.Generation2;
+            }
+            if (match.Groups[9].Value == "t")
+            {
+                generations |= GarbageCollectionGenerations.LargeObjectHeap;
+            }
+            var result = new GarbageCollectionStarted(
+                match.Groups[3].ToUInt64(),
+                match.Groups[4].ToUInt64(),
+                (match.Groups[5].Value == "?")
+                    ? GarbageCollectionReason.Unspecified
+                    : GarbageCollectionReason.Induced,
+                generations);
+            GarbageCollectionStartedCallback?.Invoke(result);
         }
 
         private IEnumerable<CodeInfo> ParseCodeInfos(string input)
@@ -372,8 +532,8 @@ namespace NetCore.Profiler.Cperf.Core.Parser
         }
 
         //------------------------------------------------------------- threadIid.id    ticks count  PfSz:stSz(:ip)
-        private static readonly Regex SamStr = new Regex(@"(sam) (str) (0x[A-Fa-f0-9]+) (\d+) (\d+) (\d+):(\d+)(:([A-Fa-f0-9]+|\?))?(.*)$");
-        private static readonly Regex StrFrame = new Regex(@" (0x[A-Fa-f0-9]+)(:([A-Fa-f0-9]+))?");
+        private static readonly Regex SamStr = new Regex(@"(sam) (str) (0x[A-Fa-f0-9]+) (\d+) (\d+) (\d+):(\d+)(:(0x[A-Fa-f0-9]+|\?))?(.*)$");
+        private static readonly Regex StrFrame = new Regex(@" (0x[A-Fa-f0-9]+)(:(0x[A-Fa-f0-9]+))?");
 
         private StackSample ParseSamStr(Match match)
         {
@@ -384,12 +544,12 @@ namespace NetCore.Profiler.Cperf.Core.Parser
                 match.Groups[6].ToInt32(),
                 match.Groups[7].ToInt32(),
                 match.Groups[8].Value.Length > 0
-                ? (match.Groups[9].Value != "?" ? Convert.ToUInt64(match.Groups[9].Value, 16) : 0)
+                ? (match.Groups[9].Value != "?" ? match.Groups[9].Value.HexToUInt64() : 0)
                 : (ulong?)null);
             foreach (Match frameMatch in StrFrame.Matches(match.Groups[10].Value))
             {
                 stackSample.Frames.Add(new StackSampleFrame(frameMatch.Groups[1].HexToUInt64(),
-                    frameMatch.Groups[2].Value.Length > 0 ? Convert.ToUInt64(frameMatch.Groups[3].Value, 16) : (ulong?)null));
+                    frameMatch.Groups[2].Value.Length > 0 ? frameMatch.Groups[3].Value.HexToUInt64() : (ulong?)null));
             }
 
             return stackSample;
@@ -397,7 +557,7 @@ namespace NetCore.Profiler.Cperf.Core.Parser
 
         //------------------------------------------------------------- threadIid.id,   ticks
         private static readonly Regex SamMem = new Regex(@"(sam) (mem) (0x[A-Fa-f0-9]+) (\d+)(.*)$");
-        private static readonly Regex AllocInfo = new Regex(@" (0x[A-Fa-f0-9]+):(\d+):(\d+)(:([A-Fa-f0-9]+))?");
+        private static readonly Regex AllocInfo = new Regex(@" (0x[A-Fa-f0-9]+):(\d+):(\d+)(:(0x[A-Fa-f0-9]+))?");
 
         private AllocationSample ParseSamMem(Match match)
         {
@@ -409,7 +569,7 @@ namespace NetCore.Profiler.Cperf.Core.Parser
                     allocMatch.Groups[2].ToUInt64(),
                     allocMatch.Groups[3].ToUInt64(),
                     allocMatch.Groups[4].Value.Length > 0
-                        ? Convert.ToUInt64(allocMatch.Groups[5].Value, 16)
+                        ? allocMatch.Groups[5].Value.HexToUInt64()
                         : (ulong?)null));
             }
 
@@ -431,7 +591,45 @@ namespace NetCore.Profiler.Cperf.Core.Parser
             GarbageCollectorSampleCallback?.Invoke(sample);
         }
 
+        private static readonly Regex GchGen = new Regex(@"(gch) (gen) (\d+)(.*)$");
+        private static readonly Regex GchGenInfo = new Regex(@"(\w+):(\d+):(\d+)");
 
+        private void ParseGchGen(Match match)
+        {
+            var sample_gen = new GarbageCollectorGenerationsSample();
+            var sample_mm = new ManagedMemoryData();
+
+            var parts = match.Groups[0].Value.Split(' ');
+            var timestamp = Convert.ToUInt64(parts[2]);
+            sample_gen.Timestamp = timestamp;
+            sample_mm.Timestamp = timestamp;
+            var matchInfos = GchGenInfo.Matches(match.Groups[0].Value);
+
+            var loh = matchInfos[0].Value;
+            var loh_alloc = Convert.ToUInt64(loh.Split(':')[1]);
+            var loh_reserved = Convert.ToUInt64(loh.Split(':')[2]);
+            sample_gen.LargeObjectsHeap = loh_reserved;
+
+            var gen2 = matchInfos[1].Value;
+            var gen2_alloc = Convert.ToUInt64(gen2.Split(':')[1]);
+            var gen2_reserved = Convert.ToUInt64(gen2.Split(':')[2]);
+            sample_gen.SmallObjectsHeapGeneration2 = gen2_reserved;
+
+            var gen1 = matchInfos[2].Value;
+            var gen1_alloc = Convert.ToUInt64(gen1.Split(':')[1]);
+            var gen1_reserved = Convert.ToUInt64(gen1.Split(':')[2]);
+            sample_gen.SmallObjectsHeapGeneration1 = gen1_reserved;
+
+            var gen0 = matchInfos[3].Value;
+            var gen0_alloc = Convert.ToUInt64(gen0.Split(':')[1]);
+            var gen0_reserved = Convert.ToUInt64(gen0.Split(':')[2]);
+            sample_gen.SmallObjectsHeapGeneration0 = gen0_reserved;
+
+            sample_mm.HeapAllocated = loh_alloc + gen2_alloc + gen1_alloc + gen0_alloc;
+            sample_mm.HeapReserved = sample_mm.HeapAllocated + loh_reserved + gen2_reserved + gen1_reserved + gen0_reserved;
+
+            GarbageCollectorGenerationSampleCallback?.Invoke(sample_gen);
+            ManagedMemorySampleCallback?.Invoke(sample_mm);
+        }
     }
-
 }

@@ -21,25 +21,34 @@ using System.Linq;
 using NetCore.Profiler.Analytics.Model;
 using NetCore.Profiler.Cperf.Core;
 using NetCore.Profiler.Cperf.Core.Model;
-using NetCore.Profiler.Lttng.Core.BObject;
 
 namespace NetCore.Profiler.Analytics.DataProvider
 {
+    /// <summary>
+    /// A data provider used for processing the data from saved (already completed) %Core %Profiler memory profiling sessions
+    /// with the aim of generating the resulting analytical and statistical data which can be displayed to end users
+    /// in different UI views. Data container class <see cref="MemoryDataContainer"/> is used as the source of input data.
+    /// </summary>
     public class MemoryProfilingDataProvider
     {
-        private readonly BDataContainer _lttContainer;
         private readonly MemoryProfilingDataContainer _cperfContainer;
         private readonly string _sysInfoPath;
-        private readonly ulong _startedNanoseconds;
 
         public Dictionary<ulong, string> DataTypes { get; protected set; } = new Dictionary<ulong, string>();
 
-        public MemoryProfilingDataProvider(BDataContainer lttContainer, MemoryProfilingDataContainer cperfContainer, string sysInfoPath, ulong startedNanoseconds)
+        /// <summary>
+        /// Create a memory profiling data provider using the provided source data container and the target system
+        /// information file name (but don't process the data at the moment).
+        /// </summary>
+        /// <param name="cperfContainer">
+        /// The input data for the data provider in the form of <see cref="MemoryProfilingDataContainer"/> which contains
+        /// parsed data from a saved (already completed) memory profiling session.
+        /// </param>
+        /// <param name="sysInfoPath">The target system information file name.</param>
+        public MemoryProfilingDataProvider(MemoryProfilingDataContainer cperfContainer, string sysInfoPath)
         {
-            _lttContainer = lttContainer;
             _cperfContainer = cperfContainer;
             _sysInfoPath = sysInfoPath;
-            _startedNanoseconds = startedNanoseconds;
         }
 
         public List<MemoryData> HeapStatistics { get; private set; } = new List<MemoryData>();
@@ -57,14 +66,17 @@ namespace NetCore.Profiler.Analytics.DataProvider
         public Dictionary<ulong, List<DataTypeMemoryUsage>> CombinedGarbageCollectorSamples => _cperfContainer
             .DataTypeSnapshots;
 
+        /// <summary>
+        /// Load the unmanaged memory information from the target system information file and initialize some other
+        /// data from the data container set in the constructor.
+        /// </summary>
         public void Load()
         {
             LoadUnmanagedMemoryInfo();
-
             LoadManagedMemoryInfo();
+            LoadHeapStatistics();
 
             DataTypes = _cperfContainer.DataTypes;
-
         }
 
         public List<DataTypeMemoryUsage> GetGarbageCollectorSamples(ulong id)
@@ -72,9 +84,12 @@ namespace NetCore.Profiler.Analytics.DataProvider
             return CombinedGarbageCollectorSamples.ContainsKey(id) ? CombinedGarbageCollectorSamples[id] : null;
         }
 
+        /// <summary>
+        /// Build memory profiling statistics for a selected time frame [the time frame is not used currently].
+        /// </summary>
+        /// <param name="timeFrame">The selected time frame (specifies a time range)</param>
         public void BuildStatistics(SelectedTimeFrame selectedTimeframe)
         {
-
             DataTypeAllocationStatistics.Clear();
 
             DataTypeMemoryStatistics.Clear();
@@ -92,7 +107,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
                     MemorySizeMax = list.Max(sample => sample.MemorySize),
                     MemorySizeAvg = Math.Round(list.Average(sample => (double)sample.MemorySize)),
                 });
-
             }
 
             foreach (var sr in _cperfContainer.DataTypeAllocations)
@@ -110,89 +124,75 @@ namespace NetCore.Profiler.Analytics.DataProvider
 
         private void LoadManagedMemoryInfo()
         {
-            foreach (var bThread in _lttContainer.BThreads)
-            {
-                foreach (var gcItem in bThread.GCItems)
-                {
-                    if (gcItem.IsFull != true)
-                    {
-                        //we don't have full information
-                        continue;
-                    }
+            ManagedMemoryStatistics.Clear();
 
-                    if (gcItem.HeapSize[0] == 0 || gcItem.HeapSize[1] == 0 || gcItem.HeapSize[2] == 0 ||
-                        gcItem.HeapSize[3] == 0)
-                    {
-                        continue;
-                    }
+            _cperfContainer.ManagedMemoryStatistics.ForEach(
+                x => ManagedMemoryStatistics.Add(
+                    new ManagedMemoryData() {
+                        Timestamp = x.Timestamp,
+                        HeapAllocated = x.HeapAllocated,
+                        HeapReserved = x.HeapReserved })
+            );
+        }
 
-                    //HeapStatistics.Add(new MemoryData
-                    //{
+        private void LoadHeapStatistics()
+        {
+            HeapStatistics.Clear();
 
-                    //    Timestamp = (gcItem.JobStartAt - StartedNanoseconds),
-                    //    SmallObjectsHeapGeneration0 = gcItem.HeapSizeStart[0],
-                    //    SmallObjectsHeapGeneration1 = gcItem.HeapSizeStart[1],
-                    //    SmallObjectsHeapGeneration2 = gcItem.HeapSizeStart[2],
-                    //    LargeObjectsHeap = gcItem.HeapSizeStart[3],
-                    //});
-
-
-                    HeapStatistics.Add(new MemoryData
-                    {
-                        Timestamp = (gcItem.JobEndAt - _startedNanoseconds),
-                        SmallObjectsHeapGeneration0 = gcItem.HeapSize[0],
-                        SmallObjectsHeapGeneration1 = gcItem.HeapSize[1],
-                        SmallObjectsHeapGeneration2 = gcItem.HeapSize[2],
-                        LargeObjectsHeap = gcItem.HeapSize[3],
-                    });
-
-                    ManagedMemoryStatistics.Add(new ManagedMemoryData
-                    {
-                        Timestamp = (gcItem.JobEndAt - _startedNanoseconds),
-                        HeapAllocated = gcItem.HeapSize.Aggregate<ulong, ulong>(0, (current, r) => current + r),
-                        HeapReserved = gcItem.ReservedSize.Aggregate<ulong, ulong>(0, (current, r) => current + r)
-                    });
-                }
-            }
-
-            HeapStatistics = HeapStatistics.Distinct(new MemoryDataComparer()).OrderBy(data => data.Timestamp).ToList();
-            foreach (var ms in HeapStatistics)
-            {
-                ms.Timestamp /= 1000000;
-            }
-
-            ManagedMemoryStatistics = ManagedMemoryStatistics.Distinct(new ManagedMemoryDataComparer()).OrderBy(data => data.Timestamp).ToList();
-            foreach (var ms in ManagedMemoryStatistics)
-            {
-                ms.Timestamp /= 1000000;
-            }
+            _cperfContainer.GarbageCollectorGenerations.ForEach(
+                x => HeapStatistics.Add(
+                    new MemoryData() {
+                        Timestamp = x.Timestamp,
+                        LargeObjectsHeap = x.LargeObjectsHeap,
+                        SmallObjectsHeapGeneration0 = x.SmallObjectsHeapGeneration0,
+                        SmallObjectsHeapGeneration1 = x.SmallObjectsHeapGeneration1,
+                        SmallObjectsHeapGeneration2 = x.SmallObjectsHeapGeneration2 })
+            );
         }
 
         private void LoadUnmanagedMemoryInfo()
         {
             UnmanagedMemoryStatistics.Clear();
+
+            List<UnmanagedMemoryData> stat = new List<UnmanagedMemoryData>();
             using (var file = new StreamReader(Path.GetFullPath(_sysInfoPath)))
             {
-                string line;
-                long startTimestamp = 0;
-                while ((line = file.ReadLine()) != null)
+                double startTimeSeconds = 0;
+                string line = file.ReadLine();
+                if (line != null)
                 {
-                    var sii = SysInfoItem.CreateInstance(line);
-                    if (sii != null)
+                    int coreNum = SysInfoItem.GetCoreNumber(line);
+                    if (coreNum < 0)
                     {
-                        if (startTimestamp == 0)
+                        return;
+                    }
+                    while ((line = file.ReadLine()) != null)
+                    {
+                        var sii = SysInfoItem.CreateInstance(line, coreNum);
+                        if (sii != null)
                         {
-                            startTimestamp = sii.Timestamp;
-                        }
+                            if (startTimeSeconds == 0)
+                            {
+                                startTimeSeconds = sii.TimeSeconds;
+                            }
+                            else if (sii.TimeSeconds < startTimeSeconds)
+                            {
+                                continue;
+                            }
 
-                        UnmanagedMemoryStatistics.Add(new UnmanagedMemoryData
-                        {
-                            Timestamp = (ulong)(sii.Timestamp - startTimestamp) * 1000,
-                            Unmanaged = (ulong)sii.MemSize
-                        });
+                            stat.Add(new UnmanagedMemoryData
+                            {
+                                Timestamp = (ulong)Math.Round((sii.TimeSeconds - startTimeSeconds) * 1000),
+                                Unmanaged = (ulong)sii.MemSize
+                            });
+                        }
                     }
                 }
             }
+
+            stat = stat.OrderBy(x => x.Timestamp).ToList();
+
+            stat.ForEach(x => UnmanagedMemoryStatistics.Add(x));
         }
 
         private class MemoryDataComparer : IEqualityComparer<MemoryData>
@@ -230,8 +230,5 @@ namespace NetCore.Profiler.Analytics.DataProvider
                 return obj.Timestamp.GetHashCode();
             }
         }
-
     }
 }
-
-

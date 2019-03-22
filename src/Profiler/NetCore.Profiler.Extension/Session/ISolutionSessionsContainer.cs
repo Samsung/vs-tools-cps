@@ -19,14 +19,10 @@ using NetCore.Profiler.Session.Core;
 
 namespace NetCore.Profiler.Extension.Session
 {
-
     public delegate void SessionsListUpdatedHandler();
 
     public interface ISolutionSessionsContainer
     {
-
-        string SolutionFolder { get; }
-
         IEnumerable<ISavedSession> Sessions { get; }
 
         void Update();
@@ -34,6 +30,5 @@ namespace NetCore.Profiler.Extension.Session
         void DeleteSession(ISavedSession session);
 
         event SessionsListUpdatedHandler SessionsListUpdated;
-
     }
 }

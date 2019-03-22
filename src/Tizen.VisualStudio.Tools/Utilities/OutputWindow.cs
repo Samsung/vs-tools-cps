@@ -66,7 +66,7 @@ namespace Tizen.VisualStudio.Tools.Utilities
             outputwindowpane.Activate();
         }
 
-        public void ClearePane(string title)
+        public void ClearPane(string title)
         {
             OutputWindowPane outputwindowpane = GetPane(title);
             outputwindowpane.Clear();

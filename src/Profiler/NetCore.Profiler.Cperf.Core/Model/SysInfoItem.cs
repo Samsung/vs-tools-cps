@@ -15,13 +15,17 @@
 */
 
 using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A system information log (proc.log) item.
+    /// </summary>
     public class SysInfoItem
     {
-        public long Timestamp { get; set; }
+        public double TimeSeconds { get; set; }
 
         public int CoreNum { get; set; }
 
@@ -35,56 +39,52 @@ namespace NetCore.Profiler.Cperf.Core.Model
 
         public long MemSize { get; set; }
 
-        public long UserSys
-        {
-            get
-            {
-                return UserLoad + SysLoad;
-            }
-        }
+        public long UserSys => (UserLoad + SysLoad);
 
-        public long MemLoad
-        {
-            get
-            {
-                return MemTotal - MemFree;
-            }
-        }
+        public long MemLoad => (MemTotal - MemFree);
 
         public string ProfilerStatus { get; set; }
 
-        private static Regex RegTempl =
-                        new Regex(@"([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)( [0-9]+)? (.*)$");
+        private SysInfoItem() { }
 
-        private SysInfoItem(long timestamp, int coreNum, long userLoad, long sysLoad, long memTotal, long memFree, long memSize, string profilerStatus)
-        {
-            Timestamp = timestamp;
-            CoreNum = coreNum;
-            UserLoad = userLoad;
-            SysLoad = SysLoad;
-            MemTotal = memTotal;
-            MemFree = memFree;
-            MemSize = memSize;
-            ProfilerStatus = profilerStatus;
-        }
+        private static readonly Regex FirstLineRegTempl = new Regex(@"psize ([0-9.]+) ncpu ([0-9]+)");
 
-        public static SysInfoItem CreateInstance(string str)
+        public static int GetCoreNumber(string firstLine)
         {
-            SysInfoItem sii = null;
-            var m = RegTempl.Match(str);
+            var m = FirstLineRegTempl.Match(firstLine);
             if (m.Success)
             {
-                var timestamp = Convert.ToInt64(m.Groups[1].Value);
-                var coreNum = Convert.ToInt32(m.Groups[2].Value);
-                var userLoad = Convert.ToInt64(m.Groups[3].Value);
-                var sysLoad = Convert.ToInt64(m.Groups[4].Value);
-                var memTotal = Convert.ToInt64(m.Groups[8].Value);
-                var memFree = Convert.ToInt64(m.Groups[9].Value);
-                var memSize = string.IsNullOrEmpty(m.Groups[11].Value) ? (memTotal - memFree) : Convert.ToInt64(m.Groups[11].Value);
-                var profilerStatus = m.Groups[12].Value;
-                sii = new SysInfoItem(timestamp, coreNum, userLoad, sysLoad, memTotal, memFree, memSize, profilerStatus);
+                int result;
+                if (int.TryParse(m.Groups[2].Value, out result))
+                {
+                    return result;
+                }
             }
+            return -1;
+        }
 
+        private static readonly Regex SysInfoRegTempl =
+            new Regex(@"([0-9.]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+) ([0-9]+)( [0-9]+)? (.*)$");
+
+        public static SysInfoItem CreateInstance(string line, int coreNum)
+        {
+            SysInfoItem sii = null;
+            var m = SysInfoRegTempl.Match(line);
+            if (m.Success)
+            {
+                sii = new SysInfoItem()
+                {
+                    TimeSeconds = Convert.ToDouble(m.Groups[1].Value, CultureInfo.InvariantCulture),
+                    CoreNum = coreNum,
+                    UserLoad = Convert.ToInt64(m.Groups[2].Value),
+                    SysLoad = Convert.ToInt64(m.Groups[3].Value),
+                    MemTotal = Convert.ToInt64(m.Groups[7].Value),
+                    MemFree = Convert.ToInt64(m.Groups[8].Value),
+                    ProfilerStatus = m.Groups[11].Value
+                };
+                Group group = m.Groups[10];
+                sii.MemSize = string.IsNullOrEmpty(group.Value) ? (sii.MemTotal - sii.MemFree) : Convert.ToInt64(group.Value);
+            }
             return sii;
         }
     }

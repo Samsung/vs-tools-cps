@@ -100,6 +100,11 @@ namespace Tizen.VisualStudio.ManifestEditor
             {
                 VersionList.Add("4");
             }
+
+            if (!VersionList.Contains("5"))
+            {
+                VersionList.Add("5");
+            }
         }
 
         public void Close()
@@ -457,6 +462,66 @@ namespace Tizen.VisualStudio.ManifestEditor
             }
         }
 
+        private bool servicevisibilityvalueRev;
+        public bool ServicevisibilityRev
+        {
+            get
+            {
+                return servicevisibilityvalueRev;
+            }
+
+            set
+            {
+                servicevisibilityvalueRev = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool widgetvisibilityvalue;
+        public bool Widgetvisibility
+        {
+            get
+            {
+                return widgetvisibilityvalue;
+            }
+
+            set
+            {
+                widgetvisibilityvalue = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool watchvisibilityvalue;
+        public bool Watchvisibility
+        {
+            get
+            {
+                return watchvisibilityvalue;
+            }
+
+            set
+            {
+                watchvisibilityvalue = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        private bool uiandservicevisibilityvalue;
+        public bool UiandServicevisibility
+        {
+            get
+            {
+                return uiandservicevisibilityvalue;
+            }
+
+            set
+            {
+                uiandservicevisibilityvalue = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         public ItemsChoiceType AppType
         {
             get
@@ -469,13 +534,39 @@ namespace Tizen.VisualStudio.ManifestEditor
                 _tizenManifestModel.Apptype = value;
                 if (value == ItemsChoiceType.serviceapplication)
                 {
-                    UIvisibility = true;
-                    Servicevisibility = false;
+                    UIvisibility = false;
+                    Servicevisibility = true;
+                    ServicevisibilityRev = false;
+                    Widgetvisibility = false;
+                    Watchvisibility = false;
+                    UiandServicevisibility = true;
                 }
                 else if (value == ItemsChoiceType.uiapplication)
                 {
+                    UIvisibility = true;
+                    Servicevisibility = false;
+                    ServicevisibilityRev = true;
+                    Widgetvisibility = false;
+                    Watchvisibility = false;
+                    UiandServicevisibility = true;
+                }
+                else if (value == ItemsChoiceType.widgetapplication)
+                {
                     UIvisibility = false;
-                    Servicevisibility = true;
+                    Servicevisibility = false;
+                    ServicevisibilityRev = true;
+                    Widgetvisibility = true;
+                    Watchvisibility = false;
+                    UiandServicevisibility = false;
+                }
+                else if (value == ItemsChoiceType.watchapplication)
+                {
+                    UIvisibility = false;
+                    Servicevisibility = false;
+                    ServicevisibilityRev = true;
+                    Widgetvisibility = false;
+                    Watchvisibility = true;
+                    UiandServicevisibility = false;
                 }
             }
         }
@@ -532,6 +623,39 @@ namespace Tizen.VisualStudio.ManifestEditor
                 if (_tizenManifestModel.applicationField.appid != value)
                 {
                     _tizenManifestModel.applicationField.appid = value;
+                    DesignerDirty = true;
+                    NotifyPropertyChanged();
+                }
+
+            }
+        }
+
+        public string UpdatePeriod
+        {
+            get
+            {
+                var uiAppObject = _tizenManifestModel.applicationField;
+                if (uiAppObject == null)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    return uiAppObject.updateperiod;
+                }
+            }
+
+            set
+            {
+                var uiAppObject = _tizenManifestModel.applicationField;
+                if (uiAppObject == null)
+                {
+                    _tizenManifestModel.applicationField = new uiapplication();
+                }
+
+                if (_tizenManifestModel.applicationField.updateperiod != value)
+                {
+                    _tizenManifestModel.applicationField.updateperiod = value;
                     DesignerDirty = true;
                     NotifyPropertyChanged();
                 }
@@ -1119,42 +1243,6 @@ namespace Tizen.VisualStudio.ManifestEditor
             }
         }
 
-        public DisplaySplashScreenType DisplaySplash
-        {
-            get
-            {
-                var uiAppObject = _tizenManifestModel.applicationField;
-                if (uiAppObject == null)
-                {
-                    return DisplaySplashScreenType.True;
-                }
-                else
-                {
-                    return uiAppObject.displaysplashscreen;
-                }
-            }
-
-            set
-            {
-                var uiAppObject = _tizenManifestModel.applicationField;
-                if (uiAppObject == null)
-                {
-                    _tizenManifestModel.applicationField = new uiapplication() { displaysplashscreen = DisplaySplashScreenType.True };
-                    DesignerDirty = true;
-                    NotifyPropertyChanged();
-                }
-                else
-                {
-                    if (_tizenManifestModel.applicationField.displaysplashscreen != value)
-                    {
-                        _tizenManifestModel.applicationField.displaysplashscreen = value;
-                        DesignerDirty = true;
-                        NotifyPropertyChanged();
-                    }
-                }
-            }
-        }
-
         public NoDisplayType NoDisplay
         {
             get
@@ -1326,6 +1414,96 @@ namespace Tizen.VisualStudio.ManifestEditor
                         else
                         {
                             _tizenManifestModel.applicationField.hwaccelerationSpecified = true;
+                        }
+
+                        DesignerDirty = true;
+                        NotifyPropertyChanged();
+                    }
+                }
+            }
+        }
+
+        public AmbientType AmbientSupport
+        {
+            get
+            {
+                var uiAppObject = _tizenManifestModel.applicationField;
+                if (uiAppObject == null)
+                {
+                    return AmbientType.None;
+                }
+                else
+                {
+                    return uiAppObject.ambientsupport;
+                }
+            }
+
+            set
+            {
+                var uiAppObject = _tizenManifestModel.applicationField;
+                if (uiAppObject == null)
+                {
+                    _tizenManifestModel.applicationField = new uiapplication() { ambientsupport = AmbientType.None };
+                    DesignerDirty = true;
+                    NotifyPropertyChanged();
+                }
+                else
+                {
+                    if (_tizenManifestModel.applicationField.ambientsupport != value)
+                    {
+                        _tizenManifestModel.applicationField.ambientsupport = value;
+                        if (value == AmbientType.None)
+                        {
+                            _tizenManifestModel.applicationField.ambientsupportSpecified = false;
+                        }
+                        else
+                        {
+                            _tizenManifestModel.applicationField.ambientsupportSpecified = true;
+                        }
+
+                        DesignerDirty = true;
+                        NotifyPropertyChanged();
+                    }
+                }
+            }
+        }
+
+        public NewDisplaySplashType NewDisplaySplash
+        {
+            get
+            {
+                var uiAppObject = _tizenManifestModel.applicationField;
+                if (uiAppObject == null)
+                {
+                    return NewDisplaySplashType.None;
+                }
+                else
+                {
+                    return uiAppObject.newdisplaysplash;
+                }
+            }
+
+            set
+            {
+                var uiAppObject = _tizenManifestModel.applicationField;
+                if (uiAppObject == null)
+                {
+                    _tizenManifestModel.applicationField = new uiapplication() { newdisplaysplash = NewDisplaySplashType.None };
+                    DesignerDirty = true;
+                    NotifyPropertyChanged();
+                }
+                else
+                {
+                    if (_tizenManifestModel.applicationField.newdisplaysplash != value)
+                    {
+                        _tizenManifestModel.applicationField.newdisplaysplash = value;
+                        if (value == NewDisplaySplashType.None)
+                        {
+                            _tizenManifestModel.applicationField.newdisplaysplashSpecified = false;
+                        }
+                        else
+                        {
+                            _tizenManifestModel.applicationField.newdisplaysplashSpecified = true;
                         }
 
                         DesignerDirty = true;

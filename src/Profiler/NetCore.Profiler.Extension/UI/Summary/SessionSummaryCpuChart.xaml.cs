@@ -21,7 +21,6 @@ using LiveCharts;
 using LiveCharts.Configurations;
 using LiveCharts.Wpf;
 using NetCore.Profiler.Cperf.Core.Model;
-using NetCore.Profiler.Extension.Session;
 
 namespace NetCore.Profiler.Extension.UI.Summary
 {
@@ -35,14 +34,13 @@ namespace NetCore.Profiler.Extension.UI.Summary
         /// </summary>
         public SeriesCollection SeriesCollection { get; set; }
 
-        private static readonly SolidColorBrush PausedSectionBrush = new SolidColorBrush(Colors.AliceBlue) { Opacity = 0.4 };
+        private static readonly SolidColorBrush PausedSectionBrush = new SolidColorBrush(Colors.DarkGray) { Opacity = 0.4 };
 
         private const string CpuSeriesTitle = "CPU (%)";
 
         private static readonly SolidColorBrush CpuSeriesStrokeBrush = Brushes.Blue;
 
         private static readonly SolidColorBrush CpuSeriesFillBrush = Brushes.Transparent;
-
 
         private const string MemorySeriesTitle = "Memory (Gb)";
 
@@ -57,7 +55,7 @@ namespace NetCore.Profiler.Extension.UI.Summary
             SeriesCollection = new SeriesCollection()
             {
                 new LineSeries(Mappers.Xy<ChartData>()
-                    .X(item => item.Time)
+                    .X(item => item.TimeSeconds)
                     .Y(item => item.Cpu))
                 {
                     Stroke = CpuSeriesStrokeBrush,
@@ -69,7 +67,7 @@ namespace NetCore.Profiler.Extension.UI.Summary
                 },
 
                 new LineSeries(Mappers.Xy<ChartData>()
-                    .X(item => item.Time)
+                    .X(item => item.TimeSeconds)
                     .Y(item => item.Mem))
                 {
                     Stroke = MemorySeriesStrokeBrush,
@@ -84,12 +82,10 @@ namespace NetCore.Profiler.Extension.UI.Summary
             InitializeComponent();
 
             InitialiseChart();
-
         }
 
         private void InitialiseChart()
         {
-
             LiveTimeline.Zoom = ZoomingOptions.None;
             LiveTimeline.DisableAnimations = true;
         }
@@ -125,7 +121,7 @@ namespace NetCore.Profiler.Extension.UI.Summary
             /// <summary>
             /// Gets or sets time since profiling start in seconds
             /// </summary>
-            public long Time { get; set; }
+            public double TimeSeconds { get; set; }
 
             /// <summary>
             /// Gets or sets CPU usage in percents
@@ -133,10 +129,9 @@ namespace NetCore.Profiler.Extension.UI.Summary
             public double Cpu { get; set; }
 
             /// <summary>
-            /// Gets or sets memory usage in Gb
+            /// Gets or sets memory usage in GB
             /// </summary>
             public double Mem { get; set; }
-
         }
 
         private class ChartDataBuilder
@@ -149,7 +144,7 @@ namespace NetCore.Profiler.Extension.UI.Summary
 
             public readonly List<ChartData> ChartValues = new List<ChartData>();
 
-            private long _startTimestamp;
+            private double _startTimeSeconds;
 
             /// <summary>
             /// Current ("Paused") Chart section
@@ -159,23 +154,26 @@ namespace NetCore.Profiler.Extension.UI.Summary
             public readonly List<AxisSection> Sections = new List<AxisSection>();
 
             /// <summary>
-            /// Previous value of the SysInfo UserSys value. Used for calculation CPU utilization
+            /// Previous SysInfo value. Used for calculating CPU utilization
             /// </summary>
-            private long _prevUserSys;
+            private SysInfoItem _previousSysInfo;
 
             /// <summary>
             /// Last added chart data. Used to track Pause/Resume sessions
             /// </summary>
-            private ChartData _prevChartData;
+            private ChartData _previousChartData;
 
             public void BuildChartData(List<SysInfoItem> sysInfoItems)
             {
                 foreach (var sysInfoItem in sysInfoItems)
                 {
-                    var chartData = CreateChartData(sysInfoItem);
-                    AddDataToChart(chartData);
-                    _prevUserSys = sysInfoItem.UserSys;
-                    _prevChartData = chartData;
+                    ChartData chartData = CreateChartData(sysInfoItem);
+                    if (chartData != null)
+                    {
+                        AddDataToChart(chartData);
+                        _previousSysInfo = sysInfoItem;
+                        _previousChartData = chartData;
+                    }
                 }
             }
 
@@ -183,23 +181,23 @@ namespace NetCore.Profiler.Extension.UI.Summary
             {
                 if (_currentSection != null)
                 {
-                    _currentSection.SectionWidth = chartData.Time - _currentSection.Value;
+                    _currentSection.SectionWidth = chartData.TimeSeconds - _currentSection.Value;
                 }
 
-                if (_prevChartData != null)
+                if (_previousChartData != null)
                 {
-                    if (_prevChartData.Running && !chartData.Running)
+                    if (_previousChartData.Running && !chartData.Running)
                     {
                         _currentSection = new AxisSection()
                         {
-                            Value = _prevChartData.Time,
-                            SectionWidth = chartData.Time - _prevChartData.Time,
+                            Value = _previousChartData.TimeSeconds,
+                            SectionWidth = chartData.TimeSeconds - _previousChartData.TimeSeconds,
                             Fill = PausedSectionBrush
                         };
 
                         Sections.Add(_currentSection);
                     }
-                    else if (!_prevChartData.Running && chartData.Running)
+                    else if (!_previousChartData.Running && chartData.Running)
                     {
                         _currentSection = null;
                     }
@@ -211,30 +209,36 @@ namespace NetCore.Profiler.Extension.UI.Summary
             private ChartData CreateChartData(SysInfoItem sii)
             {
                 ChartData chartData;
-                if (_startTimestamp == 0)
+                if (_startTimeSeconds == 0)
                 {
-                    _startTimestamp = sii.Timestamp;
+                    _startTimeSeconds = sii.TimeSeconds;
                     CpuMaxValue = sii.CoreNum * 100;
                     MemoryMaxValue = Math.Ceiling(((double)sii.MemTotal) / 1024 / 1024);
 
-                    chartData = new ChartData()
-                    {
-                        Time = 0,
-                        Mem = 0,
-                        Cpu = 0
-                    };
+                    chartData = new ChartData();
                 }
                 else
                 {
-                    var time = sii.Timestamp - _startTimestamp;
+                    if (sii.TimeSeconds < _startTimeSeconds)
+                    {
+                        return null;
+                    }
+                    double time = (sii.TimeSeconds - _startTimeSeconds);
                     TimeMaxValue = Math.Max(time, TimeMaxValue);
                     chartData = new ChartData()
                     {
                         Running = ProfilerStatusToBool(sii.ProfilerStatus),
-                        Time = time,
+                        TimeSeconds = time,
                         Mem = Math.Round(((double)sii.MemLoad) / 1024 / 1024, 2),
-                        Cpu = sii.UserSys - _prevUserSys
                     };
+                    if (_previousSysInfo != null)
+                    {
+                        double timeDelta = (sii.TimeSeconds - _previousSysInfo.TimeSeconds);
+                        if (timeDelta >= 0.001)
+                        {
+                            chartData.Cpu = (sii.UserSys - _previousSysInfo.UserSys) / timeDelta / sii.CoreNum;
+                        }
+                    }
                 }
 
                 return chartData;
@@ -244,16 +248,16 @@ namespace NetCore.Profiler.Extension.UI.Summary
             {
                 switch (status)
                 {
+                    case "W":
                     case "Waiting":
                         return false;
+                    case "R":
                     case "Running":
                         return true;
                     default:
                         return false;
                 }
             }
-
         }
-
     }
 }

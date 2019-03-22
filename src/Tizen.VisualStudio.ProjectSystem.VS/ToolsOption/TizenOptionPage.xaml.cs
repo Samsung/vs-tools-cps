@@ -15,22 +15,12 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Forms;
-using System.Reflection;
-using System.IO;
+using System.Windows.Media.Imaging;
 using Tizen.VisualStudio.Tools.Data;
 
 namespace Tizen.VisualStudio.ToolsOption
@@ -176,7 +166,6 @@ namespace Tizen.VisualStudio.ToolsOption
             {
                 CertificateMgr_image.Source = new BitmapImage(StatusInvalid);
             }
-
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)

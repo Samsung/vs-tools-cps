@@ -16,13 +16,25 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for thread CPU usage ("thr cpu")
+    /// %Core %Profiler trace log records. Used to dump CPU usage of a managed thread.
+    /// </summary>
     public class ThreadTimes
     {
-
+        /// <summary>
+        /// A thread internal ID.
+        /// </summary>
         public ulong InternalId { get; }
 
+        /// <summary>
+        /// A timestamp in milliseconds from the start of profiling.
+        /// </summary>
         public ulong TicksFromStart { get; }
-        
+
+        /// <summary>
+        /// A CPU usage time in microseconds from a last timestamp.
+        /// </summary>
         public ulong UserTime { get; }
 
         public ThreadTimes(ulong internalId, ulong ticksFromStart, ulong userTime)

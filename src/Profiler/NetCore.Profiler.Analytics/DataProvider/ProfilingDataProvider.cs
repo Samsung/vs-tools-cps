@@ -16,19 +16,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using NetCore.Profiler.Analytics.Model;
 using NetCore.Profiler.Cperf.Core;
 using NetCore.Profiler.Cperf.Core.Model;
-using NetCore.Profiler.Lttng.Core.BObject;
+using NetCore.Profiler.Cperf.Core.Parser.Model;
 
 namespace NetCore.Profiler.Analytics.DataProvider
 {
+    /// <summary>
+    /// A data provider used for processing the data from saved (already completed) %Core %Profiler profiling sessions
+    /// with the aim of generating the resulting analytical and statistical data which can be displayed to end users
+    /// in different UI views. Data container class <see cref="DataContainer"/> is used as the source of input data.
+    /// </summary>
     public class ProfilingDataProvider : IDataProvider
     {
-
-        public ulong MinimalStartTime { get; private set; } = ulong.MaxValue;
-
         public double HotPathThreshold { get; set; } = 0.1;
 
         public List<CpuUtilization> ApplicationCpuUtilization { get; private set; } = new List<CpuUtilization>();
@@ -47,25 +51,32 @@ namespace NetCore.Profiler.Analytics.DataProvider
 
         private readonly Dictionary<ulong, ISessionThreadBase> _sessionThreads = new Dictionary<ulong, ISessionThreadBase>();
 
-        protected readonly BDataContainer BDataContainer;
-
         protected readonly DataContainer PDataContainer;
 
         protected readonly Func<ICallStatisticsTreeNode> NodeConstructor;
 
-        public ProfilingDataProvider(BDataContainer bDataContainer, DataContainer pDataContainer, Func<ICallStatisticsTreeNode> nodeConstructor)
+        /// <summary>
+        /// Create a profiling data provider using the provided source data container and the node constructor
+        /// (but don't process the data at the moment).
+        /// </summary>
+        /// <param name="pDataContainer">
+        /// The input data for the data provider in the form of <see cref="DataContainer"/> which contains parsed data
+        /// from a saved (already completed) profiling session.
+        /// </param>
+        /// <param name="nodeConstructor">
+        /// Used for creating function call statistics nodes when building the profiling session analytics.
+        /// </param>
+        public ProfilingDataProvider(DataContainer pDataContainer, Func<ICallStatisticsTreeNode> nodeConstructor)
         {
-            BDataContainer = bDataContainer;
             PDataContainer = pDataContainer;
             NodeConstructor = nodeConstructor;
         }
 
+        /// <summary>
+        /// Process the data from the data container set in the constructor.
+        /// </summary>
         public void Load()
         {
-            MinimalStartTime = BDataContainer.BThreads.Count > 0
-                ? BDataContainer.BThreads.Min(thread => thread.StartAt)
-                : ulong.MaxValue;
-
             ApplicationTotals = new ProfilingStatisticsTotals(new Dictionary<StatisticsType, ulong>()
             {
                 {StatisticsType.Sample, PDataContainer.TotalSamples},
@@ -78,7 +89,10 @@ namespace NetCore.Profiler.Analytics.DataProvider
             LoadThreads();
         }
 
-
+        /// <summary>
+        /// Build profiling statistics for a selected time frame.
+        /// </summary>
+        /// <param name="timeFrame">The selected time frame (specifies a time range)</param>
         public void BuildStatistics(ISelectedTimeFrame timeFrame)
         {
             ApplicationStatistics = new ApplicationStatistics();
@@ -100,9 +114,9 @@ namespace NetCore.Profiler.Analytics.DataProvider
                 };
                 foreach (var s in PDataContainer.Samples[thread.InternalId])
                 {
-                    if (s.Timestamp >= timeFrame.Start)
+                    if (s.TimeMilliseconds >= timeFrame.Start)
                     {
-                        if (s.Timestamp > timeFrame.End)
+                        if (s.TimeMilliseconds > timeFrame.End)
                         {
                             break;
                         }
@@ -115,7 +129,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
             }
 
             ApplicationStatistics = BuildApplicationStatistics();
-
         }
 
         public void BuildStatisticsRaw(ISelectedTimeFrame timeFrame)
@@ -139,9 +152,9 @@ namespace NetCore.Profiler.Analytics.DataProvider
                 };
                 foreach (var s in PDataContainer.Samples[thread.InternalId])
                 {
-                    if (s.Timestamp >= timeFrame.Start)
+                    if (s.TimeMilliseconds >= timeFrame.Start)
                     {
-                        if (s.Timestamp > timeFrame.End)
+                        if (s.TimeMilliseconds > timeFrame.End)
                         {
                             break;
                         }
@@ -154,9 +167,7 @@ namespace NetCore.Profiler.Analytics.DataProvider
             }
 
             ApplicationStatistics = BuildApplicationStatistics();
-
         }
-
 
         private void ProcessSample(ThreadStatisticsData threadData, Sample sample)
         {
@@ -209,7 +220,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
 
                 call = child;
             }
-
         }
 
         private void UpdateStatisticsData(StatisticsData data, Sample sample)
@@ -277,7 +287,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
                             ls.TimeExclusive += sample.Time;
                             ls.AllocatedMemoryExclusive += sample.AllocatedMemory;
                         }
-
                     }
                 }
             }
@@ -358,7 +367,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
 
         private IThreadStatisticsRaw BuildThreadStatisticsRaw(ThreadStatisticsData thread)
         {
-
             var totals = new ProfilingStatisticsTotals(
                 new Dictionary<StatisticsType, ulong>()
                 {
@@ -366,7 +374,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
                     {StatisticsType.Memory,thread.MemoryTotal},
                     {StatisticsType.Time, thread.TimeTotal}
                 });
-
 
             return new ThreadStatisticsRaw
             {
@@ -378,7 +385,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
             };
         }
 
-
         private IThreadStatistics BuildThreadStatistics(ThreadStatisticsData thread)
         {
 
@@ -389,7 +395,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
                     {StatisticsType.Memory,thread.MemoryTotal},
                     {StatisticsType.Time, thread.TimeTotal}
                 });
-
 
             var threadMethods = thread.Methods.Values;
 
@@ -414,7 +419,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
                         .ToList()
                 }
             };
-
 
             var hotPaths = new Dictionary<StatisticsType, List<IHotPath>>
             {
@@ -468,8 +472,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
             };
         }
 
-
-
         private List<IHotPath> BuildThreadHotPaths(ThreadStatisticsData thread, StatisticsType statisticsType, IProfilingStatisticsTotals totals, double hotPathThreshold)
         {
 
@@ -503,7 +505,6 @@ namespace NetCore.Profiler.Analytics.DataProvider
                     return 0;
             }
         }
-
 
         private static List<IHotPathItem> CallPath(FunctionCall call)
         {
@@ -556,95 +557,198 @@ namespace NetCore.Profiler.Analytics.DataProvider
             return node;
         }
 
-
         private void LoadThreads()
         {
-            foreach (var thread in PDataContainer.Threads.Values)
+            foreach (var thread in PDataContainer.Threads.Collection)
             {
-
-                var bthread = BDataContainer.BThreads.Find(bt => (thread.OsThreadId == bt.Tid));
-                var clrTasks = bthread == null ? new List<ClrJob>() : BuildClrTasks(bthread);
-
                 _sessionThreads.Add(thread.InternalId, new SessionThreadBase
                 {
                     InternalId = thread.InternalId,
                     OsThreadId = thread.OsThreadId,
-                    ClrJobs = clrTasks,
+                    ClrJobs = BuildClrJobs(thread),
                     CpuUtilization = thread.CpuUtilizationHistory.CpuList
                 });
-
             }
-
         }
 
-        private List<ClrJob> BuildClrTasks(BThread bThread)
+        private List<ClrJob> BuildClrJobs(Thread thread)
         {
-            var jobs = bThread.Jits.Where(jit => jit.IsFull)
-                .Select(jit => new BThread.SomeJob
-                {
-                    StartTime = jit.JobStartAt,
-                    EndTime = jit.JobEndAt,
-                    Type = BThread.SomeJobType.Jit
-                }).ToList();
+            var result = new List<ClrJob>();
 
-
-            foreach (var gcItem in bThread.GCItems)
+            if (thread.Events == null)
             {
-                if (gcItem.IsFull != true)
-                {
-                    //we don't have full information
-                    continue;
-                }
+                return result;
+            }
 
-                var isAdded = false;
-                // search of jit job in which gc job can be place
-                for (int i = 0; i < jobs.Count; i++)
+            JitCompilationStarted jitCompilationStarted = null;
+            Event jitCompilationStartedEvent = null;
+
+            JitCachedFunctionSearchStarted jitCachedFunctionSearchStarted = null;
+            Event jitCachedFunctionSearchStartedEvent = null;
+
+            GarbageCollectionStarted garbageCollectionStarted = null;
+            Event garbageCollectionStartedEvent = null;
+
+            ClrJob prevClrJobJit = null;
+            ClrJob prevClrJobGc = null;
+            foreach (Event threadEvent in thread.Events)
+            {
+                ClrJob prevClrJob = null;
+                ClrJob clrJob = null;
+                ulong startMilliseconds = 0;
+                ulong endMilliseconds = 0;
+                switch (threadEvent.EventType)
                 {
-                    BThread.SomeJob someJob = jobs[i];
-                    if (someJob.Type != BThread.SomeJobType.GC && gcItem.JobStartAt > someJob.StartTime && gcItem.JobStartAt < someJob.EndTime) // if gc job inside jit job
-                    {
-                        // lets know how it overlaps antoher
-                        if (gcItem.JobEndAt < someJob.EndTime) // if gc is smaller than jit (how it must be)
+                    case EventType.CompilationStarted:
+                        jitCompilationStartedEvent = threadEvent;
+                        jitCompilationStarted = (JitCompilationStarted)threadEvent.SourceObject;
+                        break;
+
+                    case EventType.CompilationFinished:
+                        if (jitCompilationStarted != null)
                         {
-                            //split large job
-                            var firstPart = new BThread.SomeJob { StartTime = someJob.StartTime, EndTime = gcItem.JobStartAt, Type = BThread.SomeJobType.Jit };
-                            var secondPart = new BThread.SomeJob { StartTime = gcItem.JobEndAt, EndTime = someJob.EndTime, Type = BThread.SomeJobType.Jit };
-                            // create gc job
-                            var gcPart = new BThread.SomeJob { StartTime = gcItem.JobStartAt, EndTime = gcItem.JobEndAt, Type = BThread.SomeJobType.GC };
-                            // replace old job with new ones
-                            jobs.RemoveAt(i);
-                            jobs.Insert(i, secondPart);
-                            jobs.Insert(i, gcPart);
-                            jobs.Insert(i, firstPart);
-                            i += 2;
-                            isAdded = true;
+                            var jitCompilationFinished = (JitCompilationFinished)threadEvent.SourceObject;
+                            if (jitCompilationFinished.FunctionId == jitCompilationStarted.FunctionId)
+                            {
+                                clrJob = new ClrJob { Type = ClrJobType.JustInTimeCompilation };
+                                prevClrJob = prevClrJobJit;
+                                startMilliseconds = jitCompilationStartedEvent.TimeMilliseconds;
+                                endMilliseconds = threadEvent.TimeMilliseconds;
+                            }
+                            jitCompilationStarted = null;
+                        }
+                        break;
+
+                    case EventType.CachedFunctionSearchStarted:
+                        jitCachedFunctionSearchStartedEvent = threadEvent;
+                        jitCachedFunctionSearchStarted = (JitCachedFunctionSearchStarted)threadEvent.SourceObject;
+                        break;
+
+                    case EventType.CachedFunctionSearchFinished:
+                        if (jitCachedFunctionSearchStarted != null)
+                        {
+                            var jitCachedFunctionSearchFinished = (JitCachedFunctionSearchFinished)threadEvent.SourceObject;
+                            if (jitCachedFunctionSearchFinished.FunctionId == jitCachedFunctionSearchStarted.FunctionId)
+                            {
+                                clrJob = new ClrJob { Type = ClrJobType.JustInTimeCompilation };
+                                prevClrJob = prevClrJobJit;
+                                startMilliseconds = jitCachedFunctionSearchStartedEvent.TimeMilliseconds;
+                                endMilliseconds = threadEvent.TimeMilliseconds;
+                            }
+                            jitCachedFunctionSearchStarted = null;
+                        }
+                        break;
+
+                    case EventType.GarbageCollectionStarted:
+                        garbageCollectionStartedEvent = threadEvent;
+                        garbageCollectionStarted = (GarbageCollectionStarted)threadEvent.SourceObject;
+                        break;
+
+                    case EventType.GarbageCollectionFinished:
+                        if (garbageCollectionStarted != null)
+                        {
+                            var garbageCollectionFinished = (GarbageCollectionFinished)threadEvent.SourceObject;
+                            clrJob = new ClrJob { Type = ClrJobType.GarbageCollection };
+                            prevClrJob = prevClrJobGc;
+                            startMilliseconds = garbageCollectionStartedEvent.TimeMilliseconds;
+                            endMilliseconds = threadEvent.TimeMilliseconds;
+                            garbageCollectionStarted = null;
+                        }
+                        break;
+                }
+                if (clrJob != null)
+                {
+                    const int Factor = 1000000;
+                    clrJob.StartNanoseconds = startMilliseconds * Factor;
+                    clrJob.EndNanoseconds = endMilliseconds * Factor;
+                    if (prevClrJob != null)
+                    {
+                        if (clrJob.StartNanoseconds <= prevClrJob.EndNanoseconds)
+                        {
+                            // intersecting with previous event
+                            if (clrJob.EndNanoseconds <= prevClrJob.EndNanoseconds)
+                            {
+                                // ignore duplicate events or (unexpected case) events which are contained in previous ones
+                                if (clrJob.StartNanoseconds >= prevClrJob.StartNanoseconds)
+                                {
+                                    continue;
+                                }
+                                // else unexpected: the next event start is before the previous event start
+                            }
+                            else // clrJob.EndNanoseconds > prevClrJob.EndNanoseconds
+                            {
+                                // combine events
+                                if (clrJob.StartNanoseconds >= prevClrJob.StartNanoseconds)
+                                {
+                                    prevClrJob.EndNanoseconds = clrJob.EndNanoseconds;
+                                }
+                                else
+                                {
+                                    // unexpected case but support it
+                                    prevClrJob.StartNanoseconds = clrJob.StartNanoseconds;
+                                }
+                                continue;
+                            }
                         }
                     }
-                }
-
-                if (!isAdded)
-                {
-                    // create gc job
-                    var gcJob = new BThread.SomeJob { StartTime = gcItem.JobStartAt, EndTime = gcItem.JobEndAt, Type = BThread.SomeJobType.GC };
-                    var i = bThread.GetClosestJob(gcJob, jobs);
-                    if (i == -1) // if not found insert to the end
+                    result.Add(clrJob);
+                    if (clrJob.Type == ClrJobType.GarbageCollection)
                     {
-                        jobs.Add(gcJob);
+                        prevClrJobGc = clrJob;
                     }
-                    else // insert at index place
+                    else if (clrJob.Type == ClrJobType.JustInTimeCompilation)
                     {
-                        jobs.Insert(i, gcJob);
+                        prevClrJobJit = clrJob;
                     }
                 }
-            }
+            } // foreach
 
-            return jobs.Select(job => new ClrJob()
-            {
-                Type = job.Type == BThread.SomeJobType.GC ? ClrJobType.GarbageCollection : (job.Type == BThread.SomeJobType.Jit ? ClrJobType.JustInTimeCompilation : ClrJobType.None),
-                StartTime = job.StartTime,
-                EndTime = job.EndTime
-            }).ToList();
+            return result;
         }
 
+        /// <summary>
+        /// Save CLR jobs (JIT/GC) to file (for debugging)
+        /// </summary>
+        /// <param name="fileName"></param>
+        [Conditional("DEBUG")]
+        public void SaveClrJobs(string fileName)
+        {
+            using (var writer = new StreamWriter(fileName, false))
+            {
+                var allClrJobs = new List<Tuple<ClrJob, ulong>>();
+                foreach (ISessionThreadBase thread in _sessionThreads.Values)
+                {
+                    allClrJobs.AddRange(thread.ClrJobs.Select(clrJob => new Tuple<ClrJob, ulong>(clrJob, thread.OsThreadId)));
+                }
+                allClrJobs.Sort((x, y) =>
+                {
+                    ClrJob job1 = x.Item1;
+                    ClrJob job2 = y.Item1;
+                    int cmp = job1.Type.CompareTo(job2.Type);
+                    if (cmp == 0)
+                    {
+                        cmp = job1.StartNanoseconds.CompareTo(job2.StartNanoseconds);
+                        if (cmp == 0)
+                        {
+                            cmp = job1.EndNanoseconds.CompareTo(job2.EndNanoseconds);
+                        }
+                    }
+                    return cmp;
+                });
+                ClrJob prevJob = null;
+                int n = 0;
+                foreach (var tuple in allClrJobs)
+                {
+                    ClrJob job = tuple.Item1;
+                    if ((prevJob != null) && (prevJob.Type != job.Type))
+                    {
+                        n = 0;
+                    }
+                    prevJob = job;
+                    writer.WriteLine($"#{++n:D4} {job.Type} (TID={tuple.Item2}) " +
+                        $"{(job.StartNanoseconds / 1E6):F3} .. {(job.EndNanoseconds / 1E6):F3}");
+                }
+            }
+        }
     }
 }

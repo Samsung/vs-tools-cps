@@ -34,6 +34,5 @@ namespace NetCore.Profiler.Extension.Session
         TimeLineType TimeLineType { get; set; }
 
         void UpdateDataForTimeFrame(ISelectedTimeFrame timeFrame);
-
     }
 }

@@ -50,11 +50,11 @@
         </DataGrid.Resources>
         <DataGrid.Columns>
             <DataGridCheckBoxColumn Header="Display" Binding="{Binding Display, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-            <DataGridTextColumn Header="Count Max" Binding="{Binding ObjectsCountMax}"/>
-            <DataGridTextColumn Header="Count Avg" Binding="{Binding ObjectsCountAvg}"/>
-            <DataGridTextColumn Header="Size Max" Binding="{Binding MemorySizeMax}"/>
-            <DataGridTextColumn Header="Size Avg" Binding="{Binding MemorySizeAvg}"/>
-            <DataGridTextColumn Header="Name" Binding="{Binding DataTypeName}"/>
+            <DataGridTextColumn Header="Count Max" Binding="{Binding ObjectsCountMax}" IsReadOnly="True"/>
+            <DataGridTextColumn Header="Count Avg" Binding="{Binding ObjectsCountAvg}" IsReadOnly="True"/>
+            <DataGridTextColumn Header="Size Max" Binding="{Binding MemorySizeMax}" IsReadOnly="True"/>
+            <DataGridTextColumn Header="Size Avg" Binding="{Binding MemorySizeAvg}" IsReadOnly="True"/>
+            <DataGridTextColumn Header="Name" Binding="{Binding DataTypeName}" IsReadOnly="True"/>
         </DataGrid.Columns>
     </DataGrid>
 

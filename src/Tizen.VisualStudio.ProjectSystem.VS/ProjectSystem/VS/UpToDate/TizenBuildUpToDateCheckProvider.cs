@@ -75,11 +75,11 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.UpToDate
             {
                 if (hasManifestFile)
                 {
-                    logger.WriteLine($"FastUpToDateForTizen:  '{manifestFilePath}' ({_msBuildProjectName})");
+                    logger.WriteLineAsync($"FastUpToDateForTizen:  '{manifestFilePath}' ({_msBuildProjectName})");
                 }
                 else
                 {
-                    logger.WriteLine($"FastUpToDateForTizen:  '{manifestFilePath}' was not found. skip to check ... ({_msBuildProjectName})");
+                    logger.WriteLineAsync($"FastUpToDateForTizen:  '{manifestFilePath}' was not found. skip to check ... ({_msBuildProjectName})");
                 }
             }
 

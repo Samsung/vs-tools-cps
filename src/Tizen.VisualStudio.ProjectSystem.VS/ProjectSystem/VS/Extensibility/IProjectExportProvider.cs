@@ -14,12 +14,10 @@
  * limitations under the License.
 */
 
-
-
 namespace Tizen.VisualStudio.ProjectSystem.VS.Extensibility
 {
     /// <summary>
-    /// Interface definition for global scope VS MEF component, which helps to get MEF exports from a
+    /// Interface definition for global scope %VS MEF component, which helps to get MEF exports from a
     /// project level scope given IVsHierarchy or project file path.
     /// </summary>
     public interface IProjectExportProvider

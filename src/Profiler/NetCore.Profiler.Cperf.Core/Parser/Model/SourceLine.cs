@@ -16,6 +16,10 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for source line information ("lin src") %Core %Profiler
+    /// trace log records.
+    /// </summary>
     public class SourceLine
     {
         public ulong Id { get; set; }
@@ -42,6 +46,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
             StartColumn = startColumn;
             EndColumn = endColumn;
         }
-
     }
 }

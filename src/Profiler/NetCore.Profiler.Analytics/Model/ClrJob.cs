@@ -25,9 +25,9 @@ namespace NetCore.Profiler.Analytics.Model
 
     public class ClrJob
     {
-        public ulong StartTime { get; set; }
+        public ulong StartNanoseconds { get; set; }
 
-        public ulong EndTime { get; set; }
+        public ulong EndNanoseconds { get; set; }
 
         public ClrJobType Type { get; set; }
     }

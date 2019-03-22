@@ -175,7 +175,7 @@ namespace Tizen.VisualStudio.InstallLauncher
                 content == InstallWizardString.Button_OK)
             {
                 ToolsPathInfo.ToolsRootPath = info.Path;
-                ToolsPathInfo.isDirty = true;
+                ToolsPathInfo.IsDirty = true;
                 OnToolsDirChanged?.Invoke(info.Path);
                 this.DialogResult = true;
             }
@@ -184,7 +184,7 @@ namespace Tizen.VisualStudio.InstallLauncher
         private void LaunchOrDownloadInstaller()
         {
             ToolsPathInfo.ToolsRootPath = info.Path;
-            ToolsPathInfo.isDirty = true;
+            ToolsPathInfo.IsDirty = true;
             OnToolsDirChanged?.Invoke(info.Path);
             installer = new SdkInstaller();
 

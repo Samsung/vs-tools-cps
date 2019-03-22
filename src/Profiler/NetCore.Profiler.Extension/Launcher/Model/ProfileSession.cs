@@ -15,92 +15,88 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell.Interop;
+using NetCore.Profiler.Common.Helpers;
 using NetCore.Profiler.Cperf.Core.Model;
+using NetCore.Profiler.Cperf.Core.Parser;
+using NetCore.Profiler.Cperf.Core.Parser.Model;
 using NetCore.Profiler.Cperf.LogAdaptor.Core;
-using Process = System.Diagnostics.Process;
-using Thread = System.Threading.Thread;
 using NetCore.Profiler.Extension.Session;
 using NetCore.Profiler.Extension.VSPackage;
 using NetCore.Profiler.Session.Core;
 using Tizen.VisualStudio.Tools.DebugBridge;
-using Tizen.VisualStudio.Tools.Data;
+using Tizen.VisualStudio.Tools.Utilities;
+using Tizen.VisualStudio.Utilities;
 
 namespace NetCore.Profiler.Extension.Launcher.Model
 {
-    internal class ProfileSession : IProfileSession
+    /// <summary>
+    /// A class representing a running %Core %Profiler session.
+    /// </summary>
+    public class ProfileSession : AbstractSession<ProfileSessionListener, ProfileSessionState, ProfileSessionConfiguration>//, IProfileSession
     {
+        private const int ControlPort = 6001;
 
-        private const string SessionArchiveLocalFile = "cperf.zip";
+        private const int DataPort = 6002;
 
-        public string ProjectDirectory;
+        private const int StatisticsPort = 6003;
 
-        public string DeviceName;
+        public ProfileSessionConfiguration Configuration => _sessionConfiguration;
 
-        private string _hostId;
+        public bool IsLiveProfiling => _isLiveProfiling;
 
-        private readonly ProfileSessionConfiguration _sessionConfiguration;
+        public DateTime ProfilerStartTimeUtc { get; private set; }
 
-        private Process _cperfControlProcess;
+        private const string ProfilerConfigName = "profiler.config";
 
-        private Process _cperfStartProcess;
+        private string _targetInstallationDirectory;
+
+        private string _targetShareDirectory;
+
+        private NetworkStream _commandStream;
 
         private StreamWriter _procLogStreamWriter;
 
-        private readonly List<IProfileSessionListener> _sessionListeners = new List<IProfileSessionListener>();
+        private readonly bool _isLiveProfiling;
 
-        public ProfileSession(ProfileSessionConfiguration sessionConfiguration)
+        private ulong _appPid;
+
+        private ulong _traceLinesRead;
+
+        private bool _lastBreakState;
+
+        public ProfileSession(SDBDeviceInfo device, ProfileSessionConfiguration sessionConfiguration, bool isLiveProfiling)
+            : base(device, sessionConfiguration)
         {
-
-            _sessionConfiguration = sessionConfiguration;
-
-            ProjectDirectory = _sessionConfiguration.ProjectHostPath;
-
-            //DeviceName = $"{DeviceManager.SelectedDevice.name} ({DeviceManager.SelectedDevice.serial})";
-            DeviceName = DeviceManager.SelectedDevice.Name;
-
-            State = ProfileSessionState.Initial;
-
+            SetState(ProfileSessionState.Initial);
+            _isLiveProfiling = isLiveProfiling;
+            _targetInstallationDirectory = _targetShareDirectory = $"{_sdkToolPath}/coreprofiler";
         }
 
-        public string SessionDirectory { get; private set; }
-
-        public ProfileSessionState State { get; private set; }
-
-        private string CperfZipName => "cperf_" + _hostId + ".zip";
-
-
-        public void AddListener(IProfileSessionListener listener)
+        private bool IsProfilingInProgress()
         {
-            lock (_sessionListeners)
-            {
-                if (!_sessionListeners.Contains(listener))
-                {
-                    _sessionListeners.Add(listener);
-                }
-            }
-        }
-
-        public void RemoveListener(IProfileSessionListener listener)
-        {
-            lock (_sessionListeners)
-            {
-                _sessionListeners.Remove(listener);
-            }
+            return (State == ProfileSessionState.Waiting || State == ProfileSessionState.Running || State == ProfileSessionState.Paused);
         }
 
         public void Stop()
         {
-            if (State == ProfileSessionState.Waiting || State == ProfileSessionState.Running || State == ProfileSessionState.Paused)
+            if (IsProfilingInProgress())
             {
-                WriteToOutput("Stopping the application");
+                if (_appPid == 0)
+                {
+                    DebugWriteToOutput("Cannot stop the application: PID not known");
+                    return;
+                }
+                DebugWriteToOutput("Stopping the application");
                 SetState(ProfileSessionState.Stopping, true);
-                SendCommandToCperfControl("kill");
+                SendCommandToControlProcess($"kill {_appPid}");
             }
         }
 
@@ -111,30 +107,89 @@ namespace NetCore.Profiler.Extension.Launcher.Model
                 throw new InvalidOperationException();
             }
 
-            if (SendCommandToCperfControl("stop"))
-            {
-                //TODO Handle error
-            }
-            else
+            bool success = DoPause();
+
+            if (success)
             {
                 SetState(ProfileSessionState.Paused, true);
+                WriteToOutput("Profiling paused");
             }
+        }
+
+        private bool DoPause()
+        {
+            if (_appPid == 0)
+            {
+                DebugWriteToOutput("Cannot pause the application: PID not known");
+                return false;
+            }
+            return SendCommandToControlProcess($"stop {_appPid}");
         }
 
         public void Resume()
         {
-            if (State != ProfileSessionState.Waiting && State != ProfileSessionState.Paused)
+            if ((State != ProfileSessionState.Waiting) && (State != ProfileSessionState.Paused))
             {
                 throw new InvalidOperationException();
             }
 
-            if (SendCommandToCperfControl("start"))
+            bool success = DoResume();
+
+            if (success)
             {
-                //TODO Handle error
+                SetState(ProfileSessionState.Running, true);
+                WriteToOutput("Profiling resumed");
             }
             else
             {
-                SetState(ProfileSessionState.Running, true);
+                //TODO Handle error
+            }
+        }
+
+        private bool DoResume()
+        {
+            if (_appPid == 0)
+            {
+                DebugWriteToOutput("Cannot resume the application: PID not known");
+                return false;
+            }
+            return SendCommandToControlProcess($"start {_appPid}");
+        }
+
+#if DEBUG
+        System.Diagnostics.Stopwatch lastBreakTimer;
+#endif
+
+        public void OnDebugStateChanged(bool isBreakState)
+        {
+#if DEBUG
+            if (isBreakState)
+            {
+                if (lastBreakTimer == null)
+                {
+                    lastBreakTimer = new System.Diagnostics.Stopwatch();
+                }
+                lastBreakTimer.Restart();
+            }
+            string msg = $"Debug break {(isBreakState ? "started" : "finished")}";
+            if (!isBreakState && (lastBreakTimer != null) && lastBreakTimer.IsRunning)
+            {
+                msg += $" (duration: {lastBreakTimer.Elapsed})";
+            }
+            DebugWriteToOutput(msg);
+#endif
+            NotifyDebugStateChanged(isBreakState);
+            if (State == ProfileSessionState.Running)
+            {
+                if (isBreakState)
+                {
+                    DoPause();
+                }
+                else if (_lastBreakState)
+                {
+                    DoResume();
+                }
+                _lastBreakState = isBreakState;
             }
         }
 
@@ -145,556 +200,534 @@ namespace NetCore.Profiler.Extension.Launcher.Model
                 throw new InvalidOperationException();
             }
 
+            DateTime startDateTime = DateTime.Now;
+
             if (!CheckConfiguration())
             {
-                State = ProfileSessionState.Failed;
-                NotifyStatusChange();
+                SetState(ProfileSessionState.Failed, true);
                 return;
             }
 
-            State = ProfileSessionState.Starting;
+            SetState(ProfileSessionState.Starting);
 
-            new Thread(delegate()
+            ProfilerPlugin.Instance.ActivateTizenOutputPane();
+
+            IVsThreadedWaitDialog2 waiter;
+            ProfilerPlugin.Instance.CreateDialogInstance(out waiter,
+                "Preparation for profiling",
+                "Please wait while the preparation is being done...",
+                "Preparing...",
+                "Preparation for profiling in progress...");
+
+            WriteToOutput("*** Profiling started ***");
+
+            bool prepared = Prepare();
+
+            int userCancel;
+            waiter?.EndWaitDialog(out userCancel);
+
+            Task.Run(delegate ()
             {
-                RunProfileSession();
+                try
+                {
+                    if (prepared && CommunicateWithControlProcess())
+                    {
+                        SetState(ProfileSessionState.WritingSession, true);
+                        WriteSessionFiles(startDateTime);
+                        SetState(ProfileSessionState.Finished);
+                    }
+                    else
+                    {
+                        DisplaySessionError("Cannot start profiling session");
+                        SetState(ProfileSessionState.Failed);
+                    }
 
-                StopControlServer();
+                    CloseOpenStreams();
+                }
+                catch (Exception ex)
+                {
+                    DisplaySessionError($"Session run error. {ex.Message}");
+                    SetState(ProfileSessionState.Failed);
+                }
 
-                CloseOpenStreams();
+                try
+                {
+                    DownloadAndDeleteOnTargetLogFile(GetProfctlLogTizenName(), GetProfctlLogName());
+                }
+                catch (Exception ex)
+                {
+                    WriteToOutput($"Warning: cannot download 'profctl' log file. {ex.Message}");
+                }
 
-                WriteToOutput("-> Done");
+                if (State == ProfileSessionState.Finished)
+                {
+                    DebugWriteToOutput($"Profiler trace log lines read: {_traceLinesRead}");
+                    if (_traceLinesRead > 0)
+                    {
+                        WriteToOutput("=== Profiling finished ===");
+                    }
+                    else
+                    {
+                        DisplaySessionError("Cannot read profiler trace log");
+                        SetState(ProfileSessionState.Failed);
+                    }
+                }
 
                 NotifyStatusChange();
-
-            }).Start();
+            });
         }
 
-        private bool CheckConfiguration()
+        private bool Prepare()
         {
-            //var toolsInfo = ToolsInfo.Instance();
-            var toolsPath = ToolsPathInfo.OndemandFolderPath;
-            if (string.IsNullOrEmpty(ToolsPathInfo.OndemandFolderPath))
+            try
             {
-                ProfilerPlugin.Instance.ShowError("Error", "Tizen Tools are not configured");
+                string errorMessage;
+                if (!SDBLib.ForwardTcpPort(_selectedDevice, ControlPort, ControlPort, out errorMessage))
+                {
+                    WriteToOutput($"[ForwardTcpPort] {errorMessage}");
+                    return false;
+                }
+                if (!SDBLib.ForwardTcpPort(_selectedDevice, DataPort, DataPort, out errorMessage))
+                {
+                    WriteToOutput($"[ForwardTcpPort] {errorMessage}");
+                    return false;
+                }
+                if (!SDBLib.ForwardTcpPort(_selectedDevice, StatisticsPort, StatisticsPort, out errorMessage))
+                {
+                    WriteToOutput($"[ForwardTcpPort] {errorMessage}");
+                    return false;
+                }
+
+                if (!InstallProfiler("profctl", "coreprofiler"))
+                {
+                    return false;
+                }
+
+                SessionDirectory = GetSessionDirName("DotNET-");
+                Directory.CreateDirectory(SessionDirectory);
+
+                _procLogStreamWriter = new StreamWriter(
+                    Path.Combine(SessionDirectory, "proc.log"), false, Encoding.ASCII, 4096);
+
+                // Generate files and copy them to target
+                SetState(ProfileSessionState.UploadFiles, true);
+                if (!PrepareAndCopyFilesToTarget())
+                {
+                    return false;
+                }
+
+                SetState(ProfileSessionState.StartHost, true);
+
+                if (!StartRemoteApplication(_isLiveProfiling ? "LIVEPROFILER" : "COREPROFILER"))
+                {
+                    return false;
+                }
+
+                SetState(_sessionConfiguration.ProfilingSettings.DelayedStart
+                    ? ProfileSessionState.Waiting : ProfileSessionState.Running, true);
+            }
+            catch (Exception ex)
+            {
+                DisplaySessionError($"Session prepare error. {ex.Message}");
                 return false;
             }
 
-            var scriptsPath = Path.Combine(toolsPath, "cperf_scripts");
-            foreach (var x in new[] { "cperfenv", "cperf_control", "cperf_logcontrol" })
-            {
-                if (!File.Exists(Path.Combine(scriptsPath, x)))
-                {
-                    ProfilerPlugin.Instance.ShowError("Error", "Profiler scripts are not found");
-                    return false;
-                }
-            }
-
             return true;
-        }
-
-        private bool InstallProfiler()
-        {
-            bool retval = true;
-            OnDemandInstaller installer = null;
-
-            try
-            {
-                installer = new OnDemandInstaller();
-                retval = installer.Install();
-            }
-            finally
-            {
-                installer = null;
-            }
-
-            if (!retval)
-            {
-                ProfilerPlugin.Instance.ShowError("Error", "Profiler is not found on target");
-            }
-
-            return retval;
-        }
-
-        private void RunProfileSession()
-        {
-            var ip = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0];
-            _hostId = Regex.Replace(ip.ToString(), "[:%]", "");
-
-            var startDateTime = DateTime.Now;
-            var sessionDirName = "DotNET-" + startDateTime.ToString("yyyyMMdd-HHmmss");
-
-            SessionDirectory = Path.Combine(ProjectDirectory, sessionDirName);
-            try
-            {
-                Directory.CreateDirectory(SessionDirectory);
-                lock (_logFileLock)
-                {
-                    _procLogStreamWriter = new StreamWriter(Path.Combine(SessionDirectory, "proc.log"));
-                }
-            }
-            catch (Exception e)
-            {
-                SetState(ProfileSessionState.Failed);
-                WriteToOutput($"[ERROR] {e.Message}");
-            }
-
-            if (!InstallProfiler())
-            {
-                SetState(ProfileSessionState.Failed);
-                return;
-            }
-
-            // Generate files and copy them to target
-            SetState(ProfileSessionState.UploadFiles, true);
-            if (PrepareAndCopyFilesToTarget())
-            {
-                SetState(ProfileSessionState.Failed);
-                return;
-            }
-
-            SetState(ProfileSessionState.StartHost, true);
-
-            if (SwitchToRoot(true))
-            {
-                SetState(ProfileSessionState.Failed);
-                return;
-            }
-
-            if (AdjustAttributes())
-            {
-                SetState(ProfileSessionState.Failed);
-                return;
-            }
-
-            if (StartControlServer())
-            {
-                SetState(ProfileSessionState.Failed);
-                return;
-            }
-
-            SetState(_sessionConfiguration.ProfilingSettings.DelayedStart ? ProfileSessionState.Waiting : ProfileSessionState.Running, true);
-
-
-            // Start remote application. It's blocking call
-            if (StartRemoteApplication())
-            {
-                SetState(ProfileSessionState.Failed);
-                return;
-            }
-
-            //Download Cperf zip-file
-            SetState(ProfileSessionState.DownloadFiles, true);
-            if (DownloadTraceFiles())
-            {
-                SetState(ProfileSessionState.Failed);
-                return;
-            }
-
-            SwitchToRoot(false);
-
-            SetState(ProfileSessionState.WritingSession, true);
-            //Generate Session files
-            WriteSessionFiles(startDateTime);
-
-            SetState(ProfileSessionState.Finished);
-
         }
 
         private bool PrepareAndCopyFilesToTarget()
         {
-
-            var filesToCopy = new List<Tuple<string, string>>();
-
-            // Install Tizen Package with binary
-            var tpkPath = Path.Combine(_sessionConfiguration.ProjectHostBinPath, _sessionConfiguration.ProjectPackageName + "-" + _sessionConfiguration.ProjectPackageVersion + ".tpk");
-            WriteToOutput($"-> Installing Tizen Package {tpkPath}...");
-            var process = SDBLib.CreateSdbProcess(true, true);
-            if (process == null)
+            if (!_isLiveProfiling)
             {
-                WriteToOutput("[ERROR]\n");
-            }
-            else
-            {
-                var argument = DeviceManager.AdjustSdbArgument("install \"" + tpkPath + "\"");
-                SDBLib.RunSdbProcess(process, argument, true);
-                var rc = process.ExitCode;
-                process.Close();
-                if (rc != 0)
+                if (!InstallTpk())
                 {
-                    WriteToOutput("[ERROR]\n");
-                }
-            }
-
-            var cperfStartFile = Path.GetTempFileName();
-            if (WriteCperfStartFile(_sessionConfiguration.TargetDll, _sessionConfiguration.AppId, cperfStartFile))
-            {
-                WriteToOutput("[ERROR]\n");
-                return true;
-            }
-
-            filesToCopy.Add(new Tuple<string, string>(cperfStartFile, "cperfstart_" + _hostId));
-
-            //var toolsInfo = ToolsInfo.Instance();
-            var toolsPath = ToolsPathInfo.OndemandFolderPath;
-            if (string.IsNullOrEmpty(toolsPath))
-            {
-                WriteToOutput("[ERROR] ToolsPath is empty");
-                return true;
-            }
-
-            var scriptsPath = Path.Combine(toolsPath, "cperf_scripts");
-
-            filesToCopy.AddRange(new[] { "cperfenv", "cperf_control", "cperf_logcontrol" }.
-                Select(script => new Tuple<string, string>(Path.Combine(scriptsPath, script), script)));
-
-            foreach (var pair in filesToCopy)
-            {
-                WriteToOutput($"-> Uploading {pair.Item1} to {pair.Item2}...");
-                if (UploadFile(pair.Item1, pair.Item2))
-                {
-                    WriteToOutput("[ERROR]\n");
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool WriteCperfStartFile(string binPath, string appId, string filePath)
-        {
-            try
-            {
-                using (var writer = new StreamWriter(filePath))
-                {
-                    writer.NewLine = "\n";
-                    writer.WriteLine("#! /bin/bash");
-                    writer.WriteLine(". {0}/cperfenv", _sessionConfiguration.ProjectTargetPath);
-                    writer.WriteLine("export COMPlus_EnableEventLog=1");
-                    writer.WriteLine("export COMPlus_ARMEnabled=1");
-                    writer.WriteLine("export PROF_COLLECT_METHOD={0}", _sessionConfiguration.ProfilingSettings.CollectMethod);
-                    if (_sessionConfiguration.ProfilingSettings.CollectMethod == ProfilingMethod.Sampling)
-                    {
-                        writer.WriteLine("export PROF_SAMPLING_TIMEOUT={0}", _sessionConfiguration.ProfilingSettings.SamplingInterval);
-                        writer.WriteLine("export PROF_CPU_TRACE_TIMEOUT={0}", _sessionConfiguration.ProfilingSettings.CpuTraceInterval);
-                    }
-                    else
-                    {
-                        writer.WriteLine("unset PROF_SAMPLING_TIMEOUT");
-                        writer.WriteLine("unset PROF_CPU_TRACE_TIMEOUT");
-                    }
-
-                    writer.WriteLine("export PROF_EXECUTION_TRACE={0}", _sessionConfiguration.ProfilingSettings.TraceExecution ? 1 : 0);
-                    writer.WriteLine("export PROF_CPU_TRACE={0}", _sessionConfiguration.ProfilingSettings.TraceCpu ? 1 : 0);
-                    writer.WriteLine("export PROF_CPU_TRACE_PROC={0}", _sessionConfiguration.ProfilingSettings.TraceProcessCpu ? 1 : 0);
-                    writer.WriteLine("export PROF_CPU_TRACE_THREAD={0}",
-                        _sessionConfiguration.ProfilingSettings.TraceThreadCpu ? 1 : 0);
-                    writer.WriteLine("export PROF_MEMORY_TRACE={0}",
-                        _sessionConfiguration.ProfilingSettings.TraceMemoryAllocation ? 1 : 0);
-                    writer.WriteLine("export PROF_LINE_TRACE={0}", _sessionConfiguration.ProfilingSettings.TraceSourceLines ? 1 : 0);
-                    writer.WriteLine("export PROF_HIGH_GRAN={0}",
-                        _sessionConfiguration.ProfilingSettings.HighGranularitySampling ? 1 : 0);
-                    writer.WriteLine("export PROF_STACK_TRACK={0}", _sessionConfiguration.ProfilingSettings.StackTrack ? 1 : 0);
-                    writer.WriteLine("export PROF_DELAYED_START={0}", _sessionConfiguration.ProfilingSettings.DelayedStart ? 1 : 0);
-                    writer.WriteLine("export PROF_GC_TRACE={0}", _sessionConfiguration.ProfilingSettings.TraceGarbageCollection ? 1 : 0);
-
-                    writer.WriteLine("export CPERF_ZIP_NAME={0}/{1}", _sessionConfiguration.ProjectTargetPath, CperfZipName);
-                    writer.WriteLine("export CPERF_HOST_CODE={0}", _hostId);
-                    writer.WriteLine("export CPERF_APPID={0}", appId);
-                    writer.WriteLine("cd {0}/share", _sessionConfiguration.ProjectTargetPath);
-                    writer.WriteLine("cperf collect {0} zaybxcwdveuftgsh", binPath);
-                    writer.WriteLine("sleep {0}", _sessionConfiguration.SleepTime);
-                }
-            }
-            catch (Exception)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool SwitchToRoot(bool on)
-        {
-            WriteToOutput($"-> Switch to root mode: {on}");
-            var process = SDBLib.CreateSdbProcess();
-            SDBLib.RunSdbProcess(process, $"root {((on) ? "on" : "off")}");
-            var rc = process.ExitCode;
-            process.Close();
-            return rc != 0;
-        }
-
-        private bool AdjustAttributes()
-        {
-            WriteToOutput("-> Adjust script attributes");
-            var process = SDBLib.CreateSdbProcess();
-            SDBLib.RunSdbProcess(process,
-                DeviceManager.AdjustSdbArgument($"shell \"chmod +x {_sessionConfiguration.ProjectTargetPath}/cperfstart_{_hostId}\""));
-            var rc = process.ExitCode;
-            process.Close();
-
-            process = SDBLib.CreateSdbProcess();
-            SDBLib.RunSdbProcess(process,
-                DeviceManager.AdjustSdbArgument($"shell \"chsmack -a '_' -e 'System::Privileged' {_sessionConfiguration.ProjectTargetPath}/cperfstart_{_hostId}\""));
-            var rc1 = process.ExitCode;
-            process.Close();
-            return rc != 0 || rc1 != 0;
-        }
-
-        private bool StartRemoteApplication()
-        {
-            WriteToOutput("-> Starting remote application...");
-
-            var outputToWindow = (_sessionConfiguration.SleepTime != 0);
-            _cperfStartProcess = SDBLib.CreateSdbProcess(!outputToWindow);
-            if (outputToWindow)
-            {
-                _cperfStartProcess.StartInfo.RedirectStandardOutput = false;
-                _cperfStartProcess.StartInfo.RedirectStandardError = false;
-            }
-
-            SDBLib.RunSdbProcess(_cperfStartProcess,
-                    DeviceManager.AdjustSdbArgument($"shell \"{_sessionConfiguration.ProjectTargetPath}/cperfstart_{_hostId}\""), !outputToWindow);
-            var rc = _cperfStartProcess.ExitCode;
-            _cperfStartProcess.Close();
-            if (rc != 0)
-            {
-                WriteToOutput("[ERROR]\n");
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool StartControlServer()
-        {
-            WriteToOutput("-> Starting Control server...");
-
-            System.Threading.Tasks.Task.Run(() => ProcessCperfLog(SessionDirectory));
-
-            _cperfControlProcess = SDBLib.CreateSdbProcess();
-
-            _cperfControlProcess.StartInfo.Arguments =
-                DeviceManager.AdjustSdbArgument(
-                    $"shell \"/bin/bash {_sessionConfiguration.ProjectTargetPath}/cperf_control 1 {_hostId}\"");
-            _cperfControlProcess.Start();
-
-            System.Threading.Tasks.Task.Run(() => ProcessCperfControlOutStream(_cperfControlProcess.StandardOutput));
-            System.Threading.Tasks.Task.Run(() => ProcessCperfControlErrStream(_cperfControlProcess.StandardError));
-
-            return false;
-        }
-
-        private void StopControlServer()
-        {
-            WriteToOutput("-> Stopping Control server...");
-            if (_cperfControlProcess != null)
-            {
-                try
-                {
-                    _cperfControlProcess.StandardInput.AutoFlush = true;
-                    _cperfControlProcess.StandardInput.WriteLine("exit");
-                    _cperfControlProcess.StandardInput.Flush();
-                    _cperfControlProcess.StandardInput.Write("\003\003");
-                    _cperfControlProcess.StandardInput.Close();
-                }
-                catch (Exception e)
-                {
-                    WriteToOutput($"[ERROR] Stopping Control server {e.Message}");
-                }
-
-                _cperfControlProcess.Close();
-                _cperfControlProcess = null;
-            }
-        }
-
-        private bool SendCommandToCperfControl(string command)
-        {
-            if (_cperfControlProcess != null)
-            {
-                try
-                {
-                    _cperfControlProcess.StandardInput.WriteLine(command);
-                    _cperfControlProcess.StandardInput.Flush();
                     return false;
                 }
-                catch (Exception e)
+            }
+
+            string tempFileName = Path.GetTempFileName();
+            try
+            {
+                if (!WriteProfilerConfigFile(_sessionConfiguration.TargetDll, _sessionConfiguration.AppId, tempFileName))
                 {
-                    WriteToOutput($"[ERROR] Sending command to Control server {e.Message}");
+                    WriteToOutput("[PrepareAndCopyFilesToTarget] WriteProfilerConfigFile failed");
+                    return false;
                 }
+
+                string destination = $"{_targetShareDirectory}/{ProfilerConfigName}";
+                DebugWriteToOutput($"Uploading \"{tempFileName}\" to {destination}...");
+                string errorMessage;
+                if (!DeployHelper.PushFile(_selectedDevice, tempFileName, destination, null, out errorMessage))
+                {
+                    WriteToOutput(errorMessage);
+                    return false;
+                }
+            }
+            finally
+            {
+                try { File.Delete(tempFileName); } catch { }
             }
 
             return true;
         }
 
-        private readonly object _logFileLock = new object();
-
-        private void CloseOpenStreams()
+        private bool WriteProfilerConfigFile(string binPath, string appId, string filePath)
         {
-            WriteToOutput("-> Finishing Process Log ");
-            try
-            {
-                lock (_logFileLock)
-                {
-                    if (_procLogStreamWriter != null)
-                    {
-                        _procLogStreamWriter.Flush();
-                        _procLogStreamWriter.Close();
-                        _procLogStreamWriter.Dispose();
-                        _procLogStreamWriter = null;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                WriteToOutput($"[ERROR] Finishing process log {e.Message}");
-            }
+            return _sessionConfiguration.ProfilingSettings.WriteCperfStartFile(filePath);
         }
 
-        private void ProcessCperfControlOutStream(TextReader stream)
+        //private bool AdjustAttributes()
+        //{
+        //    WriteToOutput("-> Adjust script attributes");
+        //    var process = SDBLib.CreateSdbProcess();
+        //    SDBLib.RunSdbProcess(process,
+        //        DeviceManager.AdjustSdbArgument($"shell \"chmod +x {_sessionConfiguration.ProjectTargetPath}/cperfstart_{_hostId}\""));
+        //    var rc = process.ExitCode;
+        //    process.Close();
+
+        //    process = SDBLib.CreateSdbProcess();
+        //    SDBLib.RunSdbProcess(process,
+        //        DeviceManager.AdjustSdbArgument($"shell \"chsmack -a '_' -e 'System::Privileged' {_sessionConfiguration.ProjectTargetPath}/cperfstart_{_hostId}\""));
+        //    var rc1 = process.ExitCode;
+        //    process.Close();
+        //    return rc != 0 || rc1 != 0;
+        //}
+
+        protected override string GetSdbLaunchArguments()
         {
+            return _isLiveProfiling ? "__DLP_DEBUG_ARG__ --server=4711,--" : "";
+        }
+
+        private string GetProfctlLogTizenName()
+        {
+            return $"{_sdkToolPath}/profctl/{GetProfctlLogName()}";
+        }
+
+        private string GetProfctlLogName()
+        {
+            return $"profctl_{(_isLiveProfiling ? "liveprofiler" : "coreprofiler")}.log";
+        }
+
+        private bool CommunicateWithControlProcess()
+        {
+            StreamReader commandStreamReader;
+            string errorMessage;
+            if (!TryConnectToPort(ControlPort, 16, SocketConnectTimeout, out _commandStream, out commandStreamReader,
+                out errorMessage))
+            {
+                WriteToOutput($"Cannot connect to Control Process (port {ControlPort}). {errorMessage}");
+                return false;
+            }
+
+            // read control stream asynchronously
+            Task.Run(() =>
+            {
+                try
+                {
+                    string line;
+                    while ((line = ReadLineIfNotAsyncError(commandStreamReader)) != null)
+                    {
+                        DebugWriteToOutput($"Reply received from Control Process: \"{line}\"");
+                    }
+                    DebugWriteToOutput("Finished reading command stream");
+                }
+                catch (Exception ex)
+                {
+                    string msg = $"Cannot read command stream. {ex.Message}";
+                    if (!AsyncError)
+                    {
+                        SetAsyncError();
+                        WriteToOutput(msg);
+                    }
+                    else
+                    {
+                        DebugWriteToOutput(msg);
+                    }
+                }
+                DisposeHelper.SafeDispose(ref commandStreamReader);
+                DisposeHelper.SafeDispose(ref _commandStream);
+            });
+
+            // read statistics stream asynchronously
+            Task.Run(() =>
+            {
+                try
+                {
+                    StreamReader statisticsStreamReader = TryConnectToPort(StatisticsPort, 1024, SocketConnectTimeout,
+                        out errorMessage);
+                    if (statisticsStreamReader == null)
+                    {
+                        throw new Exception(errorMessage);
+                    }
+                    using (statisticsStreamReader)
+                    {
+                        ProcessControlProcessStatisticsStream(statisticsStreamReader);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    string msg = $"Cannot read statistics stream. {ex.Message}";
+                    if (!AsyncError)
+                    {
+                        SetAsyncError();
+                        WriteToOutput(msg);
+                    }
+                    else
+                    {
+                        DebugWriteToOutput(msg);
+                    }
+                }
+            });
+
+            // read data stream synchronously
+            bool result = false;
             try
             {
-                string line;
-                while ((line = stream.ReadLine()) != null)
-                {
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        continue;
-                    }
-
-                    line = $"{line} {StateToCperfLabel()}";
-                    if (State == ProfileSessionState.Waiting || State == ProfileSessionState.Running || State == ProfileSessionState.Paused)
-                    {
-                        try
-                        {
-                            lock (_logFileLock)
-                            {
-                                if (_procLogStreamWriter != null)
-                                {
-                                    _procLogStreamWriter.WriteLine(line);
-                                    _procLogStreamWriter.Flush();
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            WriteToOutput($"[ERROR] Writing process log {e.Message}");
-                        }
-
-                        var si = SysInfoItem.CreateInstance(line);
-                        if (si != null)
-                        {
-                            NotifySystemInfo(si);
-                        }
-                    }
-
-                }
+                ProcessProfilerLog(SessionDirectory);
+                DebugWriteToOutput("Finished reading profiler trace log");
+                result = !AsyncError;
             }
             catch (Exception ex)
             {
-                WriteToOutput($"[ERROR] Reading Cperf output {ex.Message}");
+                string msg = $"Cannot process profiler trace log. {ex.Message}";
+                if (!AsyncError)
+                {
+                    SetAsyncError();
+                    WriteToOutput(msg);
+                }
+                else
+                {
+                    DebugWriteToOutput(msg);
+                }
+            }
+            return result;
+        }
+
+        private bool SendCommandToControlProcess(string command)
+        {
+            bool result = SendCommandToControlProcess(_commandStream, command);
+            if (!result)
+            {
+                SetAsyncError();
+            }
+            return result;
+        }
+
+        private void CloseOpenStreams()
+        {
+            if (_procLogStreamWriter != null)
+            {
+                DebugWriteToOutput("Finishing process log");
+                try
+                {
+                    lock (_logFileLock)
+                    {
+                        DisposeHelper.SafeDispose(ref _procLogStreamWriter);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    WriteToOutput($"Error closing process log. {ex.Message}");
+                }
             }
         }
 
-        private string StateToCperfLabel()
+        private void ProcessControlProcessStatisticsStream(StreamReader reader)
+        {
+            bool firstLine = true;
+            bool writeProcLog = true;
+            string line;
+            int coreNum = -1;
+            while ((line = ReadLineIfNotAsyncError(reader)) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                if (firstLine)
+                {
+                    coreNum = SysInfoItem.GetCoreNumber(line);
+                }
+
+                line = $"{line} {StateToLabel()}";
+
+                if (writeProcLog && (_procLogStreamWriter != null))
+                {
+                    try
+                    {
+                        lock (_logFileLock)
+                        {
+                            _procLogStreamWriter?.WriteLine(line);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        writeProcLog = false;
+                        WriteToOutput($"Error writing Control Process log. {ex.Message}");
+                    }
+                }
+
+                if (!firstLine && IsProfilingInProgress())
+                {
+                    var si = SysInfoItem.CreateInstance(line, coreNum);
+                    if (si != null)
+                    {
+                        NotifySystemInfo(si);
+                    }
+                }
+
+                firstLine = false;
+            }
+        }
+
+        private string StateToLabel()
         {
             switch (State)
             {
                 case ProfileSessionState.Waiting:
                 case ProfileSessionState.Paused:
-                    return "Waiting";
+                    return "W";
                 case ProfileSessionState.Running:
-                    return "Running";
+                    return "R";
                 default:
-                    return "Unknown";
+                    return "U";
             }
         }
 
-        private static void ProcessCperfControlErrStream(TextReader stream)
+        private void ProcessProfilerLog(string traceLocation)
         {
+            string outputLogPath = Path.Combine(traceLocation, _sessionConfiguration.ProjectName + ".log");
+            var outputLogWriter = new StreamWriter(outputLogPath, false, Encoding.UTF8, 8192);
             try
             {
-                while (stream.ReadLine() != null)
+                using (outputLogWriter)
                 {
-                }
-            }
-            catch (Exception e)
-            {
-                WriteToOutput($"[ERROR] Reading Cperf Error stream {e.Message}");
-            }
-        }
-
-        private void ProcessCperfLog(string traceLocation)
-        {
-            var proc = SDBLib.CreateSdbProcess();
-
-            proc.StartInfo.Arguments = DeviceManager.AdjustSdbArgument(
-                    $"shell \"/bin/bash {_sessionConfiguration.ProjectTargetPath}/cperf_logcontrol {_hostId} {_sessionConfiguration.ProjectTargetPath}\"");
-
-            var outputLogPath = Path.Combine(traceLocation, _sessionConfiguration.ProjectName + ".log");
-            var pdbFilesPath = _sessionConfiguration.ProjectHostBinPath;
-
-            using (var outStreamWriter = new StreamWriter(File.Create(outputLogPath)))
-            {
-                try
-                {
-                    proc.Start();
-                    new DebugDataInjectionFilter
+                    string errorMessage;
+                    StreamReader traceStreamReader = TryConnectToPort(DataPort, 8192, SocketConnectTimeout,
+                        out errorMessage);
+                    if (traceStreamReader == null)
                     {
-                        Input = proc.StandardOutput,
-                        Output = outStreamWriter,
-                        PdbDirectory = pdbFilesPath
-                    }.Process();
+                        throw new Exception(errorMessage);
+                    }
+                    try
+                    {
+                        DebugWriteToOutput($"Reading profiler trace log from port {DataPort}...");
+                        ProcessProfilerLog(traceStreamReader, outputLogWriter);
+                    }
+                    finally
+                    {
+                        DisposeHelper.SafeDispose(ref traceStreamReader);
+                    }
                 }
-                catch (Exception e)
-                {
-                    WriteToOutput($"[ERROR] Reading Cperf log {e.Message}");
-                    proc.Close();
-                }
+            }
+            catch
+            {
+                try { File.Delete(outputLogPath); } catch { }
+                throw;
             }
         }
 
-
-        private bool DownloadTraceFiles()
+        private void ProcessProfilerLog(StreamReader source, StreamWriter destination)
         {
-            WriteToOutput("-> Downloading zip file...");
-            if (DownloadFile($"{_sessionConfiguration.ProjectTargetPath}/{CperfZipName}", Path.Combine(_sessionConfiguration.ProjectHostPath, SessionArchiveLocalFile)))
-            {
-                WriteToOutput("[ERROR]\n");
-                return true;
-            }
+            var parser = new CperfParser();
 
-            WriteToOutput("-> Extracting zip file...");
-            if (ExtractZipFile(Path.Combine(_sessionConfiguration.ProjectHostPath, SessionArchiveLocalFile), SessionDirectory))
-            {
-                WriteToOutput("[ERROR]\n");
-                return true;
-            }
+            parser.LineReadCallback += LineReadCallback;
+            parser.StartTimeCallback += StartTimeCallback;
+            parser.JitCompilationStartedCallback += JitCompilationStartedCallback;
+            parser.JitCompilationFinishedCallback += JitCompilationFinishedCallback;
+            parser.JitCachedFunctionSearchStartedCallback += JitCachedFunctionSearchStartedCallback;
+            parser.JitCachedFunctionSearchFinishedCallback += JitCachedFunctionSearchFinishedCallback;
+            parser.GarbageCollectionStartedCallback += GarbageCollectionStartedCallback;
+            parser.GarbageCollectionFinishedCallback += GarbageCollectionFinishedCallback;
+            parser.ThreadAssignedToOsThreadCallback += ThreadAssignedToOsThreadCallback;
 
-            File.Delete(Path.Combine(_sessionConfiguration.ProjectHostPath, SessionArchiveLocalFile));
-            return false;
+            new DebugDataInjectionFilter
+            {
+                Output = destination,
+                PdbDirectory = _sessionConfiguration.ProjectHostBinPath
+            }
+            .Process(
+                parser,
+                () => ReadLineIfNotAsyncError(source));
+
+            parser.StartTimeCallback -= StartTimeCallback;
+            parser.JitCompilationStartedCallback -= JitCompilationStartedCallback;
+            parser.JitCompilationFinishedCallback -= JitCompilationFinishedCallback;
+            parser.JitCachedFunctionSearchStartedCallback -= JitCachedFunctionSearchStartedCallback;
+            parser.JitCachedFunctionSearchFinishedCallback -= JitCachedFunctionSearchFinishedCallback;
+            parser.GarbageCollectionStartedCallback -= GarbageCollectionStartedCallback;
+            parser.GarbageCollectionFinishedCallback -= GarbageCollectionFinishedCallback;
+            parser.ThreadAssignedToOsThreadCallback -= ThreadAssignedToOsThreadCallback;
+        }
+
+        private void LineReadCallback(string line)
+        {
+            ++_traceLinesRead;
+        }
+
+        private void StartTimeCallback(DateTime startTime)
+        {
+            if (startTime.Kind == DateTimeKind.Utc)
+            {
+                ProfilerStartTimeUtc = startTime;
+                DebugWriteToOutput($"Profiler start time: {startTime.ToDebugString()}");
+            }
+        }
+
+        private void JitCompilationStartedCallback(JitCompilationStarted arg)
+        {
+            NotifyProfilerEvent(new Event(arg, arg.Timestamp, EventType.CompilationStarted));
+        }
+
+        private void JitCompilationFinishedCallback(JitCompilationFinished arg)
+        {
+            NotifyProfilerEvent(new Event(arg, arg.Timestamp, EventType.CompilationFinished));
+        }
+
+        private void JitCachedFunctionSearchStartedCallback(JitCachedFunctionSearchStarted arg)
+        {
+            NotifyProfilerEvent(new Event(arg, arg.Timestamp, EventType.CachedFunctionSearchStarted));
+        }
+
+        private void JitCachedFunctionSearchFinishedCallback(JitCachedFunctionSearchFinished arg)
+        {
+            NotifyProfilerEvent(new Event(arg, arg.Timestamp, EventType.CachedFunctionSearchFinished));
+        }
+
+        private void GarbageCollectionStartedCallback(GarbageCollectionStarted arg)
+        {
+            NotifyProfilerEvent(new Event(arg, arg.Timestamp, EventType.GarbageCollectionStarted));
+        }
+
+        private void GarbageCollectionFinishedCallback(GarbageCollectionFinished arg)
+        {
+            NotifyProfilerEvent(new Event(arg, arg.Timestamp, EventType.GarbageCollectionFinished));
+        }
+
+        private void ThreadAssignedToOsThreadCallback(ThreadAssignedToOsThread arg)
+        {
+            if (_appPid == 0)
+            {
+                _appPid = arg.OsThreadId;
+                Task.Run(() =>
+                {
+                    if (!SendCommandToControlProcess($"test {_appPid}"))
+                    {
+                        SetAsyncError();
+                    }
+                });
+            }
         }
 
         private void WriteSessionFiles(DateTime dt)
         {
-            var timestamp = (dt.ToUniversalTime() - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            double timestamp = (dt.ToUniversalTime() - TimeStampHelper.UnixEpochTime).TotalMilliseconds;
 
             var sessionFile = new SessionProperties(Path.Combine(SessionDirectory, SessionConstants.SessionFileName));
             sessionFile.SetProperty("CoreClrProfilerReport", "name", _sessionConfiguration.ProjectName + ".log");
             sessionFile.SetProperty("CoreClrProfilerReport", "path", "./");
-            var uid = GetMetadataUid(SessionDirectory);
-            var spath = "ust/uid/" + uid;
-            if (Directory.Exists(Path.Combine(SessionDirectory, spath, "32-bit")))
-            {
-                spath = spath + "/32-bit";
-            }
-            else
-            {
-                spath = spath + "/64-bit";
-            }
 
-            sessionFile.SetProperty("CtfReport", "name", "metadata");
-            sessionFile.SetProperty("CtfReport", "path", spath);
             sessionFile.SetProperty("Proc", "name", "proc.log");
             sessionFile.SetProperty("Proc", "path", "./");
             sessionFile.SetProperty("Time", "value", timestamp.ToString(CultureInfo.InvariantCulture));
@@ -718,112 +751,52 @@ namespace NetCore.Profiler.Extension.Launcher.Model
             sessionFile.SetProperty("ProfilingOptions", "ProfDelayedStart", _sessionConfiguration.ProfilingSettings.DelayedStart);
             sessionFile.SetProperty("ProfilingOptions", "ProfTraceGarbageCollection", _sessionConfiguration.ProfilingSettings.TraceGarbageCollection);
 
-            sessionFile.SetProperty("ProfilingOptions", "CperfHostCode", _hostId);
+            string hostId;
+            try
+            {
+                IPAddress ip = Dns.GetHostEntry(Dns.GetHostName()).AddressList[0];
+                hostId = Regex.Replace(ip.ToString(), "[:%]", "");
+            }
+            catch (Exception ex)
+            {
+                WriteToOutput($"Cannot resolve host name. {ex.Message}");
+                hostId = "unknown";
+            }
+            sessionFile.SetProperty("ProfilingOptions", "CperfHostCode", hostId);
             sessionFile.SetProperty("ProfilingOptions", "Sleep", _sessionConfiguration.SleepTime);
             sessionFile.Save();
-        }
-
-        private static string GetMetadataUid(string unzipedDirName)
-        {
-            var upath = Path.Combine(unzipedDirName, "ust", "uid");
-            try
-            {
-                var dirs = Directory.GetDirectories(upath);
-                return Path.GetFileName(dirs[0]); // must be one
-            }
-            catch (Exception)
-            {
-                return "1001"; // default value
-            }
-        }
-
-        private static bool DownloadFile(string source, string destination)
-        {
-            var process = SDBLib.CreateSdbProcess();
-            SDBLib.RunSdbProcess(process, DeviceManager.AdjustSdbArgument($"pull {source} \"{destination}\""));
-            var rc = process.ExitCode;
-            process.Close();
-            return rc != 0;
-        }
-
-        private static bool UploadFile(string source, string destination)
-        {
-            var process = SDBLib.CreateSdbProcess();
-            SDBLib.RunSdbProcess(process, DeviceManager.AdjustSdbArgument($"push \"{source}\" \"/opt/usr/home/owner/{destination}\""));
-            var rc = process.ExitCode;
-            process.Close();
-            return rc != 0;
-        }
-
-        private static bool ExtractZipFile(string archivePath, string extractPath)
-        {
-            try
-            {
-                System.IO.Compression.ZipFile.ExtractToDirectory(archivePath, extractPath);
-                return false;
-            }
-            catch (Exception e)
-            {
-                WriteToOutput($"[ERROR] {e.Message}");
-                return true;
-            }
-        }
-
-
-        private static void WriteToOutput(string message)
-        {
-            ProfilerPlugin.Instance.WriteToOutput(message);
-        }
-
-        private void SetState(ProfileSessionState state, bool notify = false)
-        {
-            State = state;
-            if (notify)
-            {
-                NotifyStatusChange();
-            }
         }
 
         private void NotifySystemInfo(SysInfoItem item)
         {
             foreach (var listener in GetListeners())
             {
-                SafeCallListener(() => listener.SysInfoRead(item));
+                listener.OnSysInfoRead?.Invoke(item);
             }
         }
 
-        private void NotifyStatusChange()
+        private void NotifyProfilerEvent(Event @event)
         {
             foreach (var listener in GetListeners())
             {
-                SafeCallListener(() => listener.StateChanged(State));
+                listener.OnProfilerEvent?.Invoke(@event);
             }
         }
 
-        private IEnumerable<IProfileSessionListener> GetListeners()
+        protected override void NotifyStatusChange()
         {
-            lock (_sessionListeners)
+            foreach (var listener in GetListeners())
             {
-                return new List<IProfileSessionListener>(_sessionListeners);
+                listener.OnStateChanged?.Invoke(State);
             }
         }
 
-        private void SafeCallListener(Action action)
+        private void NotifyDebugStateChanged(bool isBreakState)
         {
-            new Thread(delegate()
+            foreach (var listener in GetListeners())
             {
-                try
-                {
-                    action();
-                }
-                catch (Exception e)
-                {
-                    WriteToOutput($"[ERROR] {e.Message}");
-                }
-
-            }).Start();
-
+                listener.OnDebugStateChanged?.Invoke(isBreakState);
+            }
         }
-
     }
 }

@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Tizen Wearable Xaml App</Name>
+    <Description>A Tizen Wearable Xaml App project template for building Tizen Wearable Xaml Application.</Description>
+    <Icon>TizenWearableXamlApp.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>0BBDA53A-39A6-4D50-9F8F-9A73E6E05AA8</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>TizenWearableXamlApp</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+	  <CreateInPlace>true</CreateInPlace>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="Project.TizenWearableXamlApp.csproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.xaml.cs" OpenInEditor="true">App.xaml.cs.src</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="App.xaml" OpenInEditor="true">App.xaml.src</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="MainPage.xaml.cs" OpenInEditor="true">MainPage.xaml.cs.src</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="MainPage.xaml" OpenInEditor="true">MainPage.xaml.src</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="$safeprojectname$.cs" OpenInEditor="true">TizenWearableXamlApp.cs.src</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="tizen-manifest.xml">tizen-manifest.xml.src</ProjectItem>
+      <ProjectItem TargetFileName="shared\res\$safeprojectname$.png">TizenWearableXamlApp.png.src</ProjectItem>
+      <Folder Name="lib"></Folder>
+      <Folder Name="res"></Folder>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

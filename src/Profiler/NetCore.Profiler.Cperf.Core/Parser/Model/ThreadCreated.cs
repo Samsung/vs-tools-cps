@@ -16,10 +16,20 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for thread created ("thr crt") %Core %Profiler
+    /// trace log records. Notifies that a thread has been created.
+    /// </summary>
     public class ThreadCreated
     {
+        /// <summary>
+        /// An ID of an operating system thread.
+        /// </summary>
         public ulong ThreadId { get; }
 
+        /// <summary>
+        /// An internal ID of a managed thread.
+        /// </summary>
         public ulong InternalId { get; }
 
         public ThreadCreated(ulong threadId, ulong internalId)

@@ -6,36 +6,48 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" x:ClassModifier="internal" Width="780" Loaded="UserControl_Loaded">
     <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Left">
+        <StackPanel DockPanel.Dock="Left" Height="364">
             <StackPanel.Background>
                 <ImageBrush ImageSource="pinwheel_alpha.png" Stretch="None" AlignmentX="Left" AlignmentY="Top" Opacity="0.2"/>
             </StackPanel.Background>
-            <Label Content="Tool Path(Tizen SDK)"/>
-            <DockPanel Margin="5" LastChildFill="True" Height="25">
-                <Button DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="Button_Reset" Width="70" Content="Reset" Click="Button_Reset_Click"/>
-                <Button DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="Button_Browse" Width="70" Content="Browse..." Click="Button_Browse_Click"/>
-                <TextBox DockPanel.Dock="Left" x:Name="Textbox_Path" Text="{Binding ToolsPath, Mode=TwoWay}" TextChanged="Textbox_Path_TextChanged"/>
-            </DockPanel>
-            <DockPanel Margin="10" LastChildFill="True">
-                <Label DockPanel.Dock="Left" Content="Emulator Manager" Width="150"/>
-                <Image DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="EmulatorMgr_image" Height="16" Source="StatusOK_16x.png"/>
-                <TextBox x:Name="EmulatorMgr" IsReadOnly="True"/>
-            </DockPanel>
-            <DockPanel Margin="10" LastChildFill="True">
-                <Label Content="Device Manager" Width="150"/>
-                <Image DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="DeviceMgr_image" Height="16" Source="StatusOK_16x.png"/>
-                <TextBox x:Name="DeviceMgr" IsReadOnly="True"/>
-            </DockPanel>
-            <DockPanel Margin="10" LastChildFill="True">
-                <Label Content="Certificate Manager" Width="150"/>
-                <Image DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="CertificateMgr_image" Height="16" Source="StatusOK_16x.png"/>
-                <TextBox x:Name="CertificateMgr" IsReadOnly="True"/>
-            </DockPanel>
-            <DockPanel Margin="10" LastChildFill="True">
-                <Label Content="SDB Command Prompt" Width="150"/>
-                <Image DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="Sdb_image" Height="16" Source="StatusOK_16x.png"/>
-                <TextBox x:Name="Sdb" IsReadOnly="True"/>
-            </DockPanel>
+            <GroupBox x:Name="groupBoxSdkTools" Header="Tizen SDK Tools">
+                <StackPanel DockPanel.Dock="Left">
+                    <Label Content="Tool Path (Tizen SDK)"/>
+                    <DockPanel Margin="10,8" LastChildFill="True" Height="25">
+                        <Button DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="Button_Reset" Width="70" Content="Reset" Click="Button_Reset_Click"/>
+                        <Button DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="Button_Browse" Width="70" Content="Browse..." Click="Button_Browse_Click"/>
+                        <TextBox DockPanel.Dock="Left" x:Name="Textbox_Path" Text="{Binding ToolsPath, Mode=TwoWay}" TextChanged="Textbox_Path_TextChanged"/>
+                    </DockPanel>
+                    <DockPanel Margin="10,8" LastChildFill="True">
+                        <Label DockPanel.Dock="Left" Content="Emulator Manager" Width="150"/>
+                        <Image DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="EmulatorMgr_image" Height="16" Source="StatusOK_16x.png"/>
+                        <TextBox x:Name="EmulatorMgr" IsReadOnly="True"/>
+                    </DockPanel>
+                    <DockPanel Margin="10,8" LastChildFill="True">
+                        <Label Content="Device Manager" Width="150"/>
+                        <Image DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="DeviceMgr_image" Height="16" Source="StatusOK_16x.png"/>
+                        <TextBox x:Name="DeviceMgr" IsReadOnly="True"/>
+                    </DockPanel>
+                    <DockPanel Margin="10,8" LastChildFill="True">
+                        <Label Content="Certificate Manager" Width="150"/>
+                        <Image DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="CertificateMgr_image" Height="16" Source="StatusOK_16x.png"/>
+                        <TextBox x:Name="CertificateMgr" IsReadOnly="True"/>
+                    </DockPanel>
+                    <DockPanel Margin="10,8" LastChildFill="True">
+                        <Label Content="SDB Command Prompt" Width="150"/>
+                        <Image DockPanel.Dock="Right" Margin="5 0 0 0" x:Name="Sdb_image" Height="16" Source="StatusOK_16x.png"/>
+                        <TextBox x:Name="Sdb" IsReadOnly="True"/>
+                    </DockPanel>
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Name="groupBoxDebugger" Header="Profiler" MinHeight="80" Height="80">
+                <StackPanel DockPanel.Dock="Left">
+                    <DockPanel Margin="10,10" LastChildFill="True">
+                        <CheckBox x:Name="UseLiveProfilerCheckBox" IsChecked="{Binding UseLiveProfiler, Mode=TwoWay}"
+                              Content="Use Live Profiler while debugging (when available)" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
     </DockPanel>
 </UserControl>

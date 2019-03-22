@@ -28,10 +28,10 @@ namespace Tizen.VisualStudio.LogViewer
         public Log(string[] arr, string _msg)
         {
             this.Time = arr[0] + " " + arr[1];
-            this.Pid = arr[4].Substring(0, arr[4].Length - 1);
-            this.Tid = arr[6];
             this.Level = Resource.GetLevelName(arr[2][0]);
-            this.Tag = arr[2].Substring(2, arr[2].Length - 2);
+            this.Tag = arr[3];
+            this.Pid = arr[5];
+            this.Tid = arr[7];
             this.Msg = _msg;
         }
 

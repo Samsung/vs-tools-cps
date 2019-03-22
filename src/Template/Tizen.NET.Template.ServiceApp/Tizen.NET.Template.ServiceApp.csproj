@@ -56,11 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <VSTemplate Include="ServiceApp.vstemplate">
-      <OutputSubPath>Tizen</OutputSubPath>
-      <SubType>Designer</SubType>
-    </VSTemplate>
-    <VSTemplate Include="ServiceApp.vstemplate">
-      <OutputSubPath>Tizen\Native</OutputSubPath>
+      <OutputSubPath>Tizen 4.0</OutputSubPath>
       <SubType>Designer</SubType>
     </VSTemplate>
   </ItemGroup>

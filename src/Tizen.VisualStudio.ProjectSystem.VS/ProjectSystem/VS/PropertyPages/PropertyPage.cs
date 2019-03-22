@@ -142,7 +142,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
         ///--------------------------------------------------------------------------------------------
         public int Apply()
         {
-            return WaitForAsync(OnApply);
+            return WaitForAsync(OnApplyAsync);
         }
 
         ///--------------------------------------------------------------------------------------------
@@ -155,7 +155,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
         {
             if (isActivated)
             {
-                WaitForAsync(OnDeactivate);
+                WaitForAsync(OnDeactivateAsync);
                 UnadviseDebugger();
             }
 
@@ -238,7 +238,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
         /// </summary>
         internal void SetObjects(bool isClosing)
         {
-            WaitForAsync(async () => await OnSetObjects(isClosing).ConfigureAwait(false));
+            WaitForAsync(async () => await OnSetObjectsAsync(isClosing).ConfigureAwait(false));
         }
 
         ///--------------------------------------------------------------------------------------------
@@ -367,9 +367,9 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
             _debugger = null;
             _debuggerCookie = 0;
         }
-        protected abstract System.Threading.Tasks.Task<int> OnApply();
-        protected abstract System.Threading.Tasks.Task OnDeactivate();
-        protected abstract System.Threading.Tasks.Task OnSetObjects(bool isClosing);
+        protected abstract System.Threading.Tasks.Task<int> OnApplyAsync();
+        protected abstract System.Threading.Tasks.Task OnDeactivateAsync();
+        protected abstract System.Threading.Tasks.Task OnSetObjectsAsync(bool isClosing);
 
         public void SetObjects(uint cObjects, object[] ppunk)
         {
@@ -411,7 +411,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
                 }
             }
 
-            OnSetObjects(false);
+            OnSetObjectsAsync(false);
         }
     }
 }

@@ -23,7 +23,7 @@ using NetCore.Profiler.Extension.Session;
 namespace NetCore.Profiler.Extension.UI.SessionWindow
 {
     [Guid("547af14d-c17c-4063-a386-76064dda3781")]
-    public class SessionWindow : ToolWindowPane
+    public class SessionWindow : ToolWindowPane, ISessionWindow
     {
         private IActiveSession _activeSession;
 
@@ -60,5 +60,15 @@ namespace NetCore.Profiler.Extension.UI.SessionWindow
             (Frame as IVsWindowFrame)?.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
         }
 
+        public void ShowSession(object session)
+        {
+            SetActiveSession((IActiveSession)session);
+            Show();
+        }
+    }
+
+    public interface ISessionWindow
+    {
+        void ShowSession(object session);
     }
 }

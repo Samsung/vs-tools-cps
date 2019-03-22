@@ -20,10 +20,10 @@
             </StackPanel>
             <wpf:CartesianChart x:Name="LiveTimeline" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5" Series="{Binding SeriesCollection}">
                 <wpf:CartesianChart.AxisY>
-                    <wpf:Axis Title="CPU (%)" MinValue="0" MaxValue="400" Position="LeftBottom"></wpf:Axis>
+                    <wpf:Axis Title="CPU (%)" MinValue="0" MaxValue="100" Position="LeftBottom"></wpf:Axis>
                 </wpf:CartesianChart.AxisY>
                 <wpf:CartesianChart.AxisX>
-                    <wpf:Axis Title="Time (msec)"></wpf:Axis>
+                    <wpf:Axis Title="Time (sec)"></wpf:Axis>
                 </wpf:CartesianChart.AxisX>
                 <wpf:CartesianChart.ContextMenu>
                     <ContextMenu>

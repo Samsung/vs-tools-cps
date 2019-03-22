@@ -60,7 +60,9 @@ namespace Tizen.VisualStudio.ManifestEditor
         NoDisplayType NoDisplay { get; set; }
         NewHWaccelerationType HWAcceleration { get; set; }
         LaunchType LaunchMode { get; set; }
-        DisplaySplashScreenType DisplaySplash { get; set; }
+        AmbientType AmbientSupport { get; set; }
+        NewDisplaySplashType NewDisplaySplash { get; set; }
+        string UpdatePeriod { get; set; }
 
         AutorestartType Autorestart { get; set; }
         OnbootType Onboot { get; set; }

@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>tizen50</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>None</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="lib\"/>
+    <Folder Include="res\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Tizen.NET" Version="_NUGET_TIZENNET_VER_" >
+      <ExcludeAssets>Runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Tizen.NET.Sdk" Version="_NUGET_TIZENNETSDK_VER_" />
+    <PackageReference Include="Tizen.Wearable.CircularUI" Version="_NUGET_TIZENWEARABLECIRCULARUI_VER_" />
+    <PackageReference Include="Xamarin.Forms" Version="_NUGET_XAMARINFORMS_VER_" />
+  </ItemGroup>
+
+</Project>
+

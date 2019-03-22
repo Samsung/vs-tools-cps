@@ -31,7 +31,6 @@ namespace NetCore.Profiler.Extension.UI.SessionWindow
 
         public void SetActiveSession(IActiveSession session)
         {
-
             var filters = new FilterPanel(session);
             Children.Add(filters);
             Grid.SetRow(filters, 0);
@@ -47,6 +46,5 @@ namespace NetCore.Profiler.Extension.UI.SessionWindow
             Grid.SetRow(callStack, 0);
             Grid.SetColumn(callStack, 2);
         }
-
     }
 }

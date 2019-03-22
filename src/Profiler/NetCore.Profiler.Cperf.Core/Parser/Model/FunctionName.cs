@@ -16,6 +16,10 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for function info dump ("fun nam") %Core %Profiler
+    /// trace log records. Contains a function name, return type and signature.
+    /// </summary>
     public class FunctionName
     {
         public ulong InternalId { get; set; }
@@ -33,6 +37,5 @@ namespace NetCore.Profiler.Cperf.Core.Parser.Model
             ReturnType = returnType;
             Signature = signature;
         }
-
     }
 }

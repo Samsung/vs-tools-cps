@@ -81,13 +81,13 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
             _ignoreEvents = false;
         }
 
-        public async Task<int> Apply()
+        public async Task<int> ApplyAsync()
         {
             int result = VSConstants.S_OK;
 
             if (IsDirty)
             {
-                result = await OnApply().ConfigureAwait(false);
+                result = await OnApplyAsync().ConfigureAwait(false);
                 if (result == VSConstants.S_OK)
                 {
                     IsDirty = false;
@@ -97,7 +97,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.PropertyPages
             return result;
         }
 
-        protected virtual Task<int> OnApply() { return ViewModel.Save(); }
+        protected virtual Task<int> OnApplyAsync() { return ViewModel.SaveAsync(); }
         private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (!_ignoreEvents && !ViewModel.IgnoreEvents)

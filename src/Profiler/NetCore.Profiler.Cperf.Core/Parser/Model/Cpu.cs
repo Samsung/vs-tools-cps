@@ -16,10 +16,20 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for CPU usage dump ("prc cpu") %Core %Profiler
+    /// trace log records.
+    /// </summary>
     public class Cpu
     {
+        /// <summary>
+        /// The event timestamp in milliseconds from the start of profiling.
+        /// </summary>
         public ulong Timestamp { get; }
 
+        /// <summary>
+        /// The CPU usage time in microseconds from a last timestamp.
+        /// </summary>
         public ulong Duration { get; }
 
         public Cpu(ulong timestamp, ulong duration)

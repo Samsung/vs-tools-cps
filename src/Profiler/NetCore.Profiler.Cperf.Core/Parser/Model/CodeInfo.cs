@@ -16,11 +16,14 @@
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A native code information block item used in <see cref="FunctionInfo"/>.
+    /// </summary>
     public class CodeInfo
     {
         public ulong StartAddress { get; }
 
-        public uint Size{ get; }
+        public uint Size { get; }
 
         public CodeInfo(ulong startAddress, uint size)
         {

@@ -16,16 +16,19 @@
 
 namespace NetCore.Profiler.Cperf.Core.Model
 {
+    /// <summary>
+    /// A <see cref="DataContainer"/> data model class for a CPU utilization history record. The source of the
+    /// data is %Core %Profiler log. These records are stored in <see cref="CpuUtilizationHistory"/> objects.
+    /// </summary>
     public class CpuUtilization : ITimeStamped
     {
-
         /// <summary>
-        /// Timestamp at which utilization was measured
+        /// A timestamp at which utilization was measured
         /// </summary>
-        public ulong Timestamp { get; set; }
+        public ulong TimeMilliseconds { get; set; }
 
         /// <summary>
-        /// CPU Utilization in percents
+        /// CPU utilization in percents
         /// </summary>
         public double Utilization { get; set; }
 
@@ -38,6 +41,5 @@ namespace NetCore.Profiler.Cperf.Core.Model
         /// <code>true</code> if profiling was resumed at this moment
         /// </summary>
         public bool ProfilingWasResumed { get; set; }
-
     }
 }

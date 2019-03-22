@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="..\..\..\build\Targets\Tizen.Versions.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{DEDBE4C8-6B5B-4084-8A60-E116CB507460}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Tizen.NET.Template5.XamlApp</RootNamespace>
+    <AssemblyName>Tizen.NET.Template5.XamlApp</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CreateVsixContainer>false</CreateVsixContainer>
+    <DeployExtension>false</DeployExtension>
+    <DeployVSTemplates>false</DeployVSTemplates>
+    <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.CoreUtility">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <VSTemplate Include="XamlApp.vstemplate">
+      <OutputSubPath>Tizen 5.0</OutputSubPath>
+      <SubType>Designer</SubType>
+    </VSTemplate>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Tizen.Common\Project.Tizen.XamlApp.csproj.src" />
+    <None Include="Tizen.Common\tizen-manifest.xml.src" />
+    <None Include="Tizen.Common\Main.cs.src" />
+    <None Include="Tizen.Common\application.png.src" />
+    <None Include="XamlApp\Project.XamlApp.csproj.src" />
+    <None Include="XamlApp\Project.XamlApp.csproj" />
+    <None Include="XamlApp\App.xaml.cs.src" />
+    <None Include="XamlApp\MainPage.xaml.cs.src" />
+    <None Include="Tizen.Mobile\Project.Tizen.XamlApp.Mobile.csproj" />
+    <None Include="Tizen.Mobile\Project.Tizen.XamlApp.Mobile.csproj.src" />
+    <None Include="Tizen.Mobile\application.png.src" />
+    <None Include="Tizen.Mobile\Main.cs.src" />
+    <None Include="Tizen.Mobile\tizen-manifest.xml.src" />
+    <None Include="Tizen.TV\Project.Tizen.XamlApp.TV.csproj" />
+    <None Include="Tizen.TV\Project.Tizen.XamlApp.TV.csproj.src" />
+    <None Include="Tizen.TV\application.png.src" />
+    <None Include="Tizen.TV\Main.cs.src" />
+    <None Include="Tizen.TV\tizen-manifest.xml.src" />
+    <None Include="Tizen.Wearable\Project.Tizen.XamlApp.Wearable.csproj" />
+    <None Include="Tizen.Wearable\Project.Tizen.XamlApp.Wearable.csproj.src">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Tizen.Wearable\application.png.src" />
+    <None Include="Tizen.Wearable\Main.cs.src" />
+    <None Include="Tizen.Wearable\tizen-manifest.xml.src" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Tizen.Common\Project.Tizen.XamlApp.csproj" />
+    <Content Include="Tizen.Common\Project.Tizen.XamlApp.ico" />
+    <Content Include="Tizen.Common\Project.Tizen.XamlApp.vstemplate">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Tizen.NET.Template.XamlApp.ico" />
+    <Content Include="XamlApp\Project.XamlApp.ico" />
+    <Content Include="XamlApp\Project.XamlApp.vstemplate" />
+    <None Include="XamlApp\App.xaml.src" />
+    <None Include="XamlApp\Mainpage.xaml.src" />
+    <Content Include="Tizen.Mobile\Project.Tizen.XamlApp.Mobile.ico" />
+    <Content Include="Tizen.Mobile\Project.Tizen.XamlApp.Mobile.vstemplate">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Tizen.TV\Project.Tizen.XamlApp.TV.ico" />
+    <Content Include="Tizen.TV\Project.Tizen.XamlApp.TV.vstemplate" />
+    <Content Include="Tizen.Wearable\Project.Tizen.XamlApp.Wearable.ico" />
+    <Content Include="Tizen.Wearable\Project.Tizen.XamlApp.Wearable.vstemplate">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Target Name="PrepareBuild" AfterTargets="BeforeBuild">
+    <CallTarget Targets="CopyCSProjTemplate" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

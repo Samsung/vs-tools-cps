@@ -57,6 +57,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <None Include="app.config" />
+    <None Include="packages.config" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -64,7 +66,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Tizen.MIDebugPackage_2017.vsix">
+    <Content Include="..\..\Tizen.MIDebugPackage.vsix">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -108,13 +110,86 @@
       <Project>{7511dc49-d198-4546-ac61-e44bb1fc39b5}</Project>
       <Name>NetCore.Profiler.Extension</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Profiler\NetCore.Profiler.Lttng.Core\NetCore.Profiler.Lttng.Core.csproj">
-      <Project>{d10f56ce-e54b-45d2-a30d-fa7034f599c6}</Project>
-      <Name>NetCore.Profiler.Lttng.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Profiler\NetCore.Profiler.Session.Core\NetCore.Profiler.Session.Core.csproj">
       <Project>{3a7e5fda-98f5-4c97-8ccb-3463ca95c166}</Project>
       <Name>NetCore.Profiler.Session.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NET.Template5.Cross.NETStandard\Tizen.NET.Template5.Cross.NETStandard.csproj">
+      <Project>{C9EE50DD-E955-41C8-B9B5-3E3ADB6DB2DF}</Project>
+      <Name>Tizen.NET.Template5.Cross.NETStandard</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NET.Template5.ElmSharp\Tizen.NET.Template5.ElmSharp.csproj">
+      <Project>{FE34EF05-D3AB-4979-80CF-3F2B16501AD4}</Project>
+      <Name>Tizen.NET.Template5.ElmSharp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NET.Template5.NSClassLib\Tizen.NET.Template5.NSClassLib.csproj">
+      <Project>{F92DCF17-B128-4C98-BA91-E8B83BB1CE43}</Project>
+      <Name>Tizen.NET.Template5.NSClassLib</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NET.Template5.OpenTKApp\Tizen.NET.Template5.OpenTKApp.csproj">
+      <Project>{7F5ABBF3-0910-4D6C-B99D-961F3A1AA9AA}</Project>
+      <Name>Tizen.NET.Template5.OpenTKApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NET.Template5.ServiceApp\Tizen.NET.Template5.ServiceApp.csproj">
+      <Project>{CB2D7358-C914-4A2E-9AFF-829A201B1A0D}</Project>
+      <Name>Tizen.NET.Template5.ServiceApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NET.Template5.WatchfaceApp\Tizen.NET.Template5.WatchfaceApp.csproj">
+      <Project>{A2404C68-6CBA-44B9-B06C-F276C6E3883E}</Project>
+      <Name>Tizen.NET.Template5.WatchfaceApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NET.Template5.WearableApp\Tizen.NET.Template5.WearableApp.csproj">
+      <Project>{BCA13B56-6007-4C56-9EB4-743FBB7FFB11}</Project>
+      <Name>Tizen.NET.Template5.WearableApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NET.Template5.WearableXamlApp\Tizen.NET.Template5.WearableXamlApp.csproj">
+      <Project>{F2009EDF-6CE4-463F-92EE-8D22D3D67BC0}</Project>
+      <Name>Tizen.NET.Template5.WearableXamlApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NET.Template5.XamlApp\Tizen.NET.Template5.XamlApp.csproj">
+      <Project>{DEDBE4C8-6B5B-4084-8A60-E116CB507460}</Project>
+      <Name>Tizen.NET.Template5.XamlApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template5.0\Tizen.NUI.Template5.Single\Tizen.NET.Template5.NUI.csproj">
+      <Project>{932B7301-0E37-4528-9C8E-E7C472B20032}</Project>
+      <Name>Tizen.NET.Template5.NUI</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template\Tizen.Native.Shared.Template\Tizen.Native.Shared.Template.csproj">
+      <Project>{FC79A882-E8E7-4D80-86BC-71DC65BA79C1}</Project>
+      <Name>Tizen.Native.Shared.Template</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\Template\Tizen.NET.Template.Cross.NETStandard\Tizen.NET.Template.Cross.NETStandard.csproj">
       <Project>{252F837C-9C9D-41D6-BB7A-A77BD8A65E4D}</Project>
@@ -144,6 +219,34 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
+    <ProjectReference Include="..\Template\Tizen.NET.Template.WatchfaceApp\Tizen.NET.Template.WatchfaceApp.csproj">
+      <Project>{544CB8AC-583D-4ED3-9E7E-1422119D5878}</Project>
+      <Name>Tizen.NET.Template.WatchfaceApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template\Tizen.NET.Template.WearableApp\Tizen.NET.Template.WearableApp.csproj">
+      <Project>{2F5A4F1D-1AC8-4E1F-8B3E-F01D4826F6A2}</Project>
+      <Name>Tizen.NET.Template.WearableApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template\Tizen.NET.Template.WearableXamlApp\Tizen.NET.Template.WearableXamlApp.csproj">
+      <Project>{53855329-E691-42D8-860F-BC4C6FC8515F}</Project>
+      <Name>Tizen.NET.Template.WearableXamlApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\Template\Tizen.NET.Template.XamlApp\Tizen.NET.Template.XamlApp.csproj">
+      <Project>{95940B05-FE94-479C-90F3-687D3D4DB6E8}</Project>
+      <Name>Tizen.NET.Template.XamlApp</Name>
+      <VSIXSubPath>ProjectTemplates</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>TemplateProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
     <ProjectReference Include="..\Template\Tizen.NUI.Template.Single\Tizen.NET.Template.NUI.csproj">
       <Project>{34D9CB13-AF2F-4282-B4B2-3E5A6626F742}</Project>
       <Name>Tizen.NET.Template.NUI</Name>
@@ -169,12 +272,24 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\Tools\NetCat\NetCat.csproj">
+      <Project>{60AE5A97-914E-4182-8779-B9A37980381F}</Project>
+      <Name>NetCat</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
     <ProjectReference Include="..\Tools\Tizen.VisualStudio.APIChecker\Tizen.VisualStudio.APIChecker.csproj">
       <Project>{7DADA217-E0D9-45DD-AE98-1EBE43552B55}</Project>
       <Name>Tizen.VisualStudio.APIChecker</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Ngen>True</Ngen>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />

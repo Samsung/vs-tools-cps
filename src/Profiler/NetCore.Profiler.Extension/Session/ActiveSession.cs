@@ -20,6 +20,9 @@ using NetCore.Profiler.Extension.Common;
 
 namespace NetCore.Profiler.Extension.Session
 {
+    /// <summary>
+    /// A class representing a profiling session opened for viewing from Session Explorer.
+    /// </summary>
     class ActiveSession : NotifyPropertyChanged, IActiveSession
     {
         private ISession _sessionModel;
@@ -72,7 +75,6 @@ namespace NetCore.Profiler.Extension.Session
                 SessionModel.BuildStatistics(timeFrame);
                 SelectedTimeFrame = timeFrame;
             }
-
         }
     }
 }

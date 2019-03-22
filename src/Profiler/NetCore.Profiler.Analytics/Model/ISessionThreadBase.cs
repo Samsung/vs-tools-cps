@@ -21,7 +21,6 @@ namespace NetCore.Profiler.Analytics.Model
 {
     public interface ISessionThreadBase
     {
-
         ulong InternalId { get; }
 
         ulong OsThreadId { get; }

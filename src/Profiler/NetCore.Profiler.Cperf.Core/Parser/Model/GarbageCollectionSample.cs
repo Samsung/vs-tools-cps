@@ -18,6 +18,11 @@ using System.Collections.Generic;
 
 namespace NetCore.Profiler.Cperf.Core.Parser.Model
 {
+    /// <summary>
+    /// A <see cref="CperfParser"/> data model class for a garbage collection sample ("gch alt") %Core %Profiler
+    /// trace log records. Used to dump the GC allocation table that describes how many objects of different classes
+    /// remain in the heap after a garbage collection has completed and how many memory is used by them.
+    /// </summary>
     public class GarbageCollectionSample
     {
         public ulong Timestamp { get; }

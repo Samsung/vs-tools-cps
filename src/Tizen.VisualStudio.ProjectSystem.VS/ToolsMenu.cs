@@ -31,6 +31,7 @@ using Tizen.VisualStudio.ResourceManager;
 using Tizen.VisualStudio.InstallLauncher;
 using Tizen.VisualStudio.ExternalTools;
 using Tizen.VisualStudio.Tools.ExternalTool;
+using Tizen.VisualStudio.Preview;
 
 namespace Tizen.VisualStudio
 {
@@ -54,6 +55,7 @@ namespace Tizen.VisualStudio
         public const int cmdIdMenuItemInstallWizard = 0x0198;
         public const int cmdIdMenuItemTest = 0x0199;
         public const int CmdIdMenuItemSdbServerStart = 0x0200;
+        public const int CmdIdMenuItemXamlPreview = 0x201;
 
         private static ToolsMenu instance;
 
@@ -105,6 +107,7 @@ namespace Tizen.VisualStudio
                 RegMenuItem(commandService, cmdIdMenuItemDeviceManager, HandleMenuItemDeviceManager);
                 RegMenuItem(commandService, cmdIdMenuItemLogView, HandleMenuItemLogView);
                 RegMenuItem(commandService, cmdIdMenuItemAPIChecker, HandleMenuItemAPIChecker);
+                RegMenuItem(commandService, CmdIdMenuItemXamlPreview, HandleMenuItemXamlPreview);
                 RegDebugModeMenuItem(commandService, cmdIdMenuItemResourceManager, HandleMenuItemResourceManager);
                 RegDynamicMenuItem(commandService, CmdIdMenuItemSdbServerStart, HandleMenuItemSdbServerStart);
 
@@ -213,6 +216,11 @@ namespace Tizen.VisualStudio
             DeviceManager.ResetDeviceMonitorRetry();
             DeviceManager.StopDeviceMonitor();
             DeviceManager.StartDeviceMonitor();
+        }
+
+        private void HandleMenuItemXamlPreview(object sender, EventArgs e)
+        {
+            new PreviewerTool().Preview(this.ServiceProvider);
         }
 
         #endregion

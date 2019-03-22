@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.Shell;
 [assembly: ProvideCodeBase(AssemblyName = "NetCore.Profiler.Cperf.Core")]
 [assembly: ProvideCodeBase(AssemblyName = "NetCore.Profiler.Cperf.LogAdaptor.Core")]
 [assembly: ProvideCodeBase(AssemblyName = "NetCore.Profiler.Extension")]
-[assembly: ProvideCodeBase(AssemblyName = "NetCore.Profiler.Lttng.Core")]
 [assembly: ProvideCodeBase(AssemblyName = "NetCore.Profiler.Session.Core")]
 [assembly: ProvideCodeBase(AssemblyName = "Newtonsoft.Json")]
 [assembly: ProvideCodeBase(AssemblyName = "NetCore.Profiler.Extension")]
