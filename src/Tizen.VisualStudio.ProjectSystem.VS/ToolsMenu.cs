@@ -25,13 +25,14 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Tizen.VisualStudio.APIChecker;
 using Tizen.VisualStudio.ConnectToolbar;
 using Tizen.VisualStudio.Tools.DebugBridge;
-//using Tizen.Extension.ConnectToolbar;
-using LogViewer = Tizen.VisualStudio.LogViewer.LogViewer;
 using Tizen.VisualStudio.ResourceManager;
 using Tizen.VisualStudio.InstallLauncher;
-using Tizen.VisualStudio.ExternalTools;
 using Tizen.VisualStudio.Tools.ExternalTool;
 using Tizen.VisualStudio.Preview;
+using Tizen.VisualStudio.ProjectWizard.View;
+using System.Windows;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Tizen.VisualStudio
 {
@@ -39,6 +40,8 @@ namespace Tizen.VisualStudio
     {
         public static readonly Guid guidCommandSet =
             new Guid("14cd1b22-758c-4d5e-827e-0229a3371332");
+        public static readonly Guid guidFileMenuCommandSet =
+            new Guid("71b2c831-4da5-4b4a-8903-e9e336839b73");
 
         public const int cmdIdMenuItemPackageManager = 0x0100;
         //public const int cmdIdConnectCombo = 0x0101;
@@ -52,10 +55,13 @@ namespace Tizen.VisualStudio
         public const int cmdIdMenuItemDeviceManager = 0x0110;
         public const int cmdIdMenuItemAPIChecker = 0x0111;
         public const int cmdIdMenuItemResourceManager = 0x0112;
+        public const int cmdIdMenuItemImportWgtProject = 0x0119;
         public const int cmdIdMenuItemInstallWizard = 0x0198;
         public const int cmdIdMenuItemTest = 0x0199;
         public const int CmdIdMenuItemSdbServerStart = 0x0200;
         public const int CmdIdMenuItemXamlPreview = 0x201;
+        public const int CmdIdFileNewTizenWebProject = 0x0777;
+        public const int cmdIdMenuItemImportProject = 0x0106;
 
         private static ToolsMenu instance;
 
@@ -109,11 +115,14 @@ namespace Tizen.VisualStudio
                 RegMenuItem(commandService, cmdIdMenuItemAPIChecker, HandleMenuItemAPIChecker);
                 RegMenuItem(commandService, CmdIdMenuItemXamlPreview, HandleMenuItemXamlPreview);
                 RegDebugModeMenuItem(commandService, cmdIdMenuItemResourceManager, HandleMenuItemResourceManager);
+                RegMenuItem(commandService, cmdIdMenuItemImportWgtProject, HandleMenuItemImportWgtProject);
                 RegDynamicMenuItem(commandService, CmdIdMenuItemSdbServerStart, HandleMenuItemSdbServerStart);
 
                 RegDebugModeMenuItem(commandService, cmdIdMenuItemInstallWizard, HandleMenuItemInstallWizard);
 
                 RegDebugModeMenuItem(commandService, cmdIdMenuItemTest, HandleMenuItemTest);
+                RegFileMenuItem(commandService, CmdIdFileNewTizenWebProject, HandleFileMenuItemNewTizenProject);
+                RegMenuItem(commandService, cmdIdMenuItemImportProject, HandleMenuItemImportProject);
             }
         }
 
@@ -146,7 +155,27 @@ namespace Tizen.VisualStudio
             return mItem;
         }
 
+        private MenuCommand RegFileMenuItem(OleMenuCommandService commandService, int commandID, EventHandler invokeHandler)
+        {
+            CommandID cmdId;
+            MenuCommand mItem;
+
+            cmdId = new CommandID(guidFileMenuCommandSet, commandID);
+            mItem = new MenuCommand(invokeHandler, cmdId);
+
+            commandService.AddCommand(mItem);
+
+            return mItem;
+        }
+
         #region Command Handlers
+
+        private void HandleFileMenuItemNewTizenProject(object sender, EventArgs e)
+        {
+            var projectWizard = new ProjectWizardCreateWizard();
+            projectWizard.Owner = Application.Current.MainWindow;
+            projectWizard.ShowDialog();
+        }
 
         private void HandleMenuItemInstallWizard(object sender, EventArgs e)
         {
@@ -162,6 +191,12 @@ namespace Tizen.VisualStudio
         {
             PackageManagerLauncher pmLauncher = new PackageManagerLauncher();
             pmLauncher.Launch();
+        }
+
+        private void HandleMenuItemImportProject(object sender, EventArgs e)
+        {
+            var importWizard = new ProjectWizardProjectImport();
+            importWizard.Show();
         }
 
         private void HandleMenuItemEmulatorManager(object sender, EventArgs e)
@@ -211,6 +246,16 @@ namespace Tizen.VisualStudio
             launcher.launch(package);
         }
 
+        private void HandleMenuItemImportWgtProject(object sender, EventArgs e)
+        {
+            List<string> profileList = VsProjectHelper.GetInstance.GetProfileList("web");
+
+            ProjectWizardProjectImportWgt wizard = new ProjectWizardProjectImportWgt(profileList)
+            {
+                Owner = Application.Current.MainWindow
+            };
+            wizard.ShowDialog();
+        }
         private void HandleMenuItemSdbServerStart(object sender, EventArgs e)
         {
             DeviceManager.ResetDeviceMonitorRetry();

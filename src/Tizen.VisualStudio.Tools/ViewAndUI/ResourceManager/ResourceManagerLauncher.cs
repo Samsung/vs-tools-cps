@@ -64,6 +64,10 @@ namespace Tizen.VisualStudio.ResourceManager
             }
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+            if (windowFrame == null)
+            {
+                return;
+            }
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
 
@@ -76,6 +80,10 @@ namespace Tizen.VisualStudio.ResourceManager
                 if ((null == window))
                     continue;
                 IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+                if (windowFrame == null)
+                {
+                    continue;
+                }
                 windowFrame.CloseFrame((int)__FRAMECLOSE.FRAMECLOSE_SaveIfDirty);
             }
             projectIdMap.Clear();
@@ -91,6 +99,10 @@ namespace Tizen.VisualStudio.ResourceManager
             if ((null == window))
                 return;
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+            if (windowFrame == null)
+            {
+                return;
+            }
             windowFrame.CloseFrame((int)__FRAMECLOSE.FRAMECLOSE_SaveIfDirty);
 
         }

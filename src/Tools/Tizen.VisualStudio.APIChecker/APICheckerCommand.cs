@@ -24,6 +24,8 @@ using System.Xml;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Tizen.VisualStudio.Utilities;
+using NetCore.Profiler.Extension.VSPackage;
 
 namespace Tizen.VisualStudio.APIChecker
 {
@@ -38,7 +40,7 @@ namespace Tizen.VisualStudio.APIChecker
         private Dictionary<ISymbol, string> symbolMap;
 
         private Analyzer analyzer;
-
+        private static long startTime = 0, endTime = 0, usage = 0;
 
         /// <summary>
         /// Command ID.
@@ -100,6 +102,7 @@ namespace Tizen.VisualStudio.APIChecker
         {
             Instance = new APICheckerCommand(package);
             outpane = outwindowPane;
+            WebPrivilegeChecker.Initialize(package, outwindowPane);
         }
 
         public void RunBuildTime()
@@ -115,11 +118,22 @@ namespace Tizen.VisualStudio.APIChecker
         /// <param name="e">Event args.</param>
         public void MenuItemCallback(object sender, EventArgs e)
         {
-            RunAPIChecker();
+            VsProjectHelper projHelp = VsProjectHelper.Instance;
+            bool isWebProj = projHelp.IsTizenWebProject();
+            if (isWebProj)
+            {
+                WebPrivilegeChecker.Instance?.HandleMenuItemPrivilegeCheck(sender, e);
+            }
+            else
+            {
+                RunAPIChecker();
+            }
         }
 
         private void RunAPIChecker()
         {
+            startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() / 1000;
+            RemoteLogger.logAccess("Tizen.VSWin.API Checker");
 
             outpane.Clear();
             outpane.OutputString("===================Running API and Privilege Checker================ \n");
@@ -144,8 +158,11 @@ namespace Tizen.VisualStudio.APIChecker
             {
                 Project proj = soln.GetProject(projectId);
                 List<string> privilegeList = new List<string>();
+                List<string> featureList = new List<string>();
                 string apiversion = "";
                 var projFile = proj.FilePath;
+                if (projFile == null) // TODO create issue on VS and remove the check
+                    continue;
                 var projPath = projFile.Substring(0, projFile.LastIndexOf("\\") + 1);
                 var manifestPath = projPath + "tizen-manifest.xml";
 
@@ -157,6 +174,24 @@ namespace Tizen.VisualStudio.APIChecker
                     foreach (XmlNode node in nodes)
                     {
                         privilegeList.Add(node.InnerText);
+                    }
+
+                    nodes = XDoc.GetElementsByTagName("feature");
+                    foreach (XmlNode node in nodes)
+                    {
+                        if (node.InnerText == "true")
+                        {
+                            XmlAttributeCollection attr = node.Attributes;
+                            for (int ii = 0; ii < attr.Count; ++ii)
+                            {
+                                string name = attr[ii].Name;
+                                if (name == "name")
+                                {
+                                    featureList.Add(attr[ii].Value);
+                                    break;
+                                }
+                            }
+                        }
                     }
 
                     nodes = XDoc.GetElementsByTagName("manifest");
@@ -181,7 +216,7 @@ namespace Tizen.VisualStudio.APIChecker
                 }
 
                 //Create a new Analyzer for this project.
-                analyzer = new Analyzer(apiversion, privilegeList, manifestPath, this.ServiceProvider);
+                analyzer = new Analyzer(apiversion, privilegeList, manifestPath, this.ServiceProvider, featureList);
 
                 //Get Compilation
                 Compilation projectCompilation = proj.GetCompilationAsync().Result;
@@ -197,10 +232,13 @@ namespace Tizen.VisualStudio.APIChecker
                     RunAnalysis(model, syntaxTree, apiversion, privilegeList);
                 }
 
-                analyzer.ReportUnusedPrivileges();
+                analyzer.ReportUnusedPrivilegesAndFeature();
             }
 
             outpane.OutputString("===================API and Privilege Completed================ \n");
+            endTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() / 1000;
+            usage = endTime - startTime;
+            RemoteLogger.logUsage("Tizen.VSWin.API Checker", usage);
         }
 
         // Run Analysis on the called SyntaxTree with the SemanticModel

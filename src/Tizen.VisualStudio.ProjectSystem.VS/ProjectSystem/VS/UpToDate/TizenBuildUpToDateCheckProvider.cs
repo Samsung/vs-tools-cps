@@ -28,6 +28,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Tizen.VisualStudio;
 
 namespace Tizen.VisualStudio.ProjectSystem.VS.UpToDate
 {
@@ -65,6 +66,11 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.UpToDate
         /// <returns>A task whose result is true if project is up-to-date</returns>
         public Task<bool> IsUpToDateAsync(BuildAction buildAction, TextWriter logger, CancellationToken cancellationToken = default(CancellationToken))
         {
+            var configFilePath = Path.Combine(_msBuildProjectDirectory, "config.xml");
+            var hasConfigFile = File.Exists(configFilePath);
+            if (hasConfigFile)
+                return Task.FromResult(false); //build will be handled by tizen-core
+
             var manifestFilePath = Path.Combine(_msBuildProjectDirectory, "tizen-manifest.xml");
             var hasManifestFile = File.Exists(manifestFilePath);
             var lastWritetime = hasManifestFile ? File.GetLastWriteTimeUtc(manifestFilePath) : DateTime.MinValue;

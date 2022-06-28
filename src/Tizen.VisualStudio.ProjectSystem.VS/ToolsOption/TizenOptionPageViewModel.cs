@@ -20,12 +20,19 @@ using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Shell;
 using Tizen.VisualStudio.Tools.Data;
 using Tizen.VisualStudio.InstallLauncher;
+using Tizen.VisualStudio.Utilities;
+using System.Windows.Forms;
+using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell.Settings;
 
 namespace Tizen.VisualStudio.ToolsOption
 {
     public class TizenOptionPageViewModel : UIElementDialogPage, INotifyPropertyChanged
     {
         public string Notice;
+        private static WritableSettingsStore userSettingsStore = null;
+        private const string SettingsCollectionPath = "TizenOptions";
+
         protected override System.Windows.UIElement Child
         {
             get { return new TizenOptionPage(this); }
@@ -52,12 +59,27 @@ namespace Tizen.VisualStudio.ToolsOption
 
         public static void Initialize(Package package)
         {
+            SettingsManager settingsManager = new ShellSettingsManager(package);
+            userSettingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+            if (userSettingsStore != null && !userSettingsStore.CollectionExists(SettingsCollectionPath))
+            {
+                userSettingsStore.CreateCollection(SettingsCollectionPath);
+            }
+
+            if (userSettingsStore != null && !userSettingsStore.PropertyExists(SettingsCollectionPath, "UseAnalytics"))
+                userSettingsStore.SetBoolean(SettingsCollectionPath, "UseAnalytics", true);
+
             var page = (TizenOptionPageViewModel)package.GetDialogPage(typeof(TizenOptionPageViewModel));
             if (page != null)
             {
+                if (userSettingsStore != null)
+                    page.UseAnalytics = userSettingsStore.GetBoolean(SettingsCollectionPath, "UseAnalytics");
                 ToolsPathInfo.ToolsRootPath = page.ToolsPath;
                 DebuggerInfo.UseLiveProfiler = page.UseLiveProfiler;
+                AnalyticsInfo.UseAnalytics = page.UseAnalytics;
                 InstallWizard.OnToolsDirChanged += page.OnUpdateByInstallWizard;
+                HotReloadInfo.UseHotReload = page.UseHotReload;
+                ToolsPathInfo.ChromePath = page.ChromePath;
             }
         }
 
@@ -80,6 +102,19 @@ namespace Tizen.VisualStudio.ToolsOption
             }
         }
 
+        public string ChromePath
+        {
+            get => ToolsPathInfo.ChromePath;
+            set
+            {
+                if (ToolsPathInfo.ChromePath != value)
+                {
+                    ToolsPathInfo.ChromePath = value;
+                    HandlePropertyChanged();
+                }
+            }
+        }
+
         public bool UseLiveProfiler
         {
             get => DebuggerInfo.UseLiveProfiler;
@@ -88,6 +123,44 @@ namespace Tizen.VisualStudio.ToolsOption
                 if (DebuggerInfo.UseLiveProfiler != value)
                 {
                     DebuggerInfo.UseLiveProfiler = value;
+                    HandlePropertyChanged();
+                }
+            }
+        }
+        public bool UseAnalytics
+        {
+            get => AnalyticsInfo.UseAnalytics;
+            set
+            {
+                if (userSettingsStore != null)
+                    userSettingsStore.SetBoolean(SettingsCollectionPath, "UseAnalytics", value);
+                if (AnalyticsInfo.UseAnalytics != value)
+                {
+                    AnalyticsInfo.UseAnalytics = value;
+                    if(AnalyticsInfo.UseAnalytics == false)
+                    {
+                        string msg = string.Format("Do you want to delete the logged info?");
+                        string title = "Analytics";
+                        MessageBoxButtons buttons = MessageBoxButtons.YesNo;
+                        DialogResult result = MessageBox.Show(msg, title, buttons);
+                        if (result == DialogResult.Yes)
+                        {
+                            RemoteLogger.deleteAnalytics();
+                        }
+                    }
+                    HandlePropertyChanged();
+                }
+            }
+        }
+
+        public bool UseHotReload
+        {
+            get => HotReloadInfo.UseHotReload;
+            set
+            {
+                if (HotReloadInfo.UseHotReload != value)
+                {
+                    HotReloadInfo.UseHotReload = value;
                     HandlePropertyChanged();
                 }
             }

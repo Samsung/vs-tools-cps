@@ -16,7 +16,10 @@
 
 using System;
 using System.ComponentModel.Design;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using NetCore.Profiler.Extension.VSPackage;
 
 namespace NetCore.Profiler.Extension.Commands
@@ -24,7 +27,7 @@ namespace NetCore.Profiler.Extension.Commands
     internal abstract class Command
     {
 
-        private readonly MenuCommand _windowMenuCommand;
+        private readonly OleMenuCommand _windowMenuCommand;
 
         public bool Enabled
         {
@@ -39,10 +42,31 @@ namespace NetCore.Profiler.Extension.Commands
             }
 
             OleMenuCommandService commandService = serviceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            commandService?.AddCommand(_windowMenuCommand = new MenuCommand(handler, new CommandID(GeneralProperties.CommandSet, commandId))
+            commandService?.AddCommand(_windowMenuCommand = new OleMenuCommand(handler, new CommandID(GeneralProperties.CommandSet, commandId))
             {
                 Enabled = enabled
             });
+
+            // use BeforeQueryStatus event callBack function to Dynamically Enable/Disable the menu
+            _windowMenuCommand.BeforeQueryStatus += (sender, evt) =>
+            {
+                OleMenuCommand item = (OleMenuCommand)sender;
+                DTE2 dte2 = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+
+                if (dte2.Solution.IsOpen)
+                {
+                    VsProjectHelper projHelp = VsProjectHelper.Instance;
+                    bool isWebPrj = projHelp.IsTizenWebProject();
+                    bool isNativePrj = projHelp.IsTizenNativeProject();
+                    if (isWebPrj || isNativePrj)
+                        item.Enabled = false;
+                    else
+                        item.Enabled = true;
+                }else
+                {
+                    item.Enabled = false;
+                }
+            };
         }
 
     }

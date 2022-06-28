@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Shell;
 [assembly: ProvideCodeBase(AssemblyName = "NetCore.Profiler.Extension")]
 [assembly: ProvideCodeBase(AssemblyName = "NetCore.Profiler.Session.Core")]
 [assembly: ProvideCodeBase(AssemblyName = "Newtonsoft.Json")]
+[assembly: ProvideCodeBase(AssemblyName = "YamlDotNet")]
 [assembly: ProvideCodeBase(AssemblyName = "NetCore.Profiler.Extension")]
 [assembly: ProvideCodeBase(AssemblyName = "Microsoft.WindowsAPICodePack")]
 [assembly: ProvideCodeBase(AssemblyName = "Microsoft.WindowsAPICodePack.Shell")]

@@ -211,15 +211,6 @@ namespace Tizen.VisualStudio.Tools.Data
                 string defaultCertPath = Path.Combine(UserDataFolderPath, DefaultCertProfileRelativePath, DefaultCertProfileName);
 
                 return File.Exists(defaultCertPath) ? defaultCertPath : string.Empty;
-
-                /*if (string.IsNullOrEmpty(toolsFolderPath))
-                {
-                    return "";
-                }
-                else
-                {
-                    return DefaultCertProfilePath;
-                }*/
             }
         }
 

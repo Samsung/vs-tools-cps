@@ -35,11 +35,24 @@ namespace Tizen.VisualStudio
     using Tizen.VisualStudio.Tools.Data;
     using Tizen.VisualStudio.Tools.DebugBridge;
     using Tizen.VisualStudio.Utilities;
+    using Tizen.VisualStudio.Command;
     using NetCore.Profiler.Extension.VSPackage;
     using NetCore.Profiler.Extension.UI.AdornedSourceWindow;
     using NetCore.Profiler.Extension.UI.ProfilingProgressWindow;
     using NetCore.Profiler.Extension.UI.SessionExplorer;
     using NetCore.Profiler.Extension.UI.SessionWindow;
+
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Runtime.CompilerServices;
+    using System.IO;
+    using Microsoft.VisualStudio.Threading;
+    using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
+    using Task = System.Threading.Tasks.Task;
+    using System.Xml.Linq;
+    using Tizen.VisualStudio.ProjectSystem.VS.Debug;
+    using Tizen.VisualStudio.Tidl;
+    using Tizen.VisualStudio.Workload;
 
     /// <summary>
     /// This class implements the package exposed by this assembly.
@@ -49,18 +62,20 @@ namespace Tizen.VisualStudio
     /// or localized resources for the strings that appear in the New Project and Open Project dialogs.
     /// Creating project extensions or project types does not actually require a VSPackage.
     /// </remarks>
-    [ProvideAutoLoad(ActivationContextGuid)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideAutoLoad(ActivationContextGuid, PackageAutoLoadFlags.BackgroundLoad)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideUIContextRule(ActivationContextGuid,
         name: "Load Tizen Project Package",
         expression: "TizenNET | TizenNative",
         termNames: new[] { "TizenNET", "TizenNative" },
         termValues: new[] { "SolutionHasProjectCapability: Tizen.NET & CSharp & CPS", "SolutionHasProjectCapability: TizenNative" })]
-    [PackageRegistration(UseManagedResourcesOnly = true)]
     [Description("Tizen project type")]
     [Guid(VsPackage.PackageGuid)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideOptionPage(typeof(Tizen.VisualStudio.OptionPages.Certificate), "Tizen", "Certification", 0, 0, true)]
     [ProvideOptionPage(typeof(Tizen.VisualStudio.ToolsOption.TizenOptionPageViewModel), "Tizen", "Tools", 0, 0, true)]
+    [ProvideOptionPage(typeof(Tizen.VisualStudio.OptionPages.Tidl), "Tizen", "TIDL", 0, 0, true)]
 
     [ProvideToolWindow(typeof(Tizen.VisualStudio.LogViewer.LogViewer))]
     [ProvideToolWindow(typeof(Tizen.VisualStudio.ResourceManager.ResourceManager))]
@@ -81,7 +96,7 @@ namespace Tizen.VisualStudio
     //[EditorFactoryNotifyForProject("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}", ManifestEditorFactory.Extension, @"{32CC8DFA-2D70-49b2-94CD-22D57349B778}")]
     #endregion
 
-    public sealed class VsPackage : Package, IVsEventsHandler, IVsDebuggerEvents//AsyncPackage
+    public sealed class VsPackage : AsyncPackage, IVsEventsHandler, IVsDebuggerEvents
     {
         public const string ActivationContextGuid = "9BF1CB95-137C-4489-A80D-B3399395318F";
         /// <summary>
@@ -114,23 +129,46 @@ namespace Tizen.VisualStudio
         public static IVsOutputWindowPane outputPaneTizen = null;
         public static IVsThreadedWaitDialogFactory dialogFactory = null;
         private CommandEvents CEvents = null;
-
+        private SolutionEvents SEvents = null;
+        private DocumentEvents DocumentEvents = null;
+        private Solution solution = null;
+        private IVsSolution solutionIV = null;
         private IVsDebugger monitoredDebugger = null;
         private uint monitorCookie = 0;
 
         private static VsPackage instance;
+        private IVsMonitorSelection MonitorSelection = null;
 
-        protected override void Initialize() //async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        private DTE dte = null;
+
+        public bool ErrorReporting { get; private set; }
+
+        protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress);
 
             // TODO : Can remove?
             VsProjectHelper.Initialize();
 
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             //await PrepareWindowsAsync();
             PrepareWidnows();
 
-            VsEvents.Initialize(this as IVsEventsHandler, GetService(typeof(SVsSolution)) as IVsSolution);
+            //Install Workload in async mode
+            WorkloadInstaller installer = WorkloadInstaller.GetInstance();
+            var workloadTask =  Task.Run(() => installer?.InstallWorkload());
+
+            //Load Template lists in async mode
+            VsProjectHelper projectHelper = VsProjectHelper.GetInstance;
+            CancellationTokenSource source = new CancellationTokenSource();
+            CancellationToken token = source.Token;
+            projectHelper.TemplateTaskSource = source;
+            projectHelper.TemplateTask = Task.Run(() => projectHelper.LoadTemplatesAsync(), token);
+
+            MonitorSelection = await GetServiceAsync(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+
+            VsEvents.Initialize(this as IVsEventsHandler, await GetServiceAsync(typeof(SVsSolution)) as IVsSolution, MonitorSelection);
 
             DeviceManager.Initialize(VsPackage.outputPaneTizen);
 
@@ -147,13 +185,170 @@ namespace Tizen.VisualStudio
 
             string guidVSstd97 = "{5efc7975-14bc-11cf-9b2b-00aa00573819}".ToUpper();
             int cmdidStartupPrj = 246;
-            DTE2 dte2 = GetService(typeof(SDTE)) as DTE2;
+            DTE2 dte2 = await GetServiceAsync(typeof(SDTE)) as DTE2;
             CEvents = dte2.Events.CommandEvents[guidVSstd97, cmdidStartupPrj];
             CEvents.AfterExecute += SetStartup_AfterExecute;
+
+            SEvents = dte2.Events.SolutionEvents;
+            DocumentEvents = dte2.Events.DocumentEvents;
+
+            solution = dte2.Application.Solution;
+
+            solutionIV = await GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
+            SEvents.ProjectAdded += OnProjectAdded;
+            SEvents.Opened += OnSolutionOpen;
+            SEvents.AfterClosing += OnSolutionClose;
+            SEvents.BeforeClosing += BeforeSolutionClose;
+
+            dte = await GetServiceAsync(typeof(SDTE)) as DTE;
 
             ProfilerPlugin.Initialize(this, outputPaneTizen, dialogFactory);
 
             instance = this;
+        }
+
+        private void OnProjectAdded(Project Project)
+        {
+            VsProjectHelper vsProjectHelper = VsProjectHelper.GetInstance;
+            if (vsProjectHelper.IsHaveTizenManifest(Project) && Project.Kind == vsProjectHelper.CPPBasedProject)
+                vsProjectHelper.RemoveActiveDebuggerEntry(Project);
+        }
+
+        private void BeforeSolutionClose()
+        {
+            // ToDo : remove this workaround with proper fix
+            VsProjectHelper.Initialize();
+            VsProjectHelper vsProjectHelper = VsProjectHelper.GetInstance;
+            if (vsProjectHelper.IsTizenNativeProject())
+                dte.Properties["TextEditor", "C/C++ Specific"].Item("DisableErrorReporting").Value = ErrorReporting;
+        }
+
+        private void OnDocumentSave(Document Document)
+        {
+            if (!HotReloadLaunchProvider.IsHotreloadStarted())
+                return;
+
+            if (!solution.IsOpen)
+                return;
+
+            //Check for tizen project
+            Projects ListOfProjectsInSolution = solution.Projects;
+
+            var rootDir = Path.GetDirectoryName(Document.ProjectItem.ContainingProject.FullName);
+            var projName = Document.ProjectItem.ContainingProject.Name;
+
+            bool InOpenedSolution = false;
+
+            foreach (Project project in ListOfProjectsInSolution)
+            {
+                if (project.Name.Equals(projName))
+                {
+                    InOpenedSolution = true;
+                    break;
+                }
+            }
+
+            if (!InOpenedSolution)
+                return;
+
+            HotReloadLaunchProvider.OnFileChanged(Document.FullName, rootDir);
+
+        }
+
+        private void OnSolutionClose()
+        {
+            DocumentEvents.DocumentSaved -= OnDocumentSave;
+            HotReloadLaunchProvider.SetIsXamlProject(false);
+        }
+
+        private void OnSolutionOpen()
+        {
+            if (solution == null || !solution.IsOpen)
+                return;
+
+            //Check for tizen project
+            Projects ListOfProjectsInSolution = solution.Projects;
+            if (ListOfProjectsInSolution == null)
+                return;
+            bool solutionHasTizenProject = false;
+            VsProjectHelper.Initialize();
+            VsProjectHelper vsProjectHelper = VsProjectHelper.GetInstance;
+
+            if (vsProjectHelper.IsTizenWebProject())
+            {
+                vsProjectHelper.UpdateYaml(vsProjectHelper.getSolutionFolderPath(), "chrome_path:", ToolsPathInfo.ChromePath);
+                HotReloadLaunchProvider.SetIsXamlProject(false);
+                return;
+            }
+            if (vsProjectHelper.IsTizenNativeProject())
+            {
+                //Workaround for Debugger Label not displayed
+                vsProjectHelper.RemoveActiveDebuggerEntry();
+                // ToDo : remove this workaround with proper fix
+                ErrorReporting = (bool)dte.Properties["TextEditor", "C/C++ Specific"].Item("DisableErrorReporting").Value;
+                dte.Properties["TextEditor", "C/C++ Specific"].Item("DisableErrorReporting").Value = true;
+                HotReloadLaunchProvider.SetIsXamlProject(false);
+                return;
+            }
+            foreach (Project project in ListOfProjectsInSolution)
+            {
+                 solutionHasTizenProject = vsProjectHelper.IsHaveTizenManifest(project);
+                if (solutionHasTizenProject)
+                    break;
+            }
+            if (!solutionHasTizenProject)
+            {
+                HotReloadLaunchProvider.SetIsXamlProject(false);
+                return;
+            }
+
+            //Check for Xamarin project
+
+            bool hasXamarinProject = false;
+
+            var projectsEnumerator = ListOfProjectsInSolution.GetEnumerator();
+            while (projectsEnumerator.MoveNext() && !hasXamarinProject)
+            {
+                var proj = projectsEnumerator.Current as Project;
+                if (proj == null)
+                {
+                    continue;
+                }
+
+                if (proj.Kind == "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}")
+                {
+                    XDocument xmldoc = XDocument.Load(proj.FullName);
+                    XDocument xd = xmldoc.Document;
+
+                    foreach (XElement element in xd.Descendants("ProjectTypeGuids"))
+                    {
+                        // code here to identify values
+                        var val = element.Value;
+
+                        if (val != null && val.ToUpper().Contains("{B484D2DE-331C-4CA2-B931-2B4BDAD9945F}"))
+                        {
+                            hasXamarinProject = true;
+                            break;
+                        }
+                    }
+
+                    // This code is not working, check again
+                    /* var hierarchy = vsProjectHelper.GetHierachyFromProjectUniqueName(proj.UniqueName);
+                     IVsAggregatableProjectCorrected ap = hierarchy as IVsAggregatableProjectCorrected;
+                     if (hierarchy is IVsAggregatableProjectCorrected aggregatableProjectCorrected)
+                     {
+                         aggregatableProjectCorrected.GetAggregateProjectTypeGuids(out var projTypeGuids);
+                         if (projTypeGuids.ToUpper().Contains("{B484D2DE-331C-4CA2-B931-2B4BDAD9945F}"))
+                         {
+                             hasXamarinProject = true;
+                             break;
+                         }
+                     }*/
+                }
+            }
+            HotReloadLaunchProvider.SetIsXamlProject(hasXamarinProject);
+            DocumentEvents.DocumentSaved += OnDocumentSave;
+
         }
 
         protected override void Dispose(bool disposing)
@@ -225,8 +420,13 @@ namespace Tizen.VisualStudio
             VsPackage.dialogFactory = dialogFactory;
 
             ToolsMenu.Initialize(this);
-
+            TidlCommandOption.Initialize(this);
+            WebSimulatorCommand.Initialize(this);
+            AddTizenProjectCommand.Initialize(this);
+            AddTizenDependencyCommand.Initialize(this);
+            TizenSettingsCommand.Initialize(this);
             OptionPages.Tools.Initialize(this);
+            OptionPages.Tidl.Initialize(this);
             ToolsOption.TizenOptionPageViewModel.Initialize(this);
             OptionPages.Certificate.Initialize(this);
         }
@@ -263,7 +463,7 @@ namespace Tizen.VisualStudio
 
         public void OnVsEventBeforeCloseProject(Project project, int fRemoved)
         {
-            if(project != null)
+            if (project != null)
             {
                 ResourceManagerLauncher launcher = ResourceManagerLauncher.getInstance();
                 launcher.CloseProjectResourceManagerWindow(this, project);
@@ -275,10 +475,7 @@ namespace Tizen.VisualStudio
         {
             Project currentProject = VsProjectHelper.GetInstance.GetCurrentProjectFromUniqueName(Project);
             // Create res.xml file while packaging
-            if (currentProject != null && VsProjectHelper.GetInstance.IsHaveTizenManifest(currentProject))
-            {
-                XmlWriter.updateResourceXML(currentProject);
-            }
+            // feature moved to build task tizen
         }
 
         void SetStartup_AfterExecute(string Guid, int ID, object CustomIn, object CustomOut)
@@ -304,7 +501,8 @@ namespace Tizen.VisualStudio
                                     var profilingProgressWindow = ProfilerPlugin.Instance.FindToolWindow<ProfilingProgressWindow>(0, false);
                                     if (profilingProgressWindow != null)
                                     {
-                                        ((IVsWindowFrame)(profilingProgressWindow.Frame)).CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
+                                        if (profilingProgressWindow.Frame != null)
+                                            ((IVsWindowFrame)(profilingProgressWindow.Frame)).CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
                                     }
                                 });
                             };
@@ -318,7 +516,12 @@ namespace Tizen.VisualStudio
                     }
                     break;
                 case DBGMODE.DBGMODE_Design:
-                    TizenPackageTracer.Instance.Clear();
+                    {
+                        TizenPackageTracer.Instance.Clear();
+                        VsPackage.outputPaneTizen?.Activate();
+                        VsPackage.outputPaneTizen?.OutputStringThreadSafe("debug stoped, stoppig observer \n");
+                        ProjectSystem.VS.Debug.HotReloadLaunchProvider.StopHotReloadObserver();
+                    }
                     break;
                 default:
                     break;

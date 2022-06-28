@@ -81,6 +81,7 @@ namespace Tizen.VisualStudio.ProjectWizard
                 {
                     case "ARM":
                     case "x86":
+                    case "ARM64":  
                         splatform = platform;
                         break;
                     default:

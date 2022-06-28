@@ -200,6 +200,10 @@ namespace Tizen.VisualStudio.ManifestEditor
         private void CheckInternalPrivilege(object sender, EventArgs e)
         {
             this.selectPrivilegeList.Clear();
+            if (this.listView_internal.SelectedItems == null)
+            {
+                return;
+            }
             var list = this.listView_internal.SelectedItems.Cast<string>().ToList();
 
             this.SelectedFeature = this.listView_internal.SelectedItem as string;

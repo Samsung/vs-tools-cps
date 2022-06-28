@@ -71,6 +71,7 @@ namespace Tizen.VisualStudio.ManifestEditor
         List<background> BackgroundCategoryList { get; set; }
         List<account> AccountField { get; set; }
         List<splashscreen> SplashscreenList { get; set; }
+        List<packages> AdvancePkgList { get; set; }
         #endregion
 
         bool DesignerDirty { get; set; }

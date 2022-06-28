@@ -17,23 +17,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using EnvDTE80;
 using EnvDTE;
 using System.Text.RegularExpressions;
 using Tizen.VisualStudio.Tools.Data;
-using Microsoft.WindowsAPICodePack;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Xml;
 
 namespace Tizen.VisualStudio.ManifestEditor
@@ -48,14 +37,30 @@ namespace Tizen.VisualStudio.ManifestEditor
         public string PreviewIconPath;
         private string FeaturePath;
         private string PrivilegePath;
+        private string apiVersion;
         private List<TextboxLabelSet> Overview = new List<TextboxLabelSet>();
-        private readonly List<string> appNodeNameCandidates = new List<string>() { "ui-application", "service-application", "widget-application", "watch-application" };
+        private readonly List<string> appNodeNameCandidates = new List<string>() { "ui-application", "service-application", "widget-application", "watch-application", "component-based-application" };
 
         public string GetAppType()
         {
             Project project = (dte.ActiveSolutionProjects as Array).GetValue(0) as Project;
 
             string manifestPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project.FullName), "tizen-manifest.xml");
+            if (!System.IO.File.Exists(manifestPath))
+            {
+                Projects ListOfProjectsInSolution = dte.Solution.Projects;
+                foreach (Project proj in ListOfProjectsInSolution)
+                {
+                    if (proj != null)
+                    {
+                        manifestPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(proj.FullName), "tizen-manifest.xml");
+                        if (System.IO.File.Exists(manifestPath))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
             XmlDocument doc = new XmlDocument();
 
             try
@@ -80,6 +85,15 @@ namespace Tizen.VisualStudio.ManifestEditor
             this.dte = dte;
 
             string appType = GetAppType();
+            UpdateModelAppType(viewModel, appType);
+            UpdateAppControlGridColumns();
+
+            InitializeEnv();
+            OverviewSetInit();
+        }
+
+        private void UpdateModelAppType(IViewModelTizen viewModel, string appType)
+        {
             if (appType != null)
             {
                 if (appType.Equals("service-application"))
@@ -98,13 +112,78 @@ namespace Tizen.VisualStudio.ManifestEditor
                 {
                     viewModel.AppType = ItemsChoiceType.watchapplication;
                 }
+                else if (appType.Equals("component-based-application"))
+                {
+                    viewModel.AppType = ItemsChoiceType.componentbasedapplication;
+                }
                 else
                 {
                     viewModel.AppType = ItemsChoiceType.uiapplication;
                 }
             }
-            InitializeEnv();
-            OverviewSetInit();
+            this.apiVersion = viewModel.ApiVersion;
+        }
+
+        private void UpdateAppControlGridColumns()
+        {
+            GridView appControlGrid = this.appContorlListBox.View as GridView;
+            List<GridViewColumn> toRemove = new List<GridViewColumn>();
+            foreach (GridViewColumn col in appControlGrid.Columns)
+            {
+                if (!ApiVersionGreaterThanFive)
+                {
+                    if ((col.Header.Equals("Visibility") || col.Header.Equals("id")))
+                    {
+                        toRemove.Add(col);
+                    }
+                    else
+                    {
+                        col.Width = 200;
+                    }
+                }
+
+            }
+
+            foreach (GridViewColumn gc in toRemove)
+            {
+                appControlGrid.Columns.Remove(gc);
+            }
+        }
+
+        private void UpdatPrivilegesGridColumns()
+        {
+            GridView gridView = this.PrivilegeListView.View as GridView;
+            if (gridView != null)
+            {
+                foreach (var column in gridView.Columns)
+                {
+                    if (double.IsNaN(column.Width))
+                        column.Width = column.ActualWidth;
+                    column.Width = double.NaN;
+                }
+            }
+
+        }
+
+        public bool ApiVersionGreaterThanFive
+        {
+            get
+            {
+                float val = -1;
+                float.TryParse(this.apiVersion, out val);
+                if ((val != -1 && val >= 5.5))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            set
+            {
+            }
         }
 
         private void OverviewSetInit()
@@ -133,7 +212,10 @@ namespace Tizen.VisualStudio.ManifestEditor
                 {
                     TextboxRuleChecker(input.PairTextbox, input.PairLabel, TargetName: input.PairName, AllowEmpty:true, AllowNameruleException:true, AllowEndconditionException:true);
                 }
-
+                else if (input.PairName == "Label")
+                {
+                    TextboxRuleChecker(input.PairTextbox, input.PairLabel, TargetName: input.PairName, AllowSpace: true, AllowNameruleException: true);
+                }
                 else
                 {
                     TextboxRuleChecker(input.PairTextbox, input.PairLabel, TargetName: input.PairName);
@@ -238,6 +320,7 @@ namespace Tizen.VisualStudio.ManifestEditor
             DescriptionListBtnEnable(false);
             IconListBtnEnable(false);
             MetaListBtnEnable(false);
+            PkgListBtnEnable(false);
             ControlListBtnEnable(false);
             AppControlListBtnEnable(false);
             ShortcutListBtnEnable(false);
@@ -261,6 +344,9 @@ namespace Tizen.VisualStudio.ManifestEditor
         public void Refresh(IViewModelTizen viewModel)
         {
             DataContext = viewModel;
+            string appType = GetAppType();
+            UpdateModelAppType(viewModel, appType);
+            UpdatPrivilegesGridColumns();
         }
 
         internal void DoIdle()
@@ -336,7 +422,14 @@ namespace Tizen.VisualStudio.ManifestEditor
 
                 foreach (var selectItem in this.FeatureListView.SelectedItems)
                 {
-                    list.Remove(selectItem as feature);
+                    foreach(var item in list)
+                    {
+                        if (item.name.Equals((selectItem as feature).name))
+                        {
+                            list.Remove(item);
+                            break;
+                        }
+                    }
                 }
 
                 viewModel.FeatureField = list;
@@ -501,6 +594,10 @@ namespace Tizen.VisualStudio.ManifestEditor
 
         private void PrevilegeRemoveBtn_Click(object sender, RoutedEventArgs e)
         {
+            if (this.PrivilegeListView.SelectedItems == null)
+            {
+                return;
+            }
             var list = this.PrivilegeListView.SelectedItems.Cast<string>().ToList();
             IViewModelTizen viewModel = DataContext as IViewModelTizen;
 
@@ -853,8 +950,14 @@ namespace Tizen.VisualStudio.ManifestEditor
 
         private void IconListBtnEnable(bool status)
         {
-            this.RemoveIconBtn.IsEnabled = status;
-            this.EditIconBtn.IsEnabled = status;
+            if (this.RemoveIconBtn != null)
+            {
+                this.RemoveIconBtn.IsEnabled = status;
+            }
+            if (this.EditIconBtn != null)
+            {
+                this.EditIconBtn.IsEnabled = status;
+            }
         }
 
         private void AddMetaBtn_Click(object sender, RoutedEventArgs e)
@@ -1049,7 +1152,7 @@ namespace Tizen.VisualStudio.ManifestEditor
         private void AddAppControlBtn_Click(object sender, RoutedEventArgs e)
         {
             IViewModelTizen viewModel = DataContext as IViewModelTizen;
-            AddAppControlWizard addAppControlWizard = new AddAppControlWizard(privilegePath:PrivilegePath, privilegeList: viewModel.DefaultprivilegeList, appdefprivList: viewModel.AppdefprivilegeList);
+            AddAppControlWizard addAppControlWizard = new AddAppControlWizard(privilegePath:PrivilegePath, privilegeList: viewModel.DefaultprivilegeList, appdefprivList: viewModel.AppdefprivilegeList, apiVersion : viewModel.ApiVersion);
             if (addAppControlWizard.ShowDialog() == true)
             {
                 List<string> privList = new List<string>();
@@ -1072,7 +1175,16 @@ namespace Tizen.VisualStudio.ManifestEditor
                 mime mi = new mime();
                 mi.name = addAppControlWizard.mimeTextBox.Text.Trim();
 
-                input.Items = new object[3] { op, ur, mi };
+                visibility vi = new visibility();
+                vi.name = addAppControlWizard.visibilityValue;
+
+                input.appControlId = addAppControlWizard.idTextBox.Text.Trim();
+                if (string.IsNullOrEmpty(input.appControlId))
+                {
+                    input.appControlId = null;
+                }
+
+                input.Items = new object[4] { op, ur, mi, vi };
                 input.privilegeList = privList;
 
                 var list = viewModel.AdvanceAppControlList;
@@ -1110,6 +1222,8 @@ namespace Tizen.VisualStudio.ManifestEditor
                 string op = string.Empty;
                 string ur = string.Empty;
                 string mi = string.Empty;
+                string vi = string.Empty;
+                string id = string.Empty;
 
                 if (item.Items != null)
                 {
@@ -1126,12 +1240,16 @@ namespace Tizen.VisualStudio.ManifestEditor
                         else if (appItem is mime)
                         {
                             mi = (appItem as mime).name;
+                        } else if (appItem is visibility)
+                        {
+                            vi = (appItem as visibility).name;
                         }
                     }
+                    id = item.appControlId;
                 }
                 
                 IViewModelTizen viewModel = DataContext as IViewModelTizen;
-                AddAppControlWizard wizard = new AddAppControlWizard(PrivilegePath, privilegeList: viewModel.DefaultprivilegeList, appdefprivList: viewModel.AppdefprivilegeList, ExistList: item.privilegeList, op:op, uri:ur, mime:mi);
+                AddAppControlWizard wizard = new AddAppControlWizard(PrivilegePath, privilegeList: viewModel.DefaultprivilegeList, appdefprivList: viewModel.AppdefprivilegeList, ExistList: item.privilegeList, op:op, uri:ur, mime:mi, visibility:vi, id:id, apiVersion:viewModel.ApiVersion);
 
                 if (wizard.ShowDialog() == true)
                 {                    
@@ -1157,7 +1275,12 @@ namespace Tizen.VisualStudio.ManifestEditor
                     mime mi1 = new mime();
                     mi1.name = wizard.mimeTextBox.Text.Trim();
 
-                    item.Items = new object[3] { op1, ur1, mi1 };
+                    visibility vi1 = new visibility();
+                    vi1.name = wizard.visibilityValue;
+
+                    item.appControlId = wizard.idTextBox.Text.Trim();
+
+                    item.Items = new object[4] { op1, ur1, mi1, vi1 };
                     item.privilegeList = privList;
                     list.Add(item);
 
@@ -1904,6 +2027,87 @@ namespace Tizen.VisualStudio.ManifestEditor
 
             comboBox_profileType.Text = profileType.name.ToString();
             this.PlatformPathFactory();
+        }
+
+        private void AddPkgBtn_Click(object sender, RoutedEventArgs e)
+        {
+            IViewModelTizen viewModel = DataContext as IViewModelTizen;
+            var pkgList = viewModel.AdvancePkgList;
+            if (pkgList == null)
+            {
+                pkgList = new List<packages>();
+            }
+            
+            DependencyWizard DWizard = new DependencyWizard("Add Dependency");
+            if (DWizard.ShowDialog() == true)
+            {
+                var package = new packages();
+                package.type = DWizard.TypeComboBox.Text;
+                package.package = DWizard.packageIDTextBox.Text.Trim();
+                package.requiredVersion = DWizard.requiredVersionTextBox.Text.Trim();
+                pkgList.Add(package);
+                viewModel.AdvancePkgList = pkgList;
+                DataContext = null;
+                DataContext = viewModel;
+            }
+        }
+
+        private void RemovePkgBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.pkgListBox.SelectedItem != null)
+            {
+                IViewModelTizen viewModel = DataContext as IViewModelTizen;
+                var list = viewModel.AdvancePkgList;
+                list.RemoveAt(this.pkgListBox.SelectedIndex);
+                viewModel.AdvancePkgList = list;
+                DataContext = null;
+                DataContext = viewModel;
+            }
+
+            if (pkgListBox.Items.Count == 0 || pkgListBox.SelectedItem == null)
+            {
+                PkgListBtnEnable(false);
+            }
+        }
+
+        private void EditPkgBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.pkgListBox.SelectedItem != null)
+            {
+                IViewModelTizen viewModel = DataContext as IViewModelTizen;
+                var list = viewModel.AdvancePkgList;
+                var item = this.pkgListBox.SelectedItem as packages;
+                DependencyWizard DWizard = new DependencyWizard("Edit Dependency", item.type, item.package, item.requiredVersion);
+                if (DWizard.ShowDialog() == true)
+                {
+                    list.RemoveAt(this.pkgListBox.SelectedIndex);
+                    item.type = DWizard.TypeComboBox.Text;
+                    item.package = DWizard.packageIDTextBox.Text.Trim();
+                    item.requiredVersion = DWizard.requiredVersionTextBox.Text.Trim();
+                    list.Add(item);
+                    viewModel.AdvancePkgList = list;
+                    DataContext = null;
+                    DataContext = viewModel;
+                }
+            }
+
+            if (pkgListBox.Items.Count == 0 || pkgListBox.SelectedItem == null)
+            {
+                PkgListBtnEnable(false);
+            }
+
+            this.AddPkgBtn.Focus();
+        }
+
+        private void pkgListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            PkgListBtnEnable(true);
+        }
+
+        private void PkgListBtnEnable(bool status)
+        {
+            this.EditPkgBtn.IsEnabled = status;
+            this.RemovePkgBtn.IsEnabled = status;
         }
     }
 }

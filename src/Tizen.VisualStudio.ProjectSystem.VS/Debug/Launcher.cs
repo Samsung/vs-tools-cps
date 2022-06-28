@@ -55,12 +55,11 @@ namespace Tizen.VisualStudio.Debug
         {
         }
 
-        private bool TargetHasTizenDotNET(SDBDeviceInfo device, out string lastErrorMessage)
+        private bool TargetHasTizenDotNET(SDBCapability cap, out string lastErrorMessage)
         {
             bool isDotnetSupported = false;
             try
             {
-                var cap = new SDBCapability(device);
                 isDotnetSupported = DeployHelper.IsTizenVersionSupported(cap.GetValueByKey("platform_version"));
             }
             catch
@@ -156,7 +155,7 @@ namespace Tizen.VisualStudio.Debug
             return InstallResult.UNDEFINED_BY_VS_ERROR;
         }
 
-        private InstallResult DoInstallTizenPackage(SDBDeviceInfo device, string tpkPath, out string lastErrorMessage)
+        private InstallResult DoInstallTizenPackage(SDBDeviceInfo device, SDBCapability cap, string tpkPath, out string lastErrorMessage, Boolean isDebug)
         {
             var waiter = new InstallWaiter(this);
 /*!!
@@ -167,7 +166,24 @@ namespace Tizen.VisualStudio.Debug
             InstallResult result;
             int exitCode = 0;
 
-            switch (SDBLib.RunSdbCommand(device, "install \"" + tpkPath + "\"",
+            Version version = Version.Parse(cap.GetValueByKey("platform_version"));
+
+            string cmd;
+            if (version >= new Version("5.5"))
+            {
+                if (isDebug)
+                {
+                    cmd = "install skip \"";
+                }
+                else
+                {
+                    cmd = "install noskip \"";
+                }
+            }
+            else
+                cmd = "install \"";
+
+            switch (SDBLib.RunSdbCommand(device, cmd + tpkPath + "\"",
                 (bool isStdOut, string line) => waiter.IsWaiterSet(line),
                 out exitCode,
                 TimeSpan.FromMinutes(5))) // 5 minutes will be enough?
@@ -197,16 +213,17 @@ namespace Tizen.VisualStudio.Debug
             return result;
         }
 
-        public InstallResult InstallTizenPackage(SDBDeviceInfo device, string tpkPath,
+        public InstallResult InstallTizenPackage(SDBDeviceInfo device, SDBCapability cap, string tpkPath,
                                         IVsOutputWindowPane outputPane,
                                         IVsThreadedWaitDialogFactory dlgFactory,
                                         bool forceInstall,
-                                        out string lastErrorMessage)
+                                        out string lastErrorMessage,
+                                        Boolean isDebugMode = false)
         {
             this.outputPane = outputPane;
             this.outputPane?.Activate();
 
-            if (!TargetHasTizenDotNET(device, out lastErrorMessage))
+            if (!TargetHasTizenDotNET(cap, out lastErrorMessage))
             {
                 return InstallResult.INSTALL_NOT_TRIED;
             }
@@ -228,8 +245,7 @@ namespace Tizen.VisualStudio.Debug
 
             int userCancel;
 
-            var appUninstallCmd = new SDBAppCmd(device, SDBProtocol.uninstall, VsProjectHelper.GetInstance.GetPackageId(tpkPath));
-            InstallResult result = DoInstallTizenPackage(device, tpkPath, out lastErrorMessage);
+            InstallResult result = DoInstallTizenPackage(device, cap, tpkPath, out lastErrorMessage, isDebugMode);
 
             this.waitDialog?.EndWaitDialog(out userCancel);
 

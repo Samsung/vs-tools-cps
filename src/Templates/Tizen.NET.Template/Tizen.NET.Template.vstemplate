@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Tizen DotNet Project</Name>
+    <Description>A single project template for building Tizen apps with Dotnet/CSharp</Description>
+    <Icon>Tizen.NET.Template.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <LanguageTag>csharp</LanguageTag>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>f8a5ce94-fe99-442f-9e2c-57361ee90590</TemplateID>
+    <CreateNewFolder>false</CreateNewFolder>
+    <DefaultName>TizenDotNet</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+	<PlatformTag>Tizen</PlatformTag>
+  </TemplateData>
+  <TemplateContent>
+  </TemplateContent>
+  <WizardExtension>
+        <Assembly>Tizen.VisualStudio.ProjectSystem.VS, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=afa3293746f785f3</Assembly>
+        <FullClassName>Tizen.VisualStudio.ProjectWizard.ProjectWizardTizenNativeNameChecker</FullClassName>
+  </WizardExtension>
+  <WizardExtension>
+        <Assembly>Tizen.VisualStudio.ProjectSystem.VS, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=afa3293746f785f3</Assembly>
+        <FullClassName>Tizen.VisualStudio.ProjectWizard.ProjectWizardTizenDotNetProjectCreator</FullClassName>
+  </WizardExtension>
+</VSTemplate>

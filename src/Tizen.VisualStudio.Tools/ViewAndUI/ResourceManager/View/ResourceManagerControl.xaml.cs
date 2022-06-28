@@ -19,6 +19,7 @@ namespace Tizen.VisualStudio.ResourceManager
     using EnvDTE;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Dynamic;
     using System.IO;
@@ -747,6 +748,11 @@ namespace Tizen.VisualStudio.ResourceManager
             else if (contentNotFoundIdx != -1)
             {
                 var foundTVI = (dynamic)viewChildElements;
+                if (foundTVI == null)
+                {
+                    Debug.WriteLine("foundTVI is NULL");
+                    return;
+                }
                 string[] projPathArr = createdHierarchy.Take(contentNotFoundIdx).ToArray();
                 var projFilePath = projPath.Substring(0, projPath.LastIndexOf("\\") + 1) + (string.Join("\\", projPathArr));
                 if (isFile && (contentNotFoundIdx == createdHierarchy.Count() - 1))
@@ -884,7 +890,7 @@ namespace Tizen.VisualStudio.ResourceManager
         {
             if (btnAdd != null)
             {
-                if (configLangCombo.SelectedValue.ToString() == "All" && resolutionCombo.SelectedValue.ToString() == "All")
+                if (resolutionCombo.SelectedValue != null && configLangCombo.SelectedValue.ToString() == "All" && resolutionCombo.SelectedValue.ToString() == "All")
                     btnAdd.IsEnabled = false;
                 else
                     btnAdd.IsEnabled = true;

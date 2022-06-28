@@ -94,6 +94,10 @@ namespace Tizen.VisualStudio.Tools.DebugBridge.SDBCommand
             return null;
         }
 
+        public int GetCapCount()
+        {
+            return capDic.Count;
+        }
         private string ParseStrReturnValue(string oriStr)
         {
             byte[] oriByte = Encoding.UTF8.GetBytes(oriStr);

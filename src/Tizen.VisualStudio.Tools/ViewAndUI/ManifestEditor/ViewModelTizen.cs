@@ -70,6 +70,7 @@ namespace Tizen.VisualStudio.ManifestEditor
         EventHandler _bufferReloadedHandler;
 
         LanguageService _xmlLanguageService;
+        string applicationApiVersionValue;
 
         public event EventHandler ViewModelChanged;
 
@@ -105,6 +106,27 @@ namespace Tizen.VisualStudio.ManifestEditor
             {
                 VersionList.Add("5");
             }
+
+            if (!VersionList.Contains("5.5"))
+            {
+                VersionList.Add("5.5");
+            }
+
+            if (!VersionList.Contains("6"))
+            {
+                VersionList.Add("6");
+            }
+
+            if (!VersionList.Contains("6.5"))
+            {
+                VersionList.Add("6.5");
+            }
+	    
+            if (!VersionList.Contains("7.0"))
+            {
+                VersionList.Add("7.0");
+            }
+
         }
 
         public void Close()
@@ -591,9 +613,39 @@ namespace Tizen.VisualStudio.ManifestEditor
                 if (_tizenManifestModel.apiversion != value)
                 {
                     _tizenManifestModel.apiversion = value;
+                    float val = -1;
+                    float.TryParse(value, out val);
+
+                    if (val != -1 && val >= 5.5)
+                    {
+                        if (_tizenManifestModel.applicationField != null)
+                            _tizenManifestModel.applicationField.apiversion = applicationApiVersionValue;
+                    } else
+                    {
+                        if (_tizenManifestModel.applicationField != null)
+                        {
+                            applicationApiVersionValue = _tizenManifestModel.applicationField.apiversion;
+                            _tizenManifestModel.applicationField.apiversion = null;
+                        }
+                    }
+                
                     DesignerDirty = true;
                     NotifyPropertyChanged();
                 }
+            }
+        }
+
+        public bool ApiVersionGreaterThanFive
+        {
+            get
+            {
+                float val = -1;
+                float.TryParse(ApiVersion, out val);
+                return (val != -1 && val >= 5.5);
+            }
+
+            set
+            {
             }
         }
 
@@ -1169,6 +1221,44 @@ namespace Tizen.VisualStudio.ManifestEditor
                 if (_tizenManifestModel.AdvanceMetadataList != value)
                 {
                     _tizenManifestModel.AdvanceMetadataList = value;
+                    DesignerDirty = true;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public List<packages> AdvancePkgList
+        {
+            get
+            {
+                if (_tizenManifestModel.dependencies == null)
+                {
+                    _tizenManifestModel.dependencies = new dependencies();
+                }
+
+                if (_tizenManifestModel.dependencies.dependencyList == null)
+                {
+                    _tizenManifestModel.dependencies.dependencyList = new List<packages>();
+                }
+
+                var returnList = new List<packages>();
+                foreach (var item in _tizenManifestModel.dependencies.dependencyList)
+                {
+                    if (item is packages)
+                    {
+                        returnList.Add(item as packages);
+                    }
+                }
+
+                return returnList;
+
+            }
+
+            set
+            {
+                if (_tizenManifestModel.dependencies.dependencyList != value)
+                {
+                    _tizenManifestModel.dependencies.dependencyList = value;
                     DesignerDirty = true;
                     NotifyPropertyChanged();
                 }

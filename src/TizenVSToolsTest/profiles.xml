@@ -1,0 +1,5 @@
+<profiles version="3.0" active="TestProfile">
+<profile name="TestProfile">
+    <profileitem ca="ca" distributor="distributor" key="key" password="password" rootca="rootca"/>
+</profile>
+</profiles>

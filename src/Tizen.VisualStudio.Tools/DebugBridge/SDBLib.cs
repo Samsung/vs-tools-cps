@@ -185,6 +185,12 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
 
             string msgForConnection = "host:transport:" + serialNumber;
             SDBRequest request = SDBConnection.MakeRequest(msgForConnection);
+
+            if (request == null)
+            {
+                Debug.WriteLine("request is NULL");
+                return null;
+            }
             SDBResponse response = sdbConnection.Send(request);
 
             if (response.IOSuccess && response.Okay)
@@ -209,6 +215,11 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             }
 
             SDBRequest request = SDBConnection.MakeRequest(msg);
+            if (request == null)
+            {
+                Debug.WriteLine("request is NULL");
+                return false;
+            }
             SDBResponse response = sdbConnection.Send(request);
 
             if (!response.IOSuccess || !response.Okay)

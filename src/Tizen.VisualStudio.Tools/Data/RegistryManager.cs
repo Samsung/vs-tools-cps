@@ -45,6 +45,23 @@ namespace Tizen.VisualStudio.Tools.Data
             return rkey;
         }
 
+        public static void DeleteRegistryKey()
+        {
+            try
+            {
+                var rkey = Win32.Registry.CurrentUser.OpenSubKey(TizenVSKey,
+                       Win32.RegistryKeyPermissionCheck.ReadWriteSubTree);
+                if (rkey != null)
+                {
+                    Win32.Registry.CurrentUser.DeleteSubKeyTree(TizenVSKey);
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
         public static string GetRegistryKey(string regPath)
         {
             Win32.RegistryKey rkey = GetTizenKeyPage();

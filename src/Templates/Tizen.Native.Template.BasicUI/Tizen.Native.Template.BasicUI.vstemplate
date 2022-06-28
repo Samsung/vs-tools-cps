@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Tizen Native Project</Name>
+    <Description>Tizen Template to Create Tizen Native Applications</Description>
+    <Icon>Tizen.Native.Template.BasicUI.ico</Icon>
+    <ProjectType>VC</ProjectType>
+    <LanguageTag>C++</LanguageTag>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>8f18d607-b3d3-4628-b36c-e5b723fe9e66</TemplateID>
+    <CreateNewFolder>false</CreateNewFolder>
+    <DefaultName>TizenNative</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <PlatformTag>Tizen</PlatformTag>
+  </TemplateData>
+  <TemplateContent>
+    <CustomParameters>
+      <CustomParameter Name ="$tizenprojecttype$" Value="native"/>
+    </CustomParameters>
+  </TemplateContent>
+  <WizardExtension>
+        <Assembly>Tizen.VisualStudio.ProjectSystem.VS, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=afa3293746f785f3</Assembly>
+        <FullClassName>Tizen.VisualStudio.ProjectWizard.ProjectWizardTizenNativeNameChecker</FullClassName>
+  </WizardExtension>
+  <WizardExtension>
+        <Assembly>Tizen.VisualStudio.ProjectSystem.VS, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=afa3293746f785f3</Assembly>
+        <FullClassName>Tizen.VisualStudio.ProjectWizard.ProjectWizardTizenNativeProjectCreator</FullClassName>
+  </WizardExtension>
+</VSTemplate>

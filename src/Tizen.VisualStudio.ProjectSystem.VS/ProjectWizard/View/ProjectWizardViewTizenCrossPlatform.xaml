@@ -35,7 +35,7 @@
                     <StackPanel Orientation="Horizontal" Margin="0 10 0 0">
                         <CheckBox x:Name="checkBox_mobile" Width="130" Content="Mobile" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding Mobile, Mode=TwoWay}" Style="{StaticResource checkboxstyle}"/>
                         <CheckBox x:Name="checkBox_tv" Width="130" Content="TV" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding Tv, Mode=TwoWay}" Style="{StaticResource checkboxstyle}"/>
-                        <CheckBox x:Name="checkBox_wearable" Content="Wearable (preview)" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding Wearable, Mode=TwoWay}" Style="{StaticResource checkboxstyle}"/>
+                        <CheckBox x:Name="checkBox_wearable" Content="Wearable" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding Wearable, Mode=TwoWay}" Style="{StaticResource checkboxstyle}"/>
                     </StackPanel>
                 </StackPanel>
             </StackPanel>

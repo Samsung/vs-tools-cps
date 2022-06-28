@@ -160,6 +160,10 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
 
         private void SeriesAdded(DataTypeMemoryStatisticsChartModel.SeriesData sd)
         {
+            if (LiveTimeline.Series == null)
+            {
+                return;
+            }
             LiveTimeline.Series.Add(
                 new LineSeries(Mappers.Xy<DataTypeMemoryUsage>()
                     .X(item => item.TimeMilliseconds)
@@ -174,7 +178,10 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
 
         private void SeriesRemoved(int index)
         {
-            LiveTimeline.Series.RemoveAt(index);
+            if (LiveTimeline.Series != null)
+            {
+                LiveTimeline.Series.RemoveAt(index);
+            }
         }
 
 
@@ -193,7 +200,8 @@ namespace NetCore.Profiler.Extension.UI.MemoryProfilingCharts
 
             for (int i = 0, e = Model.ViewPortValues.Count; i < e; i++)
             {
-                LiveTimeline.Series[i].Values = new ChartValues<DataTypeMemoryUsage>(Model.ViewPortValues[i].Values);
+                if (LiveTimeline.Series[i] != null)
+                    LiveTimeline.Series[i].Values = new ChartValues<DataTypeMemoryUsage>(Model.ViewPortValues[i].Values);
             }
         }
 

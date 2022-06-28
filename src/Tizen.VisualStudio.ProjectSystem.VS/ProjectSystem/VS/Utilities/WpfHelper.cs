@@ -31,6 +31,11 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Utilities
             {
                 DataGridCellsPresenter presenter = GetVisualChild<DataGridCellsPresenter>(rowContainer);
 
+                if (presenter == null)
+                {
+                    return null;
+                }
+
                 // try to get the cell but it may possibly be virtualized
                 DataGridCell cell = (DataGridCell)presenter.ItemContainerGenerator.ContainerFromIndex(column);
                 if (cell == null)

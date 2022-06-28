@@ -62,20 +62,23 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
 
             if (hasDevice)
             {
-                return new Collection<IEnumValue>((
-                    from profile in Enumerable.Reverse(DeviceManager.DeviceInfoList)
-                    let value = new EnumValue
-                    {
-                        Name = string.Format("{0}#{1}", profile.Serial, Guid.NewGuid().ToString()),
-                        DisplayName = string.Format("{0} ({1})", profile.Name, profile.Serial)
-                    }
-                    select ((IEnumValue)new PageEnumValue(value))).ToList());
+                Collection<IEnumValue> values = new Collection<IEnumValue>();
+                DeviceManager.DeviceInfoList.Reverse();
+                for (int i=0; i< DeviceManager.DeviceInfoList.Count; ++i)
+                {
+                    SDBDeviceInfo profile = DeviceManager.DeviceInfoList[i];
+                    if (i == 0)
+                        values.Add(new PageEnumValue(new EnumValue() { Name = string.Format("{0} ({1})", profile.Name, profile.Serial), DisplayName = string.Format("{0} ({1})", profile.Name, profile.Serial), IsDefault = true }));
+                    else
+                        values.Add(new PageEnumValue(new EnumValue() { Name = string.Format("{0} ({1})", profile.Name, profile.Serial), DisplayName = string.Format("{0} ({1})", profile.Name, profile.Serial) }));
+                }
+                return values;
             }
             else
             {
                 return new Collection<IEnumValue>()
                 {
-                    new PageEnumValue(new EnumValue() { Name = DeviceManager.LaunchEmulator, DisplayName = DeviceManager.LaunchEmulator })
+                    new PageEnumValue(new EnumValue() { Name = DeviceManager.LaunchEmulator, DisplayName = DeviceManager.LaunchEmulator, IsDefault = true })
                 };
             }
         }

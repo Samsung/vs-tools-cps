@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
+using Tizen.VisualStudio.Tools.DebugBridge.SDBCommand;
 
 namespace Tizen.VisualStudio.Tools.DebugBridge
 {
@@ -47,6 +48,16 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
         public static Dictionary<string, SDBDeviceInfo> DeviceInfoCollection
         {
             get { return deviceManager?.DeviceMoniter.DeviceInfoCollection; }
+        }
+
+        public static Dictionary<string, SDBCapability> SdbCapsMap
+        {
+            get { return deviceManager?.DeviceMoniter.SdbCapsMap; }
+        }
+
+        public static bool isDebuggerInstalled
+        {
+            get { return deviceManager.DeviceMoniter.isDebuggerInstalled; }
         }
 
         public static SDBDeviceInfo SelectedDevice
@@ -103,7 +114,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
         {
             bool isNoDeviceSelected = (newlySelectedDevice == null);
             bool isNewDeviceSelected = !isNoDeviceSelected && !newlySelectedDevice.Serial.Equals(SelectedDevice?.Serial);
-            bool isSelectedDeviceChanged = isNoDeviceSelected || isNewDeviceSelected;
+            bool isSelectedDeviceChanged = isNewDeviceSelected && !(SelectedDevice == null && newlySelectedDevice == null);
 
             SelectedDevice = newlySelectedDevice;
 

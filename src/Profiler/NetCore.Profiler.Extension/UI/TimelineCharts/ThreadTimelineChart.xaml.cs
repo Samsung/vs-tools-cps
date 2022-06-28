@@ -275,7 +275,8 @@ namespace NetCore.Profiler.Extension.UI.TimelineCharts
 
         private void UpdateJitViewPort()
         {
-            _jitSeries.Values = GcJobsSource == null ? new ChartValues<ClrJobItem>() : new ChartValues<ClrJobItem>(JitJobsSource.ViewPortValues);
+            if (JitJobsSource != null)
+                _jitSeries.Values = GcJobsSource == null ? new ChartValues<ClrJobItem>() : new ChartValues<ClrJobItem>(JitJobsSource.ViewPortValues);
         }
 
         private void UpdateTimeLineType()

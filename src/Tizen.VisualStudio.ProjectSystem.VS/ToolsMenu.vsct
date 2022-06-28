@@ -126,6 +126,23 @@
         </Strings>
       </Button -->
 
+      <!-- <Button guid="guidTizenExtensionFileMenuPackageCmdSet" id="CmdItem_FileNewTizenWebProject" priority="0x0060" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_FILE_NEW_CASCADE"/>
+        <Icon guid="guidSHLMainMenu" id="2"/>
+        <Strings>
+          <ButtonText>Tizen Project</ButtonText>
+        </Strings>
+      </Button> -->
+      
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemImportProject" priority="0x0100" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Icon guid="EmulatorMgrImage" id="pngPicEmulatorManager" />
+        <Strings>
+          <ButtonText>Import Tizen Studio Project</ButtonText>
+        </Strings>
+      </Button>
+
       <!-- Menu Item as Button -->
       <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemPackageManager" priority="0x0101" type="Button">
         <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
@@ -187,6 +204,14 @@
         </Strings>
       </Button>
 
+      <!-- Menu Item as Button -->
+      <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemImportWgtProject" priority="0x0101" type="Button">
+        <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
+        <Strings>
+          <ButtonText>Import Tizen wgt Project</ButtonText>
+        </Strings>
+      </Button>
+      
       <!-- Menu Item as Button -->
       <Button guid="guidTizenExtensionPackageCmdSet" id="CmdItem_MenuItemInstallWizard" priority="0x0101" type="Button">
         <Parent guid="guidTizenExtensionPackageCmdSet" id="TizenToolsMenuGroup" />
@@ -291,8 +316,71 @@
         </Strings>
       </Button>
 
+      <Button guid="guidTidlCmdSet" id="CmdItem_MenuItemTidlCmdSet" priority="0x0300" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_ITEM_SCC"/>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Generate TIDL Code</ButtonText>
+        </Strings>
+      </Button>
+	  
+      <Button guid="guidWebSimulatorCmdSet" id="CmdItem_MenuItemWebSimulatorCmdSet" priority="0x0300" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_SOLUTION_BUILD"/>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Run As Tizen Web Simulator Application</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidAddTizenDependencyCmdSet" id="CmdItem_MenuItemAddTizenDependencyCmdSet" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD"/>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Add Tizen Project Dependency</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidAddTizenDependencyCmdSet" id="CmdItem_MenuItemAddTizenDependencyCmdSet" priority="0x0000" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_PROJ_REFERENCE"/>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Add Tizen Project Dependency</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidTizenSettingsCmdSet" id="CmdItem_MenuItemTizenSettingsCmdSet" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_SOLUTION_PROPERTIES"/>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Tizen Build Properties</ButtonText>
+        </Strings>
+      </Button>
+
+      <!-- <Button guid="guidTizenSettingsCmdSet" id="CmdItem_MenuItemTizenSettingsCmdSet" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_PROPERTIES"/>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Tizen Build Properties</ButtonText>
+        </Strings>
+      </Button>
+      
+      <Button guid="guidTizenSettingsCmdSet" id="CmdItem_MenuItemTizenSettingsCmdSet" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_PROJ_SETTINGS"/>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Tizen Build Properties</ButtonText>
+        </Strings>
+      </Button> -->
     </Buttons>
 
+    
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
     <Bitmaps>
       <!--  The bitmap id is defined in a way that is a little bit different from the others:
@@ -335,6 +423,15 @@
     <!-- This is the package guid. -->
     <GuidSymbol name="guidTizenExtensionPackage" value="{f6276019-8d92-4a6e-8db3-ab820a4f0ab6}" />
 
+    <GuidSymbol name="guidTidlCmdSet" value="{587769ce-c5bb-42ea-b2f2-7df8af1d817e}">
+      <IDSymbol name="CmdItem_MenuItemTidlCmdSet" value="0x3001" />
+    </GuidSymbol>
+    
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="guidTizenExtensionFileMenuPackageCmdSet" value="{71b2c831-4da5-4b4a-8903-e9e336839b73}">
+      <IDSymbol name="CmdItem_FileNewTizenWebProject" value="0x0777" />
+    </GuidSymbol>
+
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidTizenExtensionPackageCmdSet" value="{14cd1b22-758c-4d5e-827e-0229a3371332}">
       <IDSymbol name="TizenToolsMenuRoot" value="0x1001" />
@@ -350,7 +447,7 @@
       <IDSymbol name="CmdItem_ConnectComboGeList" value="0x0102" />
       <IDSymbol name="CmdItem_RemoteDevice" value="0x0103" />
       <IDSymbol name="CmdItem_ToolbarEmulatorManager" value="0x0104" />
-
+      <IDSymbol name="CmdItem_MenuItemImportProject" value="0x0106" />
       <IDSymbol name="CmdItem_MenuItemPackageManager" value="0x0100" />
       <IDSymbol name="CmdItem_MenuItemEmulatorManager" value="0x0105" />
       <IDSymbol name="CmdItem_MenuItemSdbPrompt" value="0x0107" />
@@ -365,6 +462,7 @@
       <IDSymbol name="CmdItem_MenuItemRunMemoryProfiler" value="0x0116" />
       <IDSymbol name="CmdItem_MenuItemRunHeaptrack" value="0x0117" />
       <IDSymbol name="CmdItem_MenuItemRunManagedProfiler" value="0x0118" />
+      <IDSymbol name="CmdItem_MenuItemImportWgtProject" value="0x0119" />
       <IDSymbol name="CmdItem_MenuItemInstallWizard" value="0x0198" />
       <IDSymbol name="CmdItem_MenuItemTest" value="0x0199" />
       <IDSymbol name="CmdItem_MenuItemSdbServerStart" value="0x0200" />
@@ -437,6 +535,21 @@
       <IDSymbol name="pngPicProfilingProgress" value="1"/>
     </GuidSymbol>
 
+    <GuidSymbol name="guidWebSimulatorCmdSet" value="{c99da730-5fc8-48e8-a00d-a9de0d354655}">
+      <IDSymbol name="CmdItem_MenuItemWebSimulatorCmdSet" value="0x3001" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidAddTizenProjectCmdSet" value="{207aac64-71c3-4855-b166-a17e55397a8b}">
+      <IDSymbol name="CmdItem_MenuItemAddTizenProjectCmdSet" value="0x3002" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidAddTizenDependencyCmdSet" value="{ba720d87-a961-4477-976e-e9e4a34f0dad}">
+      <IDSymbol name="CmdItem_MenuItemAddTizenDependencyCmdSet" value="0x3003" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidTizenSettingsCmdSet" value="{f97a3f9b-66cc-44ab-8870-905a47c34417}">
+      <IDSymbol name="CmdItem_MenuItemTizenSettingsCmdSet" value="0x3004" />
+    </GuidSymbol>
   </Symbols>
 </CommandTable>
 

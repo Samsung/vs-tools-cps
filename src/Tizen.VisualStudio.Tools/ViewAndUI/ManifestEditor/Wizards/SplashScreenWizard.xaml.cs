@@ -135,11 +135,8 @@ namespace Tizen.VisualStudio.ManifestEditor
         private void EnableCheckOKbtn()
         {
             if (string.IsNullOrEmpty(comboBox_ResourceType.Text) ||
-                string.IsNullOrEmpty(comboBox_Resolution.Text) ||
                 string.IsNullOrEmpty(comboBox_Orientation.Text) ||
-                string.IsNullOrEmpty(comboBox_IndicatorDisplay.Text) ||
-                string.IsNullOrEmpty(textBox_source.Text) ||
-                string.IsNullOrEmpty(textBox_AppcontrolOp.Text))
+                string.IsNullOrEmpty(textBox_source.Text))
             {
                 this.button_ok.IsEnabled = false;
             }

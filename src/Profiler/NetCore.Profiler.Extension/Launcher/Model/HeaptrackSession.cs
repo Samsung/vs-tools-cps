@@ -178,7 +178,11 @@ namespace NetCore.Profiler.Extension.Launcher.Model
         private void WriteSessionFiles(DateTime sessionTime)
         {
             double timestamp = (sessionTime.ToUniversalTime() - TimeStampHelper.UnixEpochTime).TotalMilliseconds;
-
+            EnvDTE.Project p = ProfilerPlugin.Instance.GetStartupProject();
+            if (p == null)
+            {
+                return;
+            }
             string projectName = ProfilerPlugin.Instance.GetStartupProject().Name;
 
             var sessionFile = new SessionProperties(Path.Combine(SessionDirectory, SessionConstants.SessionFileName));

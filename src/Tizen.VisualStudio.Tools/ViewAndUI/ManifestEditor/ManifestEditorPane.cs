@@ -255,6 +255,11 @@ namespace Tizen.VisualStudio.ManifestEditor
             // Get a reference to the Running Document Table
             IVsRunningDocumentTable runningDocTable = (IVsRunningDocumentTable)GetService(typeof(SVsRunningDocumentTable));
 
+            if (runningDocTable == null)
+            {
+                return;
+            }
+
             // Lock the document
             IVsHierarchy hierarchy;
             int hr = runningDocTable.FindAndLockDocument((uint)_VSRDTFLAGS.RDT_ReadLock, _fileName, out hierarchy, out uint itemID, out IntPtr docData, out uint docCookie);
@@ -428,7 +433,6 @@ namespace Tizen.VisualStudio.ManifestEditor
             codeFrame = frame;
             ErrorHandler.ThrowOnFailure(frame.Show());
         }
-
         #endregion
 
         #region IVsLinkedUndoClient
@@ -575,16 +579,16 @@ namespace Tizen.VisualStudio.ManifestEditor
             {
                 if (string.Compare(rgpszFile[i], _fileName, true, CultureInfo.InvariantCulture) == 0)
                 {
+                    if ((rggrfChange[i] & (int)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Size)) != 0)
+                    {
+                        RefreshEditor();
+                    }
+
                     if ((rggrfChange[i] & (int)_VSFILECHANGEFLAGS.VSFILECHG_Attr) != 0)
                     {
                         var vsRunningDocumentTable = GetService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
                         var hr = vsRunningDocumentTable.NotifyDocumentChanged(_documentCookie, 0);
                         ErrorHandler.ThrowOnFailure(hr);
-                    }
-
-                    if ((rggrfChange[i] & (int)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Size)) != 0)
-                    {
-                        RefreshEditor();
                     }
 
                     break;

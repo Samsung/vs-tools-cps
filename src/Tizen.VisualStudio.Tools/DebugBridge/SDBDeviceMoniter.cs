@@ -21,6 +21,10 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.IO;
 using System.Windows.Forms;
+using System.Diagnostics;
+using Tizen.VisualStudio.Tools.DebugBridge.SDBCommand;
+using Tizen.VisualStudio.Tools.Utilities;
+using Tizen.VisualStudio.Tools.Data;
 
 namespace Tizen.VisualStudio.Tools.DebugBridge
 {
@@ -48,6 +52,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
         }
     }
 
+
     public class SDBDeviceMoniter
     {
         private List<SDBDeviceInfo> deviceInfoList = null;
@@ -72,9 +77,14 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             get;
         }
 
+        public Dictionary<string, SDBCapability> SdbCapsMap
+        { get; }
+
         public static readonly char[] DeviceToken = { '\t' };
 
         public bool NeedsRestart { get; set; }
+
+        public bool isDebuggerInstalled { get; set; }
 
         public List<SDBDeviceInfo> DeviceInfoList
         {
@@ -86,7 +96,9 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             this.lockDeviceInfoList = new Object();
             this.deviceInfoList = new List<SDBDeviceInfo>();
             this.DeviceInfoCollection = new Dictionary<string, SDBDeviceInfo>();
+            this.SdbCapsMap = new Dictionary<string, SDBCapability>();
             this.NeedsRestart = false;
+            this.isDebuggerInstalled = false;
         }
 
         public void Initialize(IVsOutputWindowPane outputPane)
@@ -148,7 +160,6 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
                     {
                         this.sdbconnection.Shutdown();
                     }
-
                     this.taskMonitor.Wait();
                 }
                 catch (AggregateException e)
@@ -179,8 +190,52 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
                 (this.taskMonitor != null && this.taskMonitor.IsCompleted))
             {
                 taskMonitor = Task.Run(() => DeviceChangeDetectTask());
+                
+
                 taskMonitor.ContinueWith((i) => HandleDeviceMonitorResult(i));
             }
+        }
+
+        public void DebuggerInstall()
+        {
+            this.outputPane.OutputString($"<<< Debugger installation >>>\n");
+            SDBDeviceInfo device = DeviceManager.SelectedDevice;
+            if (device == null)
+            {
+                return;
+            }
+            SDBCapability cap;
+            if (SdbCapsMap.ContainsKey(device.Serial))
+            {
+                cap = SdbCapsMap[device.Serial];
+            }
+            else
+            {
+                cap = new SDBCapability(device);
+                SdbCapsMap.Add(device.Serial, cap);
+            }
+            bool useNetCoreDbg = cap.GetAvailabilityByKey("netcoredbg_support");
+            bool isSecureProtocol = cap.GetAvailabilityByKey("secure_protocol");
+
+            var installer = new OnDemandInstaller(device, supportRpms: false, supportTarGz: true,
+                        onMessage: (s) => this.outputPane.OutputString(s));
+
+            isDebuggerInstalled = installer.Install(useNetCoreDbg ? "netcoredbg" :
+                (isSecureProtocol ? "lldb-tv" : "lldb"));
+
+            if (!isDebuggerInstalled)
+            {
+                this.outputPane.OutputString("Cannot check/install the debugger package.\n");
+            }
+
+            isDebuggerInstalled = installer.InstallGDBServer();
+
+            if (!isDebuggerInstalled)
+            {
+                this.outputPane.OutputString("Cannot check/install the debugger package.\n");
+            }
+
+            this.outputPane.OutputString($"<<< {isDebuggerInstalled} >>>\n");
         }
 
         private DeviceMonitorResult DeviceChangeDetectTask()
@@ -210,6 +265,12 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             Thread.Sleep(100);
 
             SDBRequest request = SDBConnection.MakeRequest("host:track-devices");
+
+            if (request == null)
+            {
+                Debug.WriteLine("request is null");
+                return DeviceMonitorResult.SdbResponseError;
+            }
             SDBResponse response = this.sdbconnection.Send(request);
 
             if (!response.IOSuccess || !response.Okay)
@@ -249,6 +310,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
                         string result = this.sdbconnection.ReadData(buffer);
                         ProcessDeviceData(result);
                         NotifySubscribers();
+                        DebuggerInstall();
                     }
                     else if (length == 0)
                     {
@@ -332,6 +394,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             List<SDBDeviceInfo> deviceInfoList = new List<SDBDeviceInfo>();
 
             DeviceInfoCollection.Clear();
+            SdbCapsMap.Clear();
 
             foreach (string item in devices)
             {
@@ -340,9 +403,18 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
 
                 SDBDeviceInfo devinfo = new SDBDeviceInfo(onedevice[0].TrimEnd(), onedevice[1].TrimEnd(), onedevice[2].TrimEnd());
 
+                if (devinfo.Status != "device")
+                    continue;
+
+                SDBCapability sdbcaps = new SDBCapability(devinfo);
+                if (sdbcaps.GetCapCount() == 0) //cap not read
+                    continue;
+
                 deviceInfoList.Add(devinfo);
 
                 DeviceInfoCollection.Add(devinfo.Serial, devinfo);
+
+                SdbCapsMap.Add(devinfo.Serial, sdbcaps);
             }
 
             lock (this.lockDeviceInfoList)

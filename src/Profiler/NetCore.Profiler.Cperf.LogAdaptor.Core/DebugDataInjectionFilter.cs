@@ -529,7 +529,7 @@ namespace NetCore.Profiler.Cperf.LogAdaptor.Core
                     return dname;
                 }
 
-                if (path == null)
+                if (path == null || path == "")
                 {
                     return null;
                 }

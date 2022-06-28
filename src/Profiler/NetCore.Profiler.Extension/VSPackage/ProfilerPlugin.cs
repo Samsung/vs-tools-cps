@@ -181,9 +181,30 @@ namespace NetCore.Profiler.Extension.VSPackage
         private MenuCommand RegMenuItem(OleMenuCommandService commandService, int commandID, EventHandler invokeHandler)
         {
             CommandID cmdId = new CommandID(GeneralProperties.CommandSet, commandID);
-            MenuCommand mItem = new MenuCommand(invokeHandler, cmdId);
+            OleMenuCommand mItem = new OleMenuCommand(invokeHandler, cmdId);
 
             commandService.AddCommand(mItem);
+
+            // use BeforeQueryStatus event callBack function to Dynamically Enable/Disable the menu
+            mItem.BeforeQueryStatus += (sender, evt) =>
+            {
+                OleMenuCommand item = (OleMenuCommand)sender;
+                DTE2 dte2 = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+
+                if (dte2.Solution.IsOpen)
+                {
+                    VsProjectHelper projHelp = VsProjectHelper.Instance;
+                    bool isWebPrj = projHelp.IsTizenWebProject();
+                    bool isNativePrj = projHelp.IsTizenNativeProject();
+                    if (isWebPrj || isNativePrj)
+                        item.Enabled = false;
+                    else
+                        item.Enabled = true;
+                } else
+                {
+                    item.Enabled = false;
+                }
+            };
 
             return mItem;
         }
@@ -479,9 +500,10 @@ namespace NetCore.Profiler.Extension.VSPackage
         private static SDBDeviceInfo GetAndCheckSelectedDevice(RunMode runMode)
         {
             SDBDeviceInfo device = DeviceManager.SelectedDevice;
+            SDBCapability cap = new SDBCapability(device);
             if (device != null)
             {
-                if (!EnsureRootOff(device, runMode))
+                if (!EnsureRootOff(device, cap, runMode))
                 {
                     device = null;
                 }
@@ -502,12 +524,12 @@ namespace NetCore.Profiler.Extension.VSPackage
             MemoryProfiler
         }
 
-        public static bool EnsureRootOff(SDBDeviceInfo device, RunMode runMode)
+        public static bool EnsureRootOff(SDBDeviceInfo device, SDBCapability cap, RunMode runMode)
         {
             bool isRoot;
             string errorMessage;
 
-			bool isSecureProtocol = (new SDBCapability(DeviceManager.SelectedDevice)).GetAvailabilityByKey("secure_protocol");
+			bool isSecureProtocol = cap.GetAvailabilityByKey("secure_protocol");
 			if (isSecureProtocol)
 				return true;
 
