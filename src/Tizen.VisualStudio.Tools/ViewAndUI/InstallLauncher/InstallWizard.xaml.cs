@@ -73,7 +73,7 @@ namespace Tizen.VisualStudio.InstallLauncher
             }
             else
             {
-                Label_JREWARN.Visibility = Visibility.Visible;
+                Label_JREWARN.Visibility = Visibility.Hidden;
             }
         }
 

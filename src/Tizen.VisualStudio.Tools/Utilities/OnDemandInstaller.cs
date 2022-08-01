@@ -75,6 +75,72 @@ namespace Tizen.VisualStudio.Tools.Utilities
             _onMessage = onMessage;
         }
 
+        private string GetTargetArch(SDBCapability cap)
+        {
+            // Only X86 and ARM are support now. 64bit are not supported.
+            string arch = cap.GetValueByKey("cpu_arch");
+            switch (arch)
+            {
+                case "x86":
+                    return "X86";
+                default:
+                    return "arm";
+            }
+        }
+
+        public bool InstallGDBServer()
+        {
+            string gdbserver = "";
+            ErrorMessage = "";
+            SDBCapability cap;
+            if (DeviceManager.SdbCapsMap.ContainsKey(_device.Serial))
+            {
+                cap = DeviceManager.SdbCapsMap[_device.Serial];
+            }
+            else
+            {
+                cap = new SDBCapability(_device);
+                DeviceManager.SdbCapsMap.Add(_device.Serial, cap);
+            }
+
+            string tizenVersion = cap.GetValueByKey("platform_version");
+            if (!DeployHelper.IsTizenVersionSupported(tizenVersion))
+            {
+                ErrorMessage = $"The target system platform version {tizenVersion} is not supported";
+                return false;
+            }
+            string arch = GetTargetArch(cap);
+            Version version = Version.Parse(tizenVersion);
+            if (version.Major >= 6)
+            {
+                if (arch == "X86")
+                    gdbserver = "gdbserver_8.3.1_i586.tar";
+                else
+                    gdbserver = "gdbserver_8.3.1_armel.tar";
+            }else
+            {
+                if (arch == "X86")
+                    gdbserver = "gdbserver_7.8.1_i386.tar";
+                else
+                    gdbserver = "gdbserver_7.8.1_armel.tar";
+            }
+
+            _sdkToolPath = cap.GetValueByKey("sdk_toolpath");
+            _sdkOnDemandFolder = Path.Combine(ToolsPathInfo.ToolsRootPath, "tools","on-demand");
+            gdbserver = Path.Combine(_sdkOnDemandFolder, gdbserver);
+            string des = Path.Combine(_sdkToolPath,"on-demand", "gdbserver.tar");
+            des = des.Replace("\\", "/");
+            bool result = true;
+
+            string errorMessage;
+            SDBLib.RunSdbShellCommand(_device, "rm -rf /home/owner/share/tmp/sdk_tools/on-demand/gdbserver.tar",null, out errorMessage);
+            Push(gdbserver, des);
+            SDBLib.RunSdbShellCommand(_device, "rm -rf /home/owner/share/tmp/sdk_tools/gdbserver", null, out errorMessage);
+            SDBLib.RunSdbShellCommand(_device, "tar -xvf /home/owner/share/tmp/sdk_tools/on-demand/gdbserver.tar -C /home/owner/share/tmp/sdk_tools", null, out errorMessage);
+           
+            return result;
+        }
+
         /// <summary>
         /// Install packages on the target.
         /// </summary>
@@ -87,7 +153,16 @@ namespace Tizen.VisualStudio.Tools.Utilities
                 throw new ArgumentException(nameof(packageNames));
             }
             ErrorMessage = "";
-            var cap = new SDBCapability(_device);
+            SDBCapability cap;
+            if (DeviceManager.SdbCapsMap.ContainsKey(_device.Serial))
+            {
+                cap = DeviceManager.SdbCapsMap[_device.Serial];
+            }
+            else
+            {
+                cap = new SDBCapability(_device);
+                DeviceManager.SdbCapsMap.Add(_device.Serial, cap);
+            }
             string tizenVersion = cap.GetValueByKey("platform_version");
             if (!DeployHelper.IsTizenVersionSupported(tizenVersion))
             {

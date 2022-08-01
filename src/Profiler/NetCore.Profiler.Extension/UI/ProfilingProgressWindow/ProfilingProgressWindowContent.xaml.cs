@@ -615,7 +615,7 @@ namespace NetCore.Profiler.Extension.UI.ProfilingProgressWindow
                 ClrJobItem job = items[i];
                 if (i % 2 == 0)
                 {
-                    if (!job.IsStart)
+                    if (job != null && !job.IsStart)
                     {
                         writer.WriteLine($"WARNING: unexpected end item ({job.TimeSeconds:F3})");
                         continue;

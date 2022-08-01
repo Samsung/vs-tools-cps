@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Tizen.VisualStudio.APIChecker</RootNamespace>
     <AssemblyName>Tizen.VisualStudio.APIChecker</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
@@ -60,6 +60,7 @@
     <Compile Include="APICheckerWindowTaskProvider.cs" />
     <Compile Include="Model\APICheckerTask.cs" />
     <Compile Include="Model\NeedsPrivilegeTask.cs" />
+    <Compile Include="WebPrivilegeChecker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuickFix\AddPrivilegeAction.cs" />
     <Compile Include="QuickFix\APICheckerCodeFix.cs" />
@@ -67,31 +68,28 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis">
-      <Version>2.6.1</Version>
+      <Version>4.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <Version>15.6.27413</Version>
+      <Version>17.0.487</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
-      <Version>14.3.25408</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>15.6.27413</Version>
+      <Version>17.0.487</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices">
-      <Version>2.6.1</Version>
+      <Version>4.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
-      <Version>15.3.224</Version>
+      <Version>16.0.374-pre</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-      <Version>15.6.27413</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0">
-      <Version>10.0.30320</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Threading">
-      <Version>15.7.17</Version>
+      <Version>16.0.102</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>10.0.3</Version>
@@ -99,6 +97,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TizenNET.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Profiler\NetCore.Profiler.Extension\NetCore.Profiler.Extension.csproj">
+      <Project>{7511DC49-D198-4546-AC61-E44BB1FC39B5}</Project>
+      <Name>NetCore.Profiler.Extension</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tizen.VisualStudio.Tools\Tizen.VisualStudio.Tools.csproj">
+      <Project>{d8138674-7365-4ec1-8d8c-81b8b5a1b845}</Project>
+      <Name>Tizen.VisualStudio.Tools</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

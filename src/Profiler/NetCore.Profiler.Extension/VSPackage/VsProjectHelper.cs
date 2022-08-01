@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE;
 using EnvDTE80;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace NetCore.Profiler.Extension.VSPackage
 {
@@ -31,6 +32,8 @@ namespace NetCore.Profiler.Extension.VSPackage
         private Solution2 sol2 = null;
         private ServiceProvider serviceProvider = null;
         private IVsSolution solutionService = null;
+        private readonly string TizenWebProjGuid = "{8E00536E-BD0D-4447-B307-F2C80A762AD0}";
+        public readonly string CPPBasedProject = "{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}";
 
         public static VsProjectHelper Instance
         {
@@ -164,5 +167,155 @@ namespace NetCore.Profiler.Extension.VSPackage
             return String.Empty;
         }
 
+        public Projects GetProjects()
+        {
+            return this.dte2.Solution.Projects;
+        }
+
+        public bool IsHaveTizenNativeYaml(Project prj)
+        {
+            bool result = false;
+            try
+            {
+                string projectFolder = Path.GetDirectoryName(prj.FullName);
+                if (File.Exists(Path.Combine(projectFolder, "tizen_native_project.yaml")))
+                {
+                    result = true;
+                }
+            }
+            catch
+            {
+            }
+
+            return result;
+
+        }
+
+        public bool IsHaveTizenManifest(Project prj)
+        {
+            bool result = false;
+            try
+            {
+                string projectFolder = Path.GetDirectoryName(prj.FullName);
+                if (File.Exists(Path.Combine(projectFolder, "tizen-manifest.xml")))
+                {
+                    result = true;
+                }
+            }
+            catch
+            {
+            }
+
+            return result;
+
+        }
+
+        public bool IsTizenNativeProject()
+        {
+            if (this.sol2 == null || !this.sol2.IsOpen)
+                return false;
+            Projects ListOfProjectsInSolution = this.GetProjects();
+            foreach (Project project in ListOfProjectsInSolution)
+            {
+                try
+                {
+                    if (IsHaveTizenManifest(project) || IsHaveTizenNativeYaml(project))
+                    {
+                        if (project.Kind == CPPBasedProject)
+                        {
+                            return true;
+                        }
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Tizen: " + e.Message);
+                }
+            }
+
+            return false;
+        }
+
+        public bool IsTizenWebProject()
+        {
+            if (this.sol2 == null)
+                return false;
+
+            //Check for Tizen Web Project GUID
+            Projects ListOfProjectsInSolution = this.GetProjects();
+
+            foreach (Project project in ListOfProjectsInSolution)
+            {
+                try
+                {
+                    string projectFolder = Path.GetDirectoryName(project.FullName);
+                    if (File.Exists(Path.Combine(projectFolder, "config.xml")))
+                    {
+                        if (project.Kind == "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}")
+                        {
+                            XDocument xmldoc = XDocument.Load(project.FullName);
+                            XDocument xd = xmldoc.Document;
+
+                            foreach (XElement element in xd.Descendants("ProjectTypeGuids"))
+                            {
+                                var val = element.Value;
+
+                                if (val != null && val.ToUpper().Contains(TizenWebProjGuid))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Tizen: " + e.Message);
+                }
+            }
+
+            return false;
+        }
+
+        public String getSolutionFolderPath()
+        {
+            String result = null;
+            Solution solution = dte2.Application.Solution;
+            if (solution == null)
+                return result;
+
+            result = Path.GetDirectoryName(solution.FullName);
+
+            return result;
+        }
+
+        public String getConfigXML()
+        {
+            String emptyPath = null;
+            Solution solution = dte2.Application.Solution;
+            if (solution == null)
+                return emptyPath;
+            Projects ListOfProjectsInSolution = solution.Projects;
+
+            foreach (Project project in ListOfProjectsInSolution)
+            {
+                try
+                {
+                    String projectFolder = Path.GetDirectoryName(project.FullName);
+                    String path = Path.Combine(projectFolder, "config.xml");
+                    if (File.Exists(path))
+                    {
+                        return path;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Tizen: " + e.Message);
+                }
+            }
+            return emptyPath;
+        }
     }
 }

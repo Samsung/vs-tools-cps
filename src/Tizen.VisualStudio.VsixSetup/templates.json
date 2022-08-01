@@ -1,0 +1,271 @@
+{
+  "dotnet": {
+    "tizen-7.0": [
+      "TizenCrossNET",
+      "TizenElmSharpApp",
+      "TizenNSClassLib",
+      "TizenNUIApp",
+      "TizenNUIXamlApp",
+      "TizenOpenTKApp",
+      "TizenServiceApp",
+      "TizenUITestApp",
+      "TizenWatchfaceApp",
+      "TizenWearableApp",
+      "TizenWearableXamlApp",
+      "TizenXamlApp"
+    ],
+    "tizen-6.5": [
+      "TizenCrossNET",
+      "TizenElmSharpApp",
+      "TizenNSClassLib",
+      "TizenNUIApp",
+      "TizenNUIXamlApp",
+      "TizenOpenTKApp",
+      "TizenServiceApp",
+      "TizenUITestApp",
+      "TizenWatchfaceApp",
+      "TizenWearableApp",
+      "TizenWearableXamlApp",
+      "TizenXamlApp"
+    ],
+    "tizen-6.0": [
+      "TizenCrossNET",
+      "TizenElmSharpApp",
+      "TizenNSClassLib",
+      "TizenNUIApp",
+      "TizenNUIXamlApp",
+      "TizenOpenTKApp",
+      "TizenServiceApp",
+      "TizenUITestApp",
+      "TizenWatchfaceApp",
+      "TizenWearableApp",
+      "TizenWearableXamlApp",
+      "TizenXamlApp"
+    ],
+    "tizen-5.5": [
+      "TizenCrossNET",
+      "TizenElmSharpApp",
+      "TizenNSClassLib",
+      "TizenNUIApp",
+      "TizenNUIXamlApp",
+      "TizenOpenTKApp",
+      "TizenServiceApp",
+      "TizenUITestApp",
+      "TizenWatchfaceApp",
+      "TizenWearableApp",
+      "TizenWearableXamlApp",
+      "TizenXamlApp"
+    ],
+    "tizen-5.0": [
+      "TizenCrossNET",
+      "TizenElmSharpApp",
+      "TizenNSClassLib",
+      "TizenNUIApp",
+      "TizenOpenTKApp",
+      "TizenServiceApp",
+      "TizenUITestApp",
+      "TizenWatchfaceApp",
+      "TizenWearableApp",
+      "TizenWearableXamlApp",
+      "TizenXamlApp"
+    ],
+    "tizen-4.0": [
+      "TizenCrossNET",
+      "TizenElmSharpApp",
+      "TizenNSClassLib",
+      "TizenNUIApp",
+      "TizenServiceApp",
+      "TizenUITestApp",
+      "TizenWatchfaceApp",
+      "TizenWearableApp",
+      "TizenWearableXamlApp",
+      "TizenXamlApp"
+    ]
+  },
+  "native": {
+    "wearable-7.0": [
+      "basic_ui",
+      "basic_edc_ui",
+      "imi_app",
+      "serviceapp",
+      "shared_library",
+      "static_library",
+      "widget"
+    ],
+    "wearable-6.5": [
+      "basic_ui",
+      "basic_edc_ui",
+      "imi_app",
+      "serviceapp",
+      "shared_library",
+      "static_library",
+      "widget"
+    ],
+    "wearable-6.0": [
+      "basic_ui",
+      "basic_edc_ui",
+      "imi_app",
+      "serviceapp",
+      "shared_library",
+      "static_library",
+      "widget"
+    ],
+    "wearable-5.5": [
+      "basic_ui",
+      "basic_edc_ui",
+      "basic_dali_ui",
+      "imi_app",
+      "serviceapp",
+      "shared_library",
+      "static_library",
+      "widget",
+      "watch"
+    ],
+    "mobile-7.0": [
+      "basic_ui",
+      "basic_edc_ui",
+      "imi_app",
+      "serviceapp",
+      "component_app",
+      "widget",
+      "shared_library",
+      "static_library",
+    ],
+    "mobile-6.5": [
+      "basic_ui",
+      "basic_edc_ui",
+      "imi_app",
+      "serviceapp",
+      "component_app",
+      "widget",
+      "shared_library",
+      "static_library",
+    ],
+    "mobile-6.0": [
+      "basic_ui",
+      "basic_edc_ui",
+      "imi_app",
+      "serviceapp",
+      "component_app",
+      "widget",
+      "shared_library",
+      "static_library",
+    ],
+    "mobile-5.5": [
+      "basic_ui",
+      "basic_edc_ui",
+      "basic_dali_ui",
+      "imi_app",
+      "serviceapp",
+      "component_app",
+      "widget",
+      "shared_library",
+      "static_library",
+    ],
+    "iot-headless-6.0": [
+      "serviceapp",
+      "shared_library",
+      "static_library"
+    ],
+    "iot-headed-6.5": [
+      "basic_ui",
+      "basic_edc_ui",
+      "serviceapp",
+      "shared_library",
+      "static_library"
+    ],
+    "iot-headed-7.0": [
+      "basic_ui",
+      "basic_edc_ui",
+      "serviceapp",
+      "shared_library",
+      "static_library"
+    ],
+    "iot-headed-6.0": [
+      "basic_ui",
+      "basic_edc_ui",
+      "serviceapp",
+      "shared_library",
+      "static_library"
+    ]
+  },
+  "web": {
+    "wearable-7.0": [
+      "BasicUI",
+      "BasicAddon",
+      "Widget",
+      "WebInputEditor",
+      "WebUIService"
+    ],
+    "wearable-6.5": [
+      "BasicUI",
+      "BasicAddon",
+      "Widget",
+      "WebInputEditor",
+      "WebUIService"
+    ],
+    "wearable-6.0": [
+      "BasicUI",
+      "BasicAddon",
+      "Widget",
+      "WebInputEditor",
+      "WebUIService"
+    ],
+    "wearable-5.5": [
+      "BasicUI",
+      "BasicAddon",
+      "Widget",
+      "WebInputEditor",
+      "TAUBasic",
+      "TAUList"
+    ],
+    "tv-samsung-6.0": [
+      "Basic",
+      "CaphTemplateAngularJS",
+      "CaphTemplateJQuery",
+      "Empty",
+      "jQueryNavigation"
+    ],
+    "tv-samsung-5.5": [
+      "Basic",
+      "CaphTemplateAngularJS",
+      "CaphTemplateJQuery",
+      "Empty",
+      "jQueryNavigation"
+    ],
+    "tv-samsung-5.0": [
+      "Basic",
+      "CaphTemplateAngularJS",
+      "CaphTemplateJQuery",
+      "Empty",
+      "jQueryNavigation"
+    ],
+    "mobile-7.0": [
+      "BasicUI",
+      "BasicAddon",
+      "WebUIService",
+      "Companion",
+      "WebClip"
+    ],
+    "mobile-6.5": [
+      "BasicUI",
+      "BasicAddon",
+      "WebUIService",
+      "Companion",
+      "WebClip"
+    ],
+    "mobile-6.0": [
+      "BasicUI",
+      "BasicAddon",
+      "WebUIService"
+    ],
+    "mobile-5.5": [
+      "BasicUI",
+      "BasicAddon",
+      "WebUIService",
+      "TAUMasterDetail",
+      "TAUMultiPage",
+      "TAUSinglePage"
+    ]
+  }
+}

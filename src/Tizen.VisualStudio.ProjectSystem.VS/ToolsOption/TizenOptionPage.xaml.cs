@@ -39,6 +39,7 @@ namespace Tizen.VisualStudio.ToolsOption
             this.DataContext = _TizenOptionPageViewModel;
             Refresh_Textbox();
             Tool_Checker();
+            Refresh_Chrome_Textbox();
         }
 
         private void Textbox_Path_TextChanged(object sender, TextChangedEventArgs e)
@@ -46,6 +47,13 @@ namespace Tizen.VisualStudio.ToolsOption
             _TizenOptionPageViewModel.ToolsPath = Textbox_Path.Text;
             Refresh_Textbox();
             Tool_Checker();
+        }
+
+        private void Chrome_Textbox_Path_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _TizenOptionPageViewModel.ChromePath = Chrome_TextBox_Path.Text;
+            Refresh_Chrome_Textbox();
+            UpdateChromePathInYAML(Chrome_TextBox_Path.Text);
         }
 
         private void Refresh_Textbox()
@@ -99,6 +107,11 @@ namespace Tizen.VisualStudio.ToolsOption
             }
         }
 
+        private void Refresh_Chrome_Textbox()
+        {
+            Chrome_TextBox_Path.Text = _TizenOptionPageViewModel.ChromePath;
+        }
+
         private void Button_Browse_Click(object sender, RoutedEventArgs e)
         {
             string folderPath = GetToolsFolderDialog(Textbox_Path.Text);
@@ -106,6 +119,44 @@ namespace Tizen.VisualStudio.ToolsOption
             {
                 Textbox_Path.Text = folderPath;
             }
+        }
+
+        private void Chrome_Button_Browse_Click(object sender, RoutedEventArgs e)
+        {
+            string filePath = GetChromeFileDialog(Chrome_TextBox_Path.Text);
+            if (filePath != string.Empty)
+            {
+                if (!filePath.Contains("chrome.exe"))
+                {
+                    System.Windows.Forms.MessageBox.Show(
+                        "Selected Path doesn't contain Google Chrome Exe file.",
+                        filePath, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                Chrome_TextBox_Path.Text = filePath;
+            }
+        }
+
+        /* Create the File browse Dialog to select the Chrome exe path. */
+        private string GetChromeFileDialog(string toolsPath)
+        {
+            var filePath = string.Empty;
+
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.InitialDirectory = toolsPath;
+                openFileDialog.Title = "Tizen Web Chrome Path";
+                openFileDialog.Filter = "exe files (*.exe)|*.exe|All files (*.*)|*.*";
+                openFileDialog.FilterIndex = 0;
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //get the path of specified file
+                    filePath = openFileDialog.FileName;
+                }
+            }
+            return filePath;
         }
 
         private string GetToolsFolderDialog(string toolsPath)
@@ -125,6 +176,12 @@ namespace Tizen.VisualStudio.ToolsOption
         private void Button_Reset_Click(object sender, RoutedEventArgs e)
         {
             Textbox_Path.Text = string.Empty;
+        }
+
+        private void Chrome_Button_Reset_Click(object sender, RoutedEventArgs e)
+        {
+            Chrome_TextBox_Path.Text = string.Empty;
+            UpdateChromePathInYAML(Chrome_TextBox_Path.Text);
         }
 
         private void Tool_Checker()
@@ -172,6 +229,19 @@ namespace Tizen.VisualStudio.ToolsOption
         {
             Refresh_Textbox();
             Tool_Checker();
+        }
+
+        private void UpdateChromePathInYAML(string path)
+        {
+            // Update chrome path for web project
+            VsProjectHelper projHelp = VsProjectHelper.GetInstance;
+            bool isWebPrj = projHelp.IsTizenWebProject();
+
+            if (!isWebPrj)
+            {
+                return;
+            }
+            projHelp.UpdateYaml(projHelp.getSolutionFolderPath(), "chrome_path:", path);
         }
     }
 }

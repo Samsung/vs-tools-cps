@@ -57,7 +57,7 @@ namespace Tizen.VisualStudio.Tools.Data
                     using (Process process = new Process())
                     {
                         string filename = ToolsPathInfo.CertificateEncPath;
-                        string arguments = "--decrypt " + value;
+                        string arguments = "--decrypt " + "\"" +value + "\"";
                         process.StartInfo.FileName = filename;
                         process.StartInfo.Arguments = arguments;
                         process.StartInfo.CreateNoWindow = true;

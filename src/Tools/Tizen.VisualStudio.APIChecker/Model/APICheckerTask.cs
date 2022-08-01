@@ -28,7 +28,7 @@ namespace Tizen.VisualStudio.APIChecker.Model
         UnusedPrivilege,
     }
 
-    class APICheckerTask : Microsoft.VisualStudio.Shell.Task
+    class APICheckerTask : Microsoft.VisualStudio.Shell.TaskListItem
     {
         private TaskType type;
         public APICheckerTask(TaskType t)

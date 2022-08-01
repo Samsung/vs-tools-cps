@@ -1,0 +1,79 @@
+﻿<Window x:Name="ProjectWizardAddTizenNativeDependencyXaml" 
+        x:Class="Tizen.VisualStudio.ProjectWizard.View.ProjectWizardAddTizenNativeDependency"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+        mc:Ignorable="d" ResizeMode="NoResize" Width="520" Height="551.652"
+        Title="Native Dpendency Window" BorderBrush="#FF7E7E7E" BorderThickness="1" WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ProjectWizardViewStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Style="{StaticResource gridstyle}"  Margin="0,0,0,3">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,0,0,35">
+            <StackPanel Orientation="Vertical">
+            <Label x:Name="label_modelfile" Width="492" Content="Select Dependent Project:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,0,0,0" Height="27" FontSize="13" Style="{StaticResource ResourceKey=labelstyle}"/>
+            <Label x:Name="label_native" Width="492" Content="Native UI Applications:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,0,0,0" Height="27" Style="{StaticResource ResourceKey=labelstyle}"/>
+            <ListBox Name="nativeList" ItemsSource="{Binding UiAppList}" Margin="10,0,10,0" Height="80" Background="Transparent">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <CheckBox Name="chkItem" Content="{Binding ItemText}" Tag="{Binding ItemValue}" IsEnabled="{Binding Enabled}" Checked="ItemChecked" Unchecked="ItemUnChecked" Margin="0,5,0,0" Style="{StaticResource checkboxstyle}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Label x:Name="label_service" Width="492" Content="Native Service Applications:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,0,0,0" Height="27" Style="{StaticResource ResourceKey=labelstyle}"/>
+            <ListBox Name="serviceList" ItemsSource="{Binding ServiceAppList}" Margin="10,0,10,0" Height="80" Background="Transparent">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <CheckBox Name="chkServiceItem" Content="{Binding ItemText}" Tag="{Binding ItemValue}" IsEnabled="{Binding Enabled}" Checked="ItemChecked" Unchecked="ItemUnChecked" Margin="0,5,0,0" Style="{StaticResource checkboxstyle}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Label x:Name="label_wgt" Width="492" Content="Native Widget Applications:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,0,0,0" Height="27" Style="{StaticResource ResourceKey=labelstyle}"/>
+            <ListBox Name="widgetList" ItemsSource="{Binding WgtList}" Margin="10,0,10,0" Height="80" Background="Transparent">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <CheckBox Name="chkWgtItem" Content="{Binding ItemText}" Tag="{Binding ItemValue}" IsEnabled="{Binding Enabled}" Checked="ItemChecked" Unchecked="ItemUnChecked" Margin="0,5,0,0" Style="{StaticResource checkboxstyle}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Label x:Name="label_shared" Width="492" Content="Shared Library Projects:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,0,0,0" Height="27" Style="{StaticResource ResourceKey=labelstyle}"/>
+            <ListBox Name="sharedlibList" ItemsSource="{Binding SharedLibList}" Margin="10,0,10,0" Height="80" Background="Transparent">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <CheckBox Name="chkSharedItem" Content="{Binding ItemText}" Tag="{Binding ItemValue}" IsEnabled="{Binding Enabled}" Checked="ItemChecked" Unchecked="ItemUnChecked" Margin="0,5,0,0" Style="{StaticResource checkboxstyle}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Label x:Name="label_dotnet" Width="492" Content="Tizen Dotnet Projects:" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,0,0,0" Height="27" Style="{StaticResource ResourceKey=labelstyle}"/>
+            <ListBox Name="dotnetList" ItemsSource="{Binding DotnetAppList}" Margin="10,0,10,0" Height="80" Background="Transparent">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <CheckBox Name="chkDotnetItem" Content="{Binding ItemText}" Tag="{Binding ItemValue}" IsEnabled="{Binding Enabled}" Checked="ItemChecked" Unchecked="ItemUnChecked" Margin="0,5,0,0" Style="{StaticResource checkboxstyle}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Label x:Name="label_check" Width="492" Content="*Options may be disabled to avoid invalid or cyclic dependency" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10,0,0,0" Height="22" FontSize="10" Style="{StaticResource ResourceKey=labelstyle}"/>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 10 0 0">
+            <Button x:Name="button_ok" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="ButtonOkClick" Margin="5"/>
+            <Button x:Name="button_cancel" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="ButtonCancelClick" Margin="5"/>
+        </StackPanel>
+    </Grid>
+</Window>

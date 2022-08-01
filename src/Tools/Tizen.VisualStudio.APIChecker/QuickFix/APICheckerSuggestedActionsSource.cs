@@ -75,7 +75,7 @@ namespace Tizen.VisualStudio.APIChecker.QuickFix
                     return false;
                 }
 
-                foreach (Microsoft.VisualStudio.Shell.Task task in taskProvider.Tasks)
+                foreach (Microsoft.VisualStudio.Shell.TaskListItem task in taskProvider.Tasks)
                 {
                     if (task.Line == line)
                     {
@@ -97,7 +97,7 @@ namespace Tizen.VisualStudio.APIChecker.QuickFix
             }
 
             int line = range.Start.GetContainingLine().LineNumber;
-            foreach (Microsoft.VisualStudio.Shell.Task task in taskProvider.Tasks)
+            foreach (Microsoft.VisualStudio.Shell.TaskListItem task in taskProvider.Tasks)
             {
                 if ((task.Line == line) && (task is APICheckerTask))
                 {

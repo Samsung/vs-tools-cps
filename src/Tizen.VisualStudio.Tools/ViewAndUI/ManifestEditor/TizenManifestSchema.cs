@@ -73,6 +73,12 @@ namespace Tizen.VisualStudio.ManifestEditor
         wearable,
 
         common,
+
+        [System.Xml.Serialization.XmlEnumAttribute("iot-headed")]
+        iotheaded,
+
+        [System.Xml.Serialization.XmlEnumAttribute("iot-headless")]
+        iotheadless,
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
@@ -186,6 +192,18 @@ namespace Tizen.VisualStudio.ManifestEditor
         mdpi,
 
         ldpi,
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public enum Event
+    {
+        [System.Xml.Serialization.XmlEnumAttribute("double-tap")]
+        doubletap,
+        [System.Xml.Serialization.XmlEnumAttribute("tap")]
+        tap,
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
@@ -318,6 +336,7 @@ namespace Tizen.VisualStudio.ManifestEditor
         private account[] accountListField;
         private description[] descriptionListField;
         private profile profileField;
+        private dependencies dependenciesField;
 
         public event PropertyChangedEventHandler PropertyChanged
         {
@@ -351,7 +370,7 @@ namespace Tizen.VisualStudio.ManifestEditor
             {
                 AppTypeField = value;
             }
-        }
+        }  
 
         [XmlIgnore()]
         public application applicationField
@@ -892,6 +911,7 @@ namespace Tizen.VisualStudio.ManifestEditor
         [System.Xml.Serialization.XmlElementAttribute("service-application", typeof(serviceapplication))]
         [System.Xml.Serialization.XmlElementAttribute("widget-application", typeof(widgetapplication))]
         [System.Xml.Serialization.XmlElementAttribute("watch-application", typeof(watchapplication))]
+        [System.Xml.Serialization.XmlElementAttribute("component-based-application", typeof(componentbasedapplication))]
         [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
         public object[] Items
         {
@@ -963,6 +983,20 @@ namespace Tizen.VisualStudio.ManifestEditor
             set
             {
                 this.privilegesField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("dependencies")]
+        public dependencies dependencies
+        {
+            get
+            {
+                return this.dependenciesField;
+            }
+
+            set
+            {
+                this.dependenciesField = value;
             }
         }
 
@@ -1786,6 +1820,600 @@ namespace Tizen.VisualStudio.ManifestEditor
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class supportevent : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private List<Event> eventListField = new List<Event>();
+
+        [System.Xml.Serialization.XmlElementAttribute("event")]
+        public List<Event> EventList
+        {
+            get
+            {
+                return this.eventListField;
+            }
+
+            set
+            {
+                this.eventListField = value;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class supporttype : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private object[] itemsField;
+        
+        [System.Xml.Serialization.XmlElementAttribute("short-text-type", typeof(shorttexttype))]
+        [System.Xml.Serialization.XmlElementAttribute("long-text-type", typeof(longtexttype))]
+        [System.Xml.Serialization.XmlElementAttribute("ranged-value-type", typeof(rangedvaluetype))]
+        [System.Xml.Serialization.XmlElementAttribute("time-type", typeof(timetype))]
+        [System.Xml.Serialization.XmlElementAttribute("icon-type", typeof(icontype))]
+        [System.Xml.Serialization.XmlElementAttribute("image-type", typeof(imagetype))]
+        public object[] Items
+        {
+            get
+            {
+                return this.itemsField;
+            }
+
+            set
+            {
+                this.itemsField = value;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class shorttexttype : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private List<string> defTitleList;
+        private List<string> defShortTextList;
+        private List<string> defIconList;
+        private List<string> defExtraDataList;
+
+        [System.Xml.Serialization.XmlElementAttribute("default-title")]
+        public List<string> DefTitle
+        {
+            get
+            {
+                return this.defTitleList;
+            }
+
+            set
+            {
+                this.defTitleList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-short-text")]
+        public List<string> DefShortText
+        {
+            get
+            {
+                return this.defShortTextList;
+            }
+
+            set
+            {
+                this.defShortTextList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-icon")]
+        public List<string> DefIcon
+        {
+            get
+            {
+                return this.defIconList;
+            }
+
+            set
+            {
+                this.defIconList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-extra-data")]
+        public List<string> DefExtraData
+        {
+            get
+            {
+                return this.defExtraDataList;
+            }
+
+            set
+            {
+                this.defExtraDataList = value;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class longtexttype : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private List<string> defTitleList;
+        private List<string> defLongTextList;
+        private List<string> defIconList;
+        private List<string> defExtraDataList;
+
+        [System.Xml.Serialization.XmlElementAttribute("default-title")]
+        public List<string> DefTitle
+        {
+            get
+            {
+                return this.defTitleList;
+            }
+
+            set
+            {
+                this.defTitleList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-long-text")]
+        public List<string> DefLongText
+        {
+            get
+            {
+                return this.defLongTextList;
+            }
+
+            set
+            {
+                this.defLongTextList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-icon")]
+        public List<string> DefIcon
+        {
+            get
+            {
+                return this.defIconList;
+            }
+
+            set
+            {
+                this.defIconList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-extra-data")]
+        public List<string> DefExtraData
+        {
+            get
+            {
+                return this.defExtraDataList;
+            }
+
+            set
+            {
+                this.defExtraDataList = value;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class rangedvaluetype : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private List<string> defTitleList;
+        private List<string> defShortTextList;
+        private List<string> defIconList;
+        private List<string> defExtraDataList;
+        private List<int> defMinvalList = new List<int>();
+        private List<int> defMaxvalList = new List<int>();
+        private List<int> defValList = new List<int>();
+
+        [System.Xml.Serialization.XmlElementAttribute("default-title")]
+        public List<string> DefTitle
+        {
+            get
+            {
+                return this.defTitleList;
+            }
+
+            set
+            {
+                this.defTitleList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-short-text")]
+        public List<string> DefShortText
+        {
+            get
+            {
+                return this.defShortTextList;
+            }
+
+            set
+            {
+                this.defShortTextList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-icon")]
+        public List<string> DefIcon
+        {
+            get
+            {
+                return this.defIconList;
+            }
+
+            set
+            {
+                this.defIconList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-extra-data")]
+        public List<string> DefExtraData
+        {
+            get
+            {
+                return this.defExtraDataList;
+            }
+
+            set
+            {
+                this.defExtraDataList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-min")]
+        public List<int> DefMinVal
+        {
+            get
+            {
+                return this.defMinvalList;
+            }
+
+            set
+            {
+                this.defMinvalList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-max")]
+        public List<int> DefMaxVal
+        {
+            get
+            {
+                return this.defMaxvalList;
+            }
+
+            set
+            {
+                this.defMaxvalList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-value")]
+        public List<int> DefVal
+        {
+            get
+            {
+                return this.defValList;
+            }
+
+            set
+            {
+                this.defValList = value;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class timetype : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private List<string> defTimezoneIds;
+        private List<string> defShortTextList;
+        private List<string> defExtraDataList;
+        private List<int> defHourList;
+        private List<int> defMinList;
+        private List<int> defSecList;
+
+        [System.Xml.Serialization.XmlElementAttribute("default-timezone-id")]
+        public List<string> DefTimezoneId
+        {
+            get
+            {
+                return this.defTimezoneIds;
+            }
+
+            set
+            {
+                this.defTimezoneIds = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-short-text")]
+        public List<string> DefShortText
+        {
+            get
+            {
+                return this.defShortTextList;
+            }
+
+            set
+            {
+                this.defShortTextList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-extra-data")]
+        public List<string> DefExtraData
+        {
+            get
+            {
+                return this.defExtraDataList;
+            }
+
+            set
+            {
+                this.defExtraDataList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-hour")]
+        public List<int> DefHour
+        {
+            get
+            {
+                return this.defHourList;
+            }
+
+            set
+            {
+                this.defHourList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-minute")]
+        public List<int> DefMin
+        {
+            get
+            {
+                return this.defMinList;
+            }
+
+            set
+            {
+                this.defMinList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-second")]
+        public List<int> DefSec
+        {
+            get
+            {
+                return this.defSecList;
+            }
+
+            set
+            {
+                this.defSecList = value;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class icontype : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private List<string> defIconList;
+        private List<string> defExtraDataList;
+        
+        [System.Xml.Serialization.XmlElementAttribute("default-icon")]
+        public List<string> DefIcon
+        {
+            get
+            {
+                return this.defIconList;
+            }
+
+            set
+            {
+                this.defIconList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-extra-data")]
+        public List<string> DefExtraData
+        {
+            get
+            {
+                return this.defExtraDataList;
+            }
+
+            set
+            {
+                this.defExtraDataList = value;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class imagetype : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private List<string> defImageList;
+        private List<string> defExtraDataList;
+
+        [System.Xml.Serialization.XmlElementAttribute("default-image")]
+        public List<string> DefImage
+        {
+            get
+            {
+                return this.defImageList;
+            }
+
+            set
+            {
+                this.defImageList = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("default-extra-data")]
+        public List<string> DefExtraData
+        {
+            get
+            {
+                return this.defExtraDataList;
+            }
+
+            set
+            {
+                this.defExtraDataList = value;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://tizen.org/ns/packages")]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = true)]
     public partial class privileges : object, System.ComponentModel.INotifyPropertyChanged
@@ -1821,6 +2449,37 @@ namespace Tizen.VisualStudio.ManifestEditor
             }
         }
 
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add { }
+            remove { }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = true)]
+    public partial class dependencies : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private List<packages> dependencyField;
+
+        [System.Xml.Serialization.XmlElementAttribute("dependency")]
+        public List<packages> dependencyList
+        {
+            get
+            {
+                return this.dependencyField;
+            }
+
+            set
+            {
+                this.dependencyField = value;
+            }
+        }
+        
         public event PropertyChangedEventHandler PropertyChanged
         {
             add { }
@@ -1970,6 +2629,124 @@ namespace Tizen.VisualStudio.ManifestEditor
     [System.Xml.Serialization.XmlRootAttribute("service-application", Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
     public partial class serviceapplication : application
     {
+        private object[] compitemsField;
+
+        [System.Xml.Serialization.XmlElementAttribute("complication", typeof(complication))]
+        public object[] ComplicationItems
+        {
+            get
+            {
+                return this.compitemsField;
+            }
+
+            set
+            {
+                this.compitemsField = value;
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute("complication", Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class complication : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private string providerId;
+        private string setupAppId;
+        private string trustedField;
+        private List<int> periodList = new List<int>();
+        private object[] itemsField;
+
+        [System.Xml.Serialization.XmlElementAttribute("privileges", typeof(privileges))]
+        [System.Xml.Serialization.XmlElementAttribute("label", typeof(label))]
+        [System.Xml.Serialization.XmlElementAttribute("icon", typeof(icon))]
+        [System.Xml.Serialization.XmlElementAttribute("support-event", typeof(supportevent))]
+        [System.Xml.Serialization.XmlElementAttribute("support-type", typeof(supporttype))]
+        public object[] Items
+        {
+            get
+            {
+                return this.itemsField;
+            }
+
+            set
+            {
+                this.itemsField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("provider-id")]
+        public string ProviderId
+        {
+            get
+            {
+                return this.providerId;
+            }
+            set
+            {
+                this.providerId = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("setup-appid")]
+        public string SetupAppId
+        {
+            get
+            {
+                return this.setupAppId;
+            }
+            set
+            {
+                this.setupAppId = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("trusted")]
+        public string Trusted
+        {
+            get
+            {
+                return this.trustedField;
+            }
+
+            set
+            {
+                if (value == "false")
+                    this.trustedField = null;
+                else
+                    this.trustedField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("period")]
+        public List<int> Period
+        {
+            get
+            {
+                return this.periodList;
+            }
+
+            set
+            {
+                this.periodList = value;
+            }
+        }
+
+        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
@@ -1990,6 +2767,201 @@ namespace Tizen.VisualStudio.ManifestEditor
     [System.Xml.Serialization.XmlRootAttribute("watch-application", Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
     public partial class watchapplication : application
     {
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute("component-based-application", Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class componentbasedapplication : application
+    {
+       
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute("service-component", Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class servicecomponent : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private string id;
+        private string main;
+        private List<object> itemsField = new List<object>();
+
+        [System.Xml.Serialization.XmlAttributeAttribute("id")]
+        public string appid
+        {
+            get
+            {
+                return this.id;
+            }
+            set
+            {
+                this.id = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("main")]
+        public string mainoption
+        {
+            get
+            {
+                return this.main;
+            }
+            set
+            {
+                this.main = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlElementAttribute("label", typeof(label))]
+        public List<object> Items
+        {
+            get
+            {
+                return this.itemsField;
+            }
+
+            set
+            {
+                this.itemsField = value;
+            }
+        }
+        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute("frame-component", Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class framecomponent : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private string id;
+        private string main;
+        private string icondisplay;
+        private string taskmanage;
+        private string launchmode;
+        private List<object> itemsField = new List<object>();
+        private icon iconField;
+
+
+        [System.Xml.Serialization.XmlAttributeAttribute("id")]
+        public string appid
+        {
+            get
+            {
+                return this.id;
+            }
+            set
+            {
+                this.id = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("main")]
+        public string maintype
+        {
+            get
+            {
+                return this.main;
+            }
+            set
+            {
+                this.main = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("icon-display")]
+        public string icondisplayoption
+        {
+            get
+            {
+                return this.icondisplay;
+            }
+            set
+            {
+                this.icondisplay = value;
+            }
+        }
+        [System.Xml.Serialization.XmlAttributeAttribute("taskmanage")]
+        public string taskmanageoption
+        {
+            get
+            {
+                return this.taskmanage;
+            }
+            set
+            {
+                this.taskmanage = value;
+            }
+        }
+        [System.Xml.Serialization.XmlAttributeAttribute("launch_mode")]
+        public string launchmodeoption
+        {
+            get
+            {
+                return this.launchmode;
+            }
+            set
+            {
+                this.launchmode = value;
+            }
+        }
+        [System.Xml.Serialization.XmlElementAttribute("label", typeof(label))]
+        public List<object> Items
+        {
+            get
+            {
+                return this.itemsField;
+            }
+
+            set
+            {
+                this.itemsField = value;
+            }
+        }
+        [System.Xml.Serialization.XmlElementAttribute("icon", typeof(icon))]
+        public icon icon
+        {
+            get
+            {
+                return this.iconField;
+            }
+
+            set
+            {
+                this.iconField = value;
+            }
+        }
+        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
@@ -2055,6 +3027,7 @@ namespace Tizen.VisualStudio.ManifestEditor
         private bool launch_modeFieldSpecified;
         private background[] backgroundcategoriesField;
         private splash splashscreenField;
+        private string apiversionField;
 
         public event PropertyChangedEventHandler PropertyChanged
         {
@@ -2223,6 +3196,20 @@ namespace Tizen.VisualStudio.ManifestEditor
             set
             {
                 this.taskmanageField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("api-version")]
+        public string apiversion
+        {
+            get
+            {
+                return this.apiversionField;
+            }
+
+            set
+            {
+                this.apiversionField = value;
             }
         }
 
@@ -2853,11 +3840,26 @@ namespace Tizen.VisualStudio.ManifestEditor
     {
         private object[] itemsField;
         private List<string> privilegeListField = new List<string>();
+        private string id = null;
+
+        [System.Xml.Serialization.XmlAttributeAttribute("id")]
+        public string appControlId
+        {
+            get
+            {
+                return this.id;
+            }
+            set
+            {
+                this.id = value;
+            }
+        }
 
         [System.Xml.Serialization.XmlElementAttribute("mime", typeof(mime))]
         [System.Xml.Serialization.XmlElementAttribute("operation", typeof(operation))]
         [System.Xml.Serialization.XmlElementAttribute("subapp", typeof(subapp))]
         [System.Xml.Serialization.XmlElementAttribute("uri", typeof(uri))]
+        [System.Xml.Serialization.XmlElementAttribute("visibility", typeof(visibility))]
 
         public object[] Items
         {
@@ -2900,6 +3902,37 @@ namespace Tizen.VisualStudio.ManifestEditor
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
     public partial class mime : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private string nameField;
+
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string name
+        {
+            get
+            {
+                return this.nameField;
+            }
+
+            set
+            {
+                this.nameField = value;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add { }
+            remove { }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class visibility : object, System.ComponentModel.INotifyPropertyChanged
     {
         private string nameField;
 
@@ -3893,6 +4926,66 @@ namespace Tizen.VisualStudio.ManifestEditor
 
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
     [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://tizen.org/ns/packages")]
+    [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://tizen.org/ns/packages", IsNullable = false)]
+    public partial class packages : object, System.ComponentModel.INotifyPropertyChanged
+    {
+        private string typeField;
+        private string requiredVersionField;
+        private string packageID;
+
+        [System.Xml.Serialization.XmlAttributeAttribute("type")]
+        public string type
+        {
+            get
+            {
+                return this.typeField;
+            }
+
+            set
+            {
+                this.typeField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlAttributeAttribute("required-version")]
+        public string requiredVersion
+        {
+            get
+            {
+                return this.requiredVersionField;
+            }
+
+            set
+            {
+                this.requiredVersionField = value;
+            }
+        }
+
+        [System.Xml.Serialization.XmlTextAttribute()]
+        public string package
+        {
+            get
+            {
+                return this.packageID;
+            }
+
+            set
+            {
+                this.packageID = value;
+            }
+        }
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add { }
+            remove { }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.34283")]
+    [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://tizen.org/ns/packages", IncludeInSchema = false)]
     public enum ItemsChoiceType
     {
@@ -3913,6 +5006,10 @@ namespace Tizen.VisualStudio.ManifestEditor
 
         [System.Xml.Serialization.XmlEnumAttribute("ime-application")]
         imeapplication,
+
+        [System.Xml.Serialization.XmlEnumAttribute("component-based-application")]
+        componentbasedapplication,
+
 
         label,
 
@@ -3936,6 +5033,9 @@ namespace Tizen.VisualStudio.ManifestEditor
 
         [System.Xml.Serialization.XmlEnumAttribute("watch-application")]
         watchapplication,
+
+        [System.Xml.Serialization.XmlEnumAttribute("dependencies")]
+        dependencies,
 
         description,
 

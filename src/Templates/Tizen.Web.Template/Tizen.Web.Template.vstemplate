@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Project" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>Tizen Web Project</Name>
+    <Description>Tizen Template to create Tizen Web Applications</Description>
+    <Icon>Tizen.Web.Template.ico</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <LanguageTag>JavaScript</LanguageTag>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>99356413-d5d9-48bb-bf9f-19037481ccd0</TemplateID>
+    <CreateNewFolder>false</CreateNewFolder>
+    <DefaultName>TizenWeb</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <PlatformTag>Tizen</PlatformTag>
+  </TemplateData>
+  <TemplateContent>
+    <CustomParameters>
+      <CustomParameter Name ="$tizenprojecttype$" Value="web"/>
+    </CustomParameters>
+  </TemplateContent>
+  <WizardExtension>
+        <Assembly>Tizen.VisualStudio.ProjectSystem.VS, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=afa3293746f785f3</Assembly>
+        <FullClassName>Tizen.VisualStudio.ProjectWizard.ProjectWizardTizenNativeNameChecker</FullClassName>
+  </WizardExtension>
+  <WizardExtension>
+        <Assembly>Tizen.VisualStudio.ProjectSystem.VS, Version=1.0.0.0, Culture=Neutral, PublicKeyToken=afa3293746f785f3</Assembly>
+        <FullClassName>Tizen.VisualStudio.ProjectWizard.ProjectWizardTizenWebProjectCreator</FullClassName>
+  </WizardExtension>
+</VSTemplate>

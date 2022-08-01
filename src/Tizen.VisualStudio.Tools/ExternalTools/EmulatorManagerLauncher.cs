@@ -14,6 +14,10 @@
  * limitations under the License.
 */
 
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -30,10 +34,11 @@ namespace Tizen.VisualStudio.Tools.ExternalTool
         private static ProcessStartInfo pInfo = new ProcessStartInfo();
 
         public EmulatorManagerLauncher() : base(emulatorMgrDesc, pInfo, false)
-        {
+        { 
             pInfo.FileName = ToolsPathInfo.EmulatorMgrPath;
             pInfo.UseShellExecute = true;
             pInfo.Verb = "runas";
         }
+
     }
 }

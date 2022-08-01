@@ -1,15 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|AnyCPU">
-      <Configuration>Debug</Configuration>
-      <Platform>AnyCPU</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|AnyCPU">
-      <Configuration>Release</Configuration>
-      <Platform>AnyCPU</Platform>
-    </ProjectConfiguration>
-  </ItemGroup>
 
   <!-- Capabilities for this project.  Conditions should be based on platform|configuration only. -->
   <ItemGroup>
@@ -17,7 +7,6 @@
     <ProjectCapability Include="UseFileGlobs" />
     <ProjectCapability Include="OpenProjectFile" />
     <ProjectCapability Include="HandlesOwnReload" />
-    <ProjectCapability Include="ProjectConfigurationsDeclaredAsItems" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,11 +15,15 @@
     </PropertyPageSchema>
   </ItemGroup>
 
-  <!-- A list of the TFMs that are supported by this SDK for Tizen .NET Core.
+  <!-- A list of the TFMs that are supported by this SDK for Tizen .NET.
        This is used by VS to show the list of tizen frameworks -->
   <ItemGroup>
-    <SupportedTargetFramework Include="Tizen,Version=v4.0" DisplayName=".NET Tizen 4.0" />
-    <SupportedTargetFramework Include="Tizen,Version=v5.0" DisplayName=".NET Tizen 5.0" />
+    <SupportedTargetFramework Include="Tizen,Version=v4.0" DisplayName="Tizen .NET API 4" />
+    <SupportedTargetFramework Include="Tizen,Version=v5.0" DisplayName="Tizen .NET API 5" />
+    <SupportedTargetFramework Include="Tizen,Version=v6.0" DisplayName="Tizen .NET API 6" />
+    <SupportedTargetFramework Include="Tizen,Version=v7.0" DisplayName="Tizen .NET API 7" />
+    <SupportedTargetFramework Include="Tizen,Version=v8.0" DisplayName="Tizen .NET API 8" />
+    <SupportedTargetFramework Include="Tizen,Version=v9.0" DisplayName="Tizen .NET API 9" />
   </ItemGroup>
 
   <Target Name="Run">

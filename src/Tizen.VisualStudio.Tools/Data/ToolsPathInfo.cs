@@ -33,6 +33,7 @@ namespace Tizen.VisualStudio.Tools.Data
         private const string SDBExeName = "sdb.exe";
         private const string WinCryptExeName = "wincrypt.exe";
         private const string DefaultCertProfileName = "profiles.xml";
+        private const string ChromeExeName = "chrome.exe";
 
         private const string SdkInfoRelativePath = @"";
         private const string PkgMgrRelativePath = @"package-manager";
@@ -42,16 +43,19 @@ namespace Tizen.VisualStudio.Tools.Data
         //private const string DeviceMgrRelativePFPath = @"tools\device-manager";
         private const string DeviceMgrRelativePath = @"tools\device-manager\bin";
         private const string SDBRelativePath = @"tools\";
+        private const string TizenCoreRelativePath = @"tools\tizen-core";
         private const string DefaultCertProfileRelativePath = @"profile";
         private const string PlatformPathTizen40RelativePath = @"platforms\tizen-4.0\";
         private const string MemoryProfilerRelativePath = @"tools\memory-profiler\TizenMemoryProfiler.exe";
         private const string XamlPreviewerMobileRelativePath = @"tools\previewer\org.tizen.example.XamlPreviewer.Tizen.Mobile-1.0.0.tpk";
         private const string XamlPreviewerTVRelativePath = @"tools\previewer\org.tizen.example.XamlPreviewer.Tizen.TV-1.0.0.tpk";
+        private const string TizenCLIRelativePath = @"tools\ide\bin\tizen";
         public static bool IsDirty = false;
 
         private static FileSystemWatcher sdbWatcher;
 
-        private static string toolsRootPath;
+        private static string toolsRootPath = string.Empty;
+        private static string chromePath;
         public static string ToolsRootPath
         {
             get => toolsRootPath;
@@ -73,6 +77,15 @@ namespace Tizen.VisualStudio.Tools.Data
                     DeviceManager.StartDeviceMonitor();
                     StartToolsUpdateMonitor();
                 }
+            }
+        }
+
+        public static string ChromePath
+        {
+            get => chromePath;
+            set
+            {
+                chromePath = value;
             }
         }
 
@@ -113,6 +126,8 @@ namespace Tizen.VisualStudio.Tools.Data
 
         public static string SdkInfoFilePath => Path.Combine(ToolsRootPath, SdkInfoRelativePath, SdkInfoFileName);
 
+        public static string TizenCorePath => Path.Combine(ToolsRootPath, TizenCoreRelativePath);
+
         public static string PkgMgrPath => GenToolPath(Path.Combine(PkgMgrRelativePath, PkgMgrExeName));
 
         public static string EmulatorMgrPath => GenToolPath(Path.Combine(EmulatorMgrRelativePath, EmulatorMgrExeName));
@@ -130,6 +145,8 @@ namespace Tizen.VisualStudio.Tools.Data
         public static string XamlPreviewerMobilePath => GenToolPath(Path.Combine(ToolsRootPath, XamlPreviewerMobileRelativePath));
 
         public static string XamlPreviewerTVPath => GenToolPath(Path.Combine(ToolsRootPath, XamlPreviewerTVRelativePath));
+
+        public static string TizenCLIPath => GenToolPath(TizenCLIRelativePath);
 
         public static string DefaultCertPath
         {

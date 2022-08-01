@@ -157,6 +157,7 @@ namespace Tizen.VisualStudio.ConnectToolbar
                 this.IsConnect = true;
                 MessageBox.Show($"Completed connection to {ip}");
                 this.Close();
+                return;
             }
 
             if (lastNonEmptyLine.StartsWith("error:"))

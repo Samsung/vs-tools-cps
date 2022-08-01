@@ -27,9 +27,7 @@ using LiveCharts.Configurations;
 using LiveCharts.Definitions.Series;
 using LiveCharts.Dtos;
 using LiveCharts.Helpers;
-#if NET45
 using System.Reflection;
-#endif
 
 namespace LiveCharts
 {
@@ -167,15 +165,10 @@ namespace LiveCharts
 
             var config = GetConfig(seriesView);
 
-#if NET40
-            var isClass = typeof(T).IsClass;
-            var isObservable = isClass && typeof(IObservableChartPoint).IsAssignableFrom(typeof(T));
-#endif
-#if NET45
+
             var isClass = typeof(T).GetTypeInfo().IsClass;
             var isObservable = isClass &&
                                typeof(IObservableChartPoint).GetTypeInfo().IsAssignableFrom(typeof(T).GetTypeInfo());
-#endif
 
             var tracker = GetTracker(seriesView);
             var gci = tracker.Gci;
@@ -221,12 +214,8 @@ namespace LiveCharts
         /// </summary>
         public void CollectGarbage(ISeriesView seriesView)
         {
-#if NET40
-            var isclass = typeof(T).IsClass;
-#endif
-#if NET45
+
             var isclass = typeof(T).GetTypeInfo().IsClass;
-#endif
 
             var tracker = GetTracker(seriesView);
 

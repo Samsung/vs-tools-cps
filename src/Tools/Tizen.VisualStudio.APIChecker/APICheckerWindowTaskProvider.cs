@@ -60,7 +60,7 @@ namespace Tizen.VisualStudio.APIChecker
 
         private void QuickFixHandler(object sender, EventArgs e)
         {
-            Microsoft.VisualStudio.Shell.Task task = sender as Microsoft.VisualStudio.Shell.Task;
+            Microsoft.VisualStudio.Shell.TaskListItem task = sender as Microsoft.VisualStudio.Shell.TaskListItem;
             if (task == null)
             {
                 throw new ArgumentException("sender parm cannot be null");
@@ -72,9 +72,9 @@ namespace Tizen.VisualStudio.APIChecker
             }
         }
 
-        public void ReportUnusedPrivileges(string p, int line, int column, string filename)
+        public void ReportUnusedPrivilegesAndFeatures(string p, int line, int column, string filename)
 		{
-            var warnTask = new Microsoft.VisualStudio.Shell.Task();
+            var warnTask = new Microsoft.VisualStudio.Shell.TaskListItem();
             warnTask.CanDelete = true;
             warnTask.Category = TaskCategory.BuildCompile;
             warnTask.Document = filename;
@@ -88,7 +88,7 @@ namespace Tizen.VisualStudio.APIChecker
 
 		private void NavigateHandler(object sender, EventArgs arguments)
 		{
-			Microsoft.VisualStudio.Shell.Task task = sender as Microsoft.VisualStudio.Shell.Task;
+			Microsoft.VisualStudio.Shell.TaskListItem task = sender as Microsoft.VisualStudio.Shell.TaskListItem;
 
 			if (task == null)
 			{
@@ -149,11 +149,26 @@ namespace Tizen.VisualStudio.APIChecker
 			mgr.NavigateToLineAndColumn(buffer, ref logicalView, task.Line, task.Column, task.Line, task.Column);
         }
 
+        public void ReportMissingPrivilegesAndFeatures(List<string> RequiredPrivileges, string apiname, int line, int column, string filename, string manifestFile, string errorMsg, TaskPriority priority)
+        {
+            // Report missing privilege violations
+            var errTask = new NeedsPrivilegeTask(RequiredPrivileges, manifestFile);
+            errTask.CanDelete = true;
+            errTask.Category = TaskCategory.BuildCompile;
+            errTask.Document = filename;
+            errTask.Line = line;
+            errTask.Column = column;
+            errTask.Navigate += new EventHandler(NavigateHandler);
+            errTask.Text = errorMsg;
+            errTask.Priority = priority;
+            errTask.ApiName = apiname;
+            errTask.FileName = filename;
+            taskProvider.Tasks.Add(errTask);
+        }
         public void ReportMissingPrivileges(List<string> RequiredPrivileges, string apiname, int line, int column, string filename, string manifestFile)
         {
             string message = string.Join(",", RequiredPrivileges.ToArray());
             string errorMsg = string.Format("The API {0} needs these additions privileges {1}", apiname, message);
-
             // Report missing privilege violations
             var errTask = new NeedsPrivilegeTask(RequiredPrivileges, manifestFile);
             errTask.CanDelete = true;

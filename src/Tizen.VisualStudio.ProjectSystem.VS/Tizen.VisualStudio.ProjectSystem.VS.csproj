@@ -5,6 +5,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -16,7 +17,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Tizen.VisualStudio</RootNamespace>
     <AssemblyName>Tizen.VisualStudio.ProjectSystem.VS</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>TizenNET.snk</AssemblyOriginatorKeyFile>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -26,7 +27,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>
@@ -46,28 +47,64 @@
     <CreateVsixContainer>False</CreateVsixContainer>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="envdte100, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="envdte90, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.CSharp">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Designer.Interfaces, Version=1.0.5000.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" />
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Design" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="WindowsFormsIntegration" />
+    <Reference Include="Microsoft.VisualStudio.Interop">
+      <HintPath>C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="PresentationCore">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PresentationFramework">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ComponentModel.Composition">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Design">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Drawing">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Compression.FileSystem">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Extensions">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xaml">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WindowsFormsIntegration">
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!--
   Resources for our new project system
@@ -75,6 +112,10 @@
   <ItemGroup>
     <EmbeddedResource Include="OptionPages\CertificateControl.resx">
       <DependentUpon>CertificateControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OptionPages\TidlControl.resx">
+      <DependentUpon>TidlControl.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ProjectSystem\VS\Debug\ResourcesInstallMessage.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -105,7 +146,10 @@
       <DependentUpon>ProjectDebugger.xaml</DependentUpon>
     </Compile>
     <Compile Include="AssemblyRedirects.cs" />
-    <Compile Include="Debug\OnDemandDebuggerInstaller.cs" />
+    <Compile Include="command\TizenSettingsCommand.cs" />
+    <Compile Include="command\AddTizenDependencyCommand.cs" />
+    <Compile Include="command\AddTizenProjectCommand.cs" />
+    <Compile Include="command\WebSimulatorCommand.cs" />
     <Compile Include="IVsEventsHandler.cs" />
     <Compile Include="OptionPages\Certificate.cs" />
     <Compile Include="OptionPages\CertificateControl.cs">
@@ -115,9 +159,19 @@
       <DependentUpon>CertificateControl.cs</DependentUpon>
     </Compile>
     <Compile Include="OptionPages\CryptoHelper.cs" />
+    <Compile Include="OptionPages\Tidl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="OptionPages\TidlControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="OptionPages\TidlControl.Designer.cs">
+      <DependentUpon>TidlControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Preview\PreviewerTool.cs" />
     <Compile Include="ProjectSystem\VS\Build\BuildProperty.cs" />
     <Compile Include="ProjectSystem\VS\Build\CertificatePropertiesProvider.cs" />
+    <Compile Include="ProjectSystem\VS\Debug\HotReloadLaunchProvider.cs" />
     <Compile Include="ProjectSystem\VS\Debug\ProjectDebugLaunchProvider.cs" />
     <Compile Include="ProjectSystem\VS\Debug\DebugProfileEnumValueGenerator.cs" />
     <Compile Include="ProjectSystem\VS\Debug\DebugProfileEnumValueProvider.cs" />
@@ -136,6 +190,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ResourcesInstallMessage.resx</DependentUpon>
     </Compile>
+    <Compile Include="ProjectSystem\VS\Debug\WatchHotReloadService.cs" />
     <Compile Include="ProjectSystem\VS\Extensibility\HierarchyId.cs" />
     <Compile Include="ProjectSystem\VS\Extensibility\IProjectExportProvider.cs" />
     <Compile Include="ProjectSystem\VS\Extensibility\ProjectExportProvider.cs" />
@@ -178,14 +233,65 @@
     <Compile Include="ProjectSystem\VS\Utilities\ObservableList.cs" />
     <Compile Include="ProjectSystem\VS\Utilities\UIThreadHelper.cs" />
     <Compile Include="ProjectSystem\VS\Utilities\WpfHelper.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenDotNetProjectCreator.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenNativeNameChecker.cs" />
     <Compile Include="ProjectWizard\ProjectWizardPortableUI.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenNativeProjectCreator.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenPlatformVersion50AndAbove.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenPlatformVersion55AndAbove.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenProjectNameCheck.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenPlatformVersion.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenCommon.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenCrossPlatform.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenMobile.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenNative.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenWearable.cs" />
     <Compile Include="ProjectWizard\ProjectWizardTizenTV.cs" />
+    <Compile Include="ProjectWizard\ProjectWizardTizenWebProjectCreator.cs" />
     <Compile Include="ProjectWizard\TizenManifestData.cs" />
+    <Compile Include="ProjectWizard\TizenPageContentLoader.cs" />
+    <Compile Include="ProjectWizard\View\ProjectWizardAddTizenNativeDependency.xaml.cs">
+      <DependentUpon>ProjectWizardAddTizenNativeDependency.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardAddTizenDotnetDependency.xaml.cs">
+      <DependentUpon>ProjectWizardAddTizenDotnetDependency.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardProjectImportWgt.xaml.cs">
+      <DependentUpon>ProjectWizardProjectImportWgt.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardTizenSettings.xaml.cs">
+      <DependentUpon>ProjectWizardTizenSettings.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardAddTizenWebDependency.xaml.cs">
+      <DependentUpon>ProjectWizardAddTizenWebDependency.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardCreateWizard.xaml.cs">
+      <DependentUpon>ProjectWizardCreateWizard.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardAddProjectName.xaml.cs">
+      <DependentUpon>ProjectWizardAddProjectName.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardProjectImport.xaml.cs">
+      <DependentUpon>ProjectWizardProjectImport.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardProject.xaml.cs">
+      <DependentUpon>ProjectWizardProject.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardAddProjTempList.xaml.cs">
+      <DependentUpon>ProjectWizardAddProjTempList.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardPlatformList.xaml.cs">
+      <DependentUpon>ProjectWizardPlatformList.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardTypeSelect.xaml.cs">
+      <DependentUpon>ProjectWizardTypeSelect.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardViewProject.xaml.cs">
+      <DependentUpon>ProjectWizardViewProject.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectWizard\View\ProjectWizardViewTizenPlatformVersion.xaml.cs">
+      <DependentUpon>ProjectWizardViewTizenPlatformVersion.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ProjectWizard\View\ProjectWizardViewTizenNative.xaml.cs">
       <DependentUpon>ProjectWizardViewTizenNative.xaml</DependentUpon>
     </Compile>
@@ -202,6 +308,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Tidl\TidlCommandOption.cs" />
+    <Compile Include="Tidl\TidlData.cs" />
+    <Compile Include="TizenYamlParser\ParseNativeYaml.cs" />
+    <Compile Include="TizenYamlParser\ParseWebYaml.cs" />
+    <Compile Include="TizenYamlParser\ParseWorkspaceYaml.cs" />
     <Compile Include="ToolsMenu.cs" />
     <Compile Include="ToolsOption\TizenOptionPage.xaml.cs">
       <DependentUpon>TizenOptionPage.xaml</DependentUpon>
@@ -217,6 +328,7 @@
     </Compile>
     <Compile Include="VsProjectHelper.cs" />
     <Compile Include="VsPackage.cs" />
+    <Compile Include="Workload\WorkloadInstaller.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TizenNET.snk" />
@@ -274,9 +386,65 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardAddTizenNativeDependency.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardAddTizenDotnetDependency.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardProjectImportWgt.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardTizenSettings.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardAddTizenWebDependency.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardCreateWizard.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardAddProjectName.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardProjectImport.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardProject.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardAddProjTempList.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardPlatformList.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardViewProject.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ProjectWizard\View\ProjectWizardViewStyle.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardTypeSelect.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ProjectWizard\View\ProjectWizardViewTizenPlatformVersion.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="ProjectWizard\View\ProjectWizardViewTizenNative.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -293,12 +461,30 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build">
-      <Version>15.5.180</Version>
+      <Version>17.0.0</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" Version="15.3.224" />
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="15.3.224" />
+    <PackageReference Include="Microsoft.Build.Framework">
+      <Version>17.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Features">
+      <Version>4.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild">
+      <Version>4.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" Version="16.0.374-pre" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="16.0.374-pre" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop">
+      <Version>17.0.31902.203</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.VCProjectEngine">
+      <Version>17.0.31902.203</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.VisualStudio">
-      <Version>4.5.0</Version>
+      <Version>6.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="YamlDotNet">
+      <Version>11.2.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

@@ -157,7 +157,7 @@ namespace Tizen.VisualStudio.ManifestEditor
             var figure = new PathFigure(new Point(left, top), segments, true);
             var geometry = new PathGeometry(new[] { figure });
             drawingContext.DrawGeometry(Brushes.Red, null, geometry);
-            drawingContext.DrawText(new FormattedText(errorString, new CultureInfo("en-US"), FlowDirection.LeftToRight, new Typeface("Arial"), 11, Brushes.Red),
+            drawingContext.DrawText(new FormattedText(errorString, new CultureInfo("en-US"), FlowDirection.LeftToRight, new Typeface("Arial"), 11, Brushes.Red, 1),
                new Point(3, this.parent.ActualHeight));
         }
     }

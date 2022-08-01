@@ -32,6 +32,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Xml;
 
+
 namespace Tizen.VisualStudio.ManifestEditor
 {
     /// <summary>
@@ -41,8 +42,11 @@ namespace Tizen.VisualStudio.ManifestEditor
     {
         private ObservableCollection<string> AddedPrivilegeListField;
         private ObservableCollection<string> supportPrivilegeListField;
+        static List<string> VisibilityList = new List<string>() { "local-only", "remote-only", "both"};
+        private String visibilityInfo;
         private string privilegePath;
         public List<PrivilegeSupporters> PrivilegeItems = new List<PrivilegeSupporters>();
+        private string ApiVersion;
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
@@ -85,6 +89,23 @@ namespace Tizen.VisualStudio.ManifestEditor
             {
                 this.AddedPrivilegeListField = value;
                 NotifyPropertyChanged();
+            }
+        }
+
+        public string visibilityValue
+        {
+            get
+            {
+                return visibilityInfo;
+            }
+
+            set
+            {
+                if (visibilityInfo != value)
+                {
+                    visibilityInfo = value;
+                    NotifyPropertyChanged();
+                }
             }
         }
 
@@ -150,8 +171,28 @@ namespace Tizen.VisualStudio.ManifestEditor
             {
             }
         }
+        public System.Windows.Visibility ApiVersionGreaterThanFive
+        {
+            get
+            {
+                float val = -1;
+                float.TryParse(ApiVersion, out val);
+                if ((val != -1 && val >= 5.5))
+                {
+                    return System.Windows.Visibility.Visible;
+                }
+                else
+                {
+                    return System.Windows.Visibility.Hidden;
+                }
+            }
 
-        public AddAppControlWizard(string privilegePath, List<string> privilegeList, List<appdefprivilege> appdefprivList, List<string> ExistList = null, string op = null, string uri = null, string mime = null)
+            set
+            {
+            }
+        }
+
+        public AddAppControlWizard(string privilegePath, List<string> privilegeList, List<appdefprivilege> appdefprivList, List<string> ExistList = null, string op = null, string uri = null, string mime = null, string visibility = null, string id = null, string apiVersion = null)
         {
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             Owner = Application.Current.MainWindow;
@@ -176,6 +217,23 @@ namespace Tizen.VisualStudio.ManifestEditor
                 this.mimeTextBox.Text = mime;
             }
 
+            if (visibility != null)
+            {
+                this.visibilityValue = visibility;
+            }
+
+            if (id != null)
+            {
+                this.idTextBox.Text  = id;
+            }
+
+            if (apiVersion != null)
+            {
+                this.ApiVersion = apiVersion;
+            }
+
+
+            AddVisibilityComboBoxChild();
             this.EnableCheckOKbtn();
             DataContext = this;
         }
@@ -219,6 +277,11 @@ namespace Tizen.VisualStudio.ManifestEditor
             this.EnableCheckOKbtn();
         }
 
+        private void idTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            this.EnableCheckOKbtn();
+        }
+
         private void Button_add_Click(object sender, RoutedEventArgs e)
         {
             if (SupportedPrivList.SelectedItem != null)
@@ -236,6 +299,13 @@ namespace Tizen.VisualStudio.ManifestEditor
                 var item = AddedPrivList.SelectedItem.ToString();
                 AddedPrivilegeList.Remove(item);
                 SupportPrivilegeList.Add(item);
+            }
+        }
+        private void AddVisibilityComboBoxChild()
+        {
+            foreach (var item in VisibilityList)
+            {
+                this.visibilityComboBox.Items.Add(item);
             }
         }
     }

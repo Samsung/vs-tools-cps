@@ -134,6 +134,8 @@ namespace Tizen.VisualStudio.APIChecker.QuickFix
             xmlDoc.Save(m_task.GetManifestFilePath());
             APICheckerWindowTaskProvider taskProvider = APICheckerWindowTaskProvider.GetTaskProvider();
             List<NeedsPrivilegeTask> removedTasks = new List<NeedsPrivilegeTask>();
+            if (APICheckerWindowTaskProvider.GetTaskProvider() == null)
+                return;
             TaskCollection Tasks = APICheckerWindowTaskProvider.GetTaskProvider().Tasks;
             List<string> privileges = m_task.GetRequiredPrivileges().ToList();
             foreach (var task in Tasks)

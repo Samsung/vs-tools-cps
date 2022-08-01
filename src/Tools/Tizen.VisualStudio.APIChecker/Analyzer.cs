@@ -14,6 +14,7 @@
  * limitations under the License.
 */
 
+using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Xml;
@@ -26,7 +27,9 @@ namespace Tizen.VisualStudio.APIChecker
         private string manifestFile;
         private List<string> privilegeList = new List<string>();
         private static Dictionary<string, bool> privilegeMap;
+        private static Dictionary<string, bool> featureMap;
         private static string PRIVILEGE_TAG = "privilege";
+        private static string FEATURE_TAG = "feature";
         //private static string API_VERSION = "apiversion";
         private IServiceProvider ServiceProvider = null;
 
@@ -34,9 +37,10 @@ namespace Tizen.VisualStudio.APIChecker
         {
         }
 
-        public Analyzer(string apiversion, List<string> privileges, string manifestPath, IServiceProvider parent)
+        public Analyzer(string apiversion, List<string> privileges, string manifestPath, IServiceProvider parent, List<string> features)
         {
             privilegeMap = new Dictionary<string, bool>();
+            featureMap = new Dictionary<string, bool>();
             this.apiversion = apiversion;
             foreach (var s in privileges)
             {
@@ -44,6 +48,15 @@ namespace Tizen.VisualStudio.APIChecker
                 if (privilegeMap.ContainsKey(res) == false)
                 {
                     privilegeMap.Add(res, false);
+                }
+            }
+
+            foreach (var s in features)
+            {
+                string res = s.Trim();
+                if (featureMap.ContainsKey(res) == false)
+                {
+                    featureMap.Add(res, false);
                 }
             }
 
@@ -59,23 +72,38 @@ namespace Tizen.VisualStudio.APIChecker
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(apiComment);
             var nodes = xmlDoc.GetElementsByTagName(PRIVILEGE_TAG);
+            var nodeFeature = xmlDoc.GetElementsByTagName(FEATURE_TAG);
 
             //Check Privilege Violations.
             CheckPrivilegeViolations(apiname, nodes, lineInfo[0], lineInfo[1], filename);
+
+            //Check missing features
+            CheckMissingFeatures(apiname, nodeFeature, lineInfo[0], lineInfo[1], filename);
 
             // TODO: Check API Violations.
             //checkAPIViolations(nodes);
         }
 
+        public void ReportUnusedPrivilegesAndFeature()
+        {
+            ReportUnusedPrivileges();
+            ReportUnusedFeatures();
+        }
+
         public void ReportUnusedPrivileges()
+        {
+            ReportUnusedPrivilegesAndFeatures("The privilege {0} is unused", privilegeMap);
+        }
+
+        public void ReportUnusedPrivilegesAndFeatures(string msg, Dictionary<string, bool> map)
         {
             APICheckerWindowTaskProvider taskWindow = APICheckerWindowTaskProvider.CreateProvider(this.ServiceProvider);
             string[] lines = System.IO.File.ReadAllLines(manifestFile);
-            foreach (KeyValuePair<string, bool> entry in privilegeMap)
+            foreach (KeyValuePair<string, bool> entry in map)
             {
                 if (entry.Value == false)
                 {
-                    string warnMsg = string.Format("The privilege {0} is unused", entry.Key);
+                    string warnMsg = string.Format(msg, entry.Key);
                     int lineNum = 0;
                     int columnNum = 0;
                     foreach (string line in lines)
@@ -89,9 +117,14 @@ namespace Tizen.VisualStudio.APIChecker
                         lineNum++;
                     }
 
-                    taskWindow.ReportUnusedPrivileges(warnMsg, lineNum, columnNum, manifestFile);
+                    taskWindow.ReportUnusedPrivilegesAndFeatures(warnMsg, lineNum, columnNum, manifestFile);
                 }
             }
+        }
+
+        public void ReportUnusedFeatures()
+        {
+            ReportUnusedPrivilegesAndFeatures("The feature {0} is unused", featureMap);
         }
 
         private void CheckAPIViolations(XmlNodeList nodes)
@@ -101,23 +134,29 @@ namespace Tizen.VisualStudio.APIChecker
 
         private void CheckPrivilegeViolations(string apiname, XmlNodeList nodes, string lineStr, string columnStr, string filename)
         {
-            List<string> RequiredPrivileges = new List<string>();
+            string msg = "The API {0} needs these additions privilege {1}";
+            CheckMissingPrivilegesAndFeatures(apiname, nodes, lineStr, columnStr, filename, privilegeMap, msg, TaskPriority.High);
+        }
+
+        private void CheckMissingPrivilegesAndFeatures(string apiname, XmlNodeList nodes, string lineStr, string columnStr, string filename, Dictionary<string, bool> map, string msg, TaskPriority priority)
+        {
+            List<string> RequiredList = new List<string>();
             foreach (XmlNode node in nodes)
             {
-                string privilege = node.InnerText;
-                privilege = privilege.Trim();
-                if (privilegeMap.ContainsKey(privilege) == false)
+                string text = node.InnerText;
+                text = text.Trim();
+                if (map.ContainsKey(text) == false)
                 {
-                    RequiredPrivileges.Add(privilege);
+                    RequiredList.Add(text);
                 }
                 else
                 {
-                    // Indicates the privilege is used.
-                    privilegeMap[privilege] = true;
+                    // Indicates the feature is used.
+                    map[text] = true;
                 }
             }
 
-            int count = RequiredPrivileges.Count;
+            int count = RequiredList.Count;
             if (count != 0)
             {
                 int line, column;
@@ -128,10 +167,19 @@ namespace Tizen.VisualStudio.APIChecker
                     line = column = 0;
                 }
 
+                string message = string.Join(",", RequiredList.ToArray());
+                string errorMsg = string.Format(msg, apiname, message);
+
                 APICheckerWindowTaskProvider taskWindow = APICheckerWindowTaskProvider.CreateProvider(this.ServiceProvider);
-                taskWindow.ReportMissingPrivileges(RequiredPrivileges, apiname, line, column, filename, manifestFile);
-                //taskWindow.ReportViolations(errorMsg, line, column, filename);
+                taskWindow.ReportMissingPrivilegesAndFeatures(RequiredList, apiname, line, column, filename, manifestFile, errorMsg, priority);
             }
         }
+
+        private void CheckMissingFeatures(string apiname, XmlNodeList nodes, string lineStr, string columnStr, string filename)
+        {
+            string msg = "The API {0} needs these additions feature {1}";
+            CheckMissingPrivilegesAndFeatures(apiname, nodes, lineStr, columnStr, filename, featureMap, msg, TaskPriority.Normal);
+        }
+
     }
 }

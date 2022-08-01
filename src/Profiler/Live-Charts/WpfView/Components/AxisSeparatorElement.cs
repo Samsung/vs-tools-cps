@@ -88,7 +88,7 @@ namespace LiveCharts.Wpf.Components
                   CultureInfo.CurrentUICulture,
                   FlowDirection.LeftToRight,
                   new Typeface(TextBlock.FontFamily, TextBlock.FontStyle, TextBlock.FontWeight, TextBlock.FontStretch),
-                  TextBlock.FontSize, Brushes.Black);
+                  TextBlock.FontSize, Brushes.Black, 1);
 
             var transform = new LabelEvaluation(axis.View.LabelsRotation,
                 formattedText.Width, formattedText.Height, axis, source);

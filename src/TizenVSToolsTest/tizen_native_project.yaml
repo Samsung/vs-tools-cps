@@ -1,0 +1,67 @@
+# Enable auto build file generation
+auto_gen_build_files: true
+
+# Output name for compiled binary/ lib
+output_name: tizennative1
+
+# Project type [native_app, shared_lib, static_lib, test_runner]
+project_type: native_app
+
+# list of source files (.c, .cpp, .asm, .S etc) and headers
+sources:
+  - src/tizennative1.c
+  - inc/tizennative1.h
+
+# preprocessor defines, passed to the C/C++ compiler with -D options
+defines:
+  - TIZEN_DEPRECATION
+  - DEPRECATION_WARNING
+  - _APP_LOG
+
+# header include directories, passed to the C/C++ compiler with -I option
+include_dirs:
+  - inc
+
+# common compilation flags, passed to both C/C++ compiler
+cflags: []
+
+# c compilation flags, passed to only C compiler
+cflags_c: []
+
+# cpp compilation flags, passed to only C++ compiler
+cflags_cc: []
+
+# assembler flags, passed to any invocation of a tool that takes an .asm or .S file as input
+asmflags: []
+
+# list of library names or library paths to link with target
+# values containing '/' will be passed directly other wise passed with -l option
+libs: []
+
+# list of library dirs, to be passed to linker with -L option
+lib_dirs: []
+
+# list of library files, to be passed to linker as input
+lib_files: []
+
+# additional linker flags for the target
+ldflags: []
+
+# list of edc files
+edc_files: []
+
+# list of directories containing images, passed to edje_cc with -id option
+edc_images_dirs: []
+
+# list of directories containing sound files, passed to edje_cc with -sd option
+edc_sound_dirs: []
+
+# list of directories containing font files, passed to edje_cc with -fd option
+edc_font_dirs: []
+
+# list of po files
+po_files: []
+
+# list of resource files, to be packed in tpk
+resources:
+  - shared/res/tizennative1.png

@@ -78,7 +78,17 @@ namespace NetCore.Profiler.Extension.Launcher.Model
         protected AbstractSession(SDBDeviceInfo device, TSessionConfiguration sessionConfiguration)
         {
             _selectedDevice = device;
-            var cap = new SDBCapability(_selectedDevice);
+            SDBCapability cap;
+            if (DeviceManager.SdbCapsMap.ContainsKey(_selectedDevice.Serial))
+            {
+                cap = DeviceManager.SdbCapsMap[_selectedDevice.Serial];
+            }
+            else
+            {
+                cap = new SDBCapability(_selectedDevice);
+                DeviceManager.SdbCapsMap.Add(_selectedDevice.Serial, cap);
+            }
+
             _tizenVersion = cap.GetValueByKey("platform_version");
             if (!ProfilerPlugin.IsTizenVersionSupported(_tizenVersion, false))
             {

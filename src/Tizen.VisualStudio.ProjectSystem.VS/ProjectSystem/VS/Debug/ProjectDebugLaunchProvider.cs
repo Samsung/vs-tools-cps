@@ -20,7 +20,9 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using EnvDTE;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Debug;
@@ -34,7 +36,6 @@ using Tizen.VisualStudio.Tools.Data;
 using Tizen.VisualStudio.Tools.DebugBridge;
 using Tizen.VisualStudio.Tools.DebugBridge.SDBCommand;
 using Tizen.VisualStudio.Tools.ExternalTool;
-using Tizen.VisualStudio.Tools.Utilities;
 using Tizen.VisualStudio.Utilities;
 
 namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
@@ -44,12 +45,21 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
     [Order(100)]
     public class ProjectDebugLaunchProvider : DebugLaunchProviderBase
     {
+        private const string WaitCaption = "Installing Tizen Application";
+        private const string StatusBarText = "Tizen app install in progress...";
+        private const string ProgressText = "Preparing...";
         private static readonly Guid MIEngineId = new Guid("{3352D8EC-AE86-41F2-BB8A-90DA85ABCA05}");
         private string lastErrorMessage;
+        private bool isRootModeOff;
+        private SDBCapability cap;
 
         private Task DoNothing = Task.Run(() => { });
 
         private TizenDebugLaunchOptions tDebugLaunchOptions;
+
+        private string debugEngineOptions;
+
+        private VsProjectHelper projHelper;
 
         private ITizenLaunchSettingsProvider _tizenLaunchSettingsProvider { get; }
 
@@ -57,6 +67,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
         public ProjectDebugLaunchProvider(ConfiguredProject configuredProject)
             : base(configuredProject)
         {
+            projHelper = VsProjectHelper.GetInstance;
             _tizenLaunchSettingsProvider = configuredProject.Services.ExportProvider.GetExportedValue<ITizenLaunchSettingsProvider>();
         }
 
@@ -79,8 +90,303 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
         public override async Task<bool> CanLaunchAsync(DebugLaunchOptions launchOptions)
         {
             string commandValue = await DebugLaunchDataStore.SDBTaskAsync();
-            //TODO : Check the presence of SDB and pop Install Wizard in case of its absence.
-            return File.Exists(commandValue) || (DeviceManager.DeviceInfoList.Count == 0);
+            if (commandValue == null)
+                return false;
+            //TODO : Check the presence of SDB and pop Install Wizard in case of its absence
+
+            return File.Exists(commandValue) || ((DeviceManager.DeviceInfoList != null) ? (DeviceManager.DeviceInfoList.Count == 0) : false);
+        }
+
+        private async void HandledWebAppLaunchByVS(bool isDebugMode, SDBDeviceInfo device, Project debuggeeProj)
+        {
+            OutputDebugLaunchMessage("<<< web app >>>");
+            var waitPopup = new WaitDialogUtil();
+
+            String workspacePath = projHelper.getSolutionFolderPath();
+            if (workspacePath == null)
+            {
+                OutputDebugLaunchMessage("<<< unable to get workspace path >>>");
+                return;
+            }
+
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd.exe";
+
+            if (!isDebugMode)
+            {
+                waitPopup.ShowPopup(WaitCaption,
+                        "Please wait while the new app is being installed and launched...",
+                        ProgressText, StatusBarText);
+
+                // Install and Launch the Tizen web app
+                if (InstallApp(device, debuggeeProj) != 0)
+                {
+                    OutputDebugLaunchMessage("<<<  Failed to install the Web package.  >>>");
+                    waitPopup.ClosePopup();
+                    return;
+                }
+
+                SDBLauncher.Create(VsPackage.outputPaneTizen).LaunchApplication(device, projHelper.GetWebAppId(debuggeeProj));
+                waitPopup.ClosePopup();
+                return;
+            }
+            else
+            {
+                // Check if chrome path is set in Tools->Options->Tizen
+                if (string.IsNullOrWhiteSpace(ToolsPathInfo.ChromePath))
+                {
+                    string errormsg = string.Format("Chrome path (Tools->Options->Tizen) not set for Debugging.");
+
+                    VsPackage.ShowMessage(MessageDialogType.Error, null, errormsg);
+                    return;
+                }
+                waitPopup.ShowPopup(WaitCaption,
+                        "Please wait while the new app is being installed...",
+                        ProgressText, StatusBarText);
+
+                // Launch the Tizen web app in debug mode
+                if (InstallApp(device, debuggeeProj) != 0)
+                {
+                    OutputDebugLaunchMessage("<<<  Failed to install the Web app for debugging. >>>");
+                    waitPopup.ClosePopup();
+                    return;
+                }
+                else
+                {
+                    OutputDebugLaunchMessage("<<< Successfully installed the Web app for debugging. >>>");
+                    waitPopup.ClosePopup();
+                }
+
+                String output, errMsg;
+                int i, port;
+                var appId = projHelper.GetWebAppId(debuggeeProj);
+                string prfName = cap.GetValueByKey("profile_name");
+
+                if (prfName.Equals("tv"))
+                    SDBLib.RunSdbCommandAndGetFirstNonEmptyLine(device, "shell 0 debug " + appId, out output, out errMsg);
+                else
+                    SDBLib.RunSdbCommandAndGetFirstNonEmptyLine(device, "shell app_launcher -w --start " + appId, out output, out errMsg);
+
+                i = output.LastIndexOf(':') + 2;
+                port = 0;
+                while (i < output.Length)
+                {
+                    port = port * 10 + (output[i] - '0');
+                    i++;
+                }
+
+                String command = ToolsPathInfo.ToolsRootPath + "\\tools\\sdb.exe forward tcp:" + port + " tcp:" + port;// + " tcp:26099";
+                startInfo.Arguments = "/C " + command;
+                process.StartInfo = startInfo;
+                process.Start();
+                process.WaitForExit();
+
+                if (process.ExitCode != 0)
+                {
+                    string errormsg = string.Format("Failed to do forward tcp ports.");
+
+                    VsPackage.ShowMessage(MessageDialogType.Error, null, errormsg);
+                    return;
+                }
+
+                var client = new HttpClient();
+                String baseUrl = "http://127.0.0.1:";
+                String url = baseUrl + port + "/json";
+                var json = await client.GetStringAsync(url);
+                JavaScriptSerializer jsonSerializer = new JavaScriptSerializer();
+                dynamic dobj = jsonSerializer.Deserialize<dynamic>(json);
+                string inspectorPath = dobj[0]["devtoolsFrontendUrl"].ToString();
+
+                if (inspectorPath[0] != '/')
+                {
+                    inspectorPath = "/" + inspectorPath;
+                }
+
+                waitPopup.ShowPopup("Launching Tizen Web App",
+                        "Please wait while the app is being installed and launched in Debug mode...",
+                        ProgressText, "Tizen web app launch in progress...");
+                var debugUrl = baseUrl + port + inspectorPath;
+                command = "\"" + ToolsPathInfo.ChromePath + "\" --no-first-run --activate-on-launch --no-default-browser-check --allow-file-access-from-files --disable-web-security --disable-translate --proxy-auto-detect --proxy-bypass-list=127.0.0.1 --app=" + debugUrl;
+                startInfo.Arguments = "/C " + command;
+                process.StartInfo = startInfo;
+                process.Start();
+                process.WaitForExit();
+                waitPopup.ClosePopup();
+
+                if (process.ExitCode != 0)
+                {
+                    string errormsg = string.Format("Failed to launch Web app Chrome debugging.");
+
+                    VsPackage.ShowMessage(MessageDialogType.Error, null, errormsg);
+                }
+                else
+                {
+                    OutputDebugLaunchMessage("<<< Successfully launched Web app debugging. >>>");
+                }
+
+                return;
+            }
+        }
+
+        private int InstallApp(SDBDeviceInfo device, Project debuggeeProj)
+        {
+            String workspacePath = projHelper.getSolutionFolderPath();
+            if (workspacePath == null)
+            {
+                OutputDebugLaunchMessage("<<< unable to get workspace path >>>");
+                return -1;
+            }
+
+            var executor = new TzCmdExec();
+
+            string message = executor.RunTzCmnd(string.Format("/c tz install \"{0}\" -s \"{1}\"", workspacePath, device.Serial));
+
+            if (message.Contains("error:"))
+            {
+                OutputDebugLaunchMessage(message);
+                return -1;
+            }
+            else
+            {
+                return 0;
+            }
+
+        }
+
+        private async Task HandledNativeAppLaunchByVS(bool isDebugMode, SDBDeviceInfo device, Project debuggeeProj, DebugLaunchOptions launchOptions)
+        {
+            OutputDebugLaunchMessage("<<< Native app >>>");
+            var waitPopup = new WaitDialogUtil();
+            String workspacePath = projHelper.getSolutionFolderPath();
+
+            if (workspacePath == null)
+            {
+                OutputDebugLaunchMessage("<<< unable to get workspace path >>>");
+                return;
+            }
+
+            string appCat = projHelper.GetAppCategory(debuggeeProj);
+            string appType = projHelper.GetAppType(debuggeeProj);
+
+            if (appCat.Equals("http://tizen.org/category/ime"))
+            {
+                OutputDebugLaunchMessage("<<< info:Certain application categories, such as \"ime\" cannot be launched by \"Run\" >>>");
+                System.Windows.MessageBox.Show("<<< info:Certain application categories, such as \"ime\" cannot be launched by \"Run\" >>>");
+                return;
+            }
+
+            waitPopup.ShowPopup(WaitCaption,
+                "Please wait while the new app is being installed and launched...",
+                ProgressText, StatusBarText);
+
+            // Install the Tizen Native app
+            if (InstallApp(device, debuggeeProj) != 0)
+            {
+                OutputDebugLaunchMessage("<<<  Failed to install the Native app.  >>>");
+                waitPopup.ClosePopup();
+                return;
+            }
+
+            if (!isDebugMode)
+            {
+                // Launch the App
+                SDBLauncher.Create(VsPackage.outputPaneTizen).LaunchApplication(device, projHelper.GetAppId(debuggeeProj));
+                waitPopup.ClosePopup();
+                return;
+            }
+            else
+            {
+                // Port Forwarding
+                var proc = StartSdbProcess("-s " + device.Serial + " forward --remove tcp:1234",
+                  "Removing port forward...", false);
+                WaitProcessExit(proc, 5000);
+                proc = StartSdbProcess("-s " + device.Serial + " forward tcp:1234 tcp:4711",
+                    "Forwarding port...");
+                WaitProcessExit(proc, 5000);
+
+                // Debug Launch
+                string AppId = projHelper.GetAppId(debuggeeProj);
+                proc = StartSdbProcess("-s " + device.Serial + " launch -a " + AppId + " -p -e -m debug -P 4711",
+                  "Launching App in Debug Mode...", false);
+                //WaitProcessExit(proc, 5000);
+
+                TizenNativeDebugLaunchOptions tDebugLaunchOptions = new TizenNativeDebugLaunchOptions(device, cap, isDebugMode, debuggeeProj);
+                debugEngineOptions = tDebugLaunchOptions.DebugEngineOptions;
+                await base.LaunchAsync(launchOptions);
+                waitPopup.ClosePopup();
+            }
+        }
+
+        private void HandledWebAppLaunchByTZ(bool isDebugMode, SDBDeviceInfo device)
+        {
+            OutputDebugLaunchMessage("<<< web app >>>");
+            String message;
+            var waitPopup = new WaitDialogUtil();
+
+            String workspacePath = projHelper.getSolutionFolderPath();
+            if (workspacePath == null)
+            {
+                OutputDebugLaunchMessage("<<< unable to get workspace path >>>");
+                return;
+            }
+
+            var executor = new TzCmdExec();
+
+            if (!isDebugMode)
+            {
+                waitPopup.ShowPopup(WaitCaption,
+                        "Please wait while the new app is being installed...",
+                        ProgressText, StatusBarText);
+                // Install and Launch the Tizen web app
+                message = executor.RunTzCmnd(string.Format("/c tz run \"{0}\" -s \"{1}\"", workspacePath, device.Serial));
+
+                if (message.Contains("error:"))
+                {
+                    OutputDebugLaunchMessage(message);
+                }
+                waitPopup.ClosePopup();
+                return;
+            }
+            else
+            {
+                // Check if chrome path is set in Tools->Options->Tizen
+                if (string.IsNullOrWhiteSpace(ToolsPathInfo.ChromePath))
+                {
+                    string errormsg = string.Format("Chrome path (Tools->Options->Tizen) not set for Debugging.");
+
+                    VsPackage.ShowMessage(MessageDialogType.Error, null, errormsg);
+                    return;
+                }
+                waitPopup.ShowPopup(WaitCaption,
+                        "Please wait while the app is being installed and launched in Debug mode...",
+                        ProgressText, StatusBarText);
+
+                // Launch the Tizen web app in debug mode
+                System.Diagnostics.Process process = new System.Diagnostics.Process();
+                System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+                startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                startInfo.FileName = "cmd.exe";
+                String command = ToolsPathInfo.ToolsRootPath + "\\tools\\tizen-core\\tz.exe run -d \"" + workspacePath + "\"" + " -s " + device.Serial;
+                startInfo.Arguments = "/C " + command;
+                process.StartInfo = startInfo;
+                process.Start();
+                process.WaitForExit();
+
+                waitPopup.ClosePopup();
+
+                if (process.ExitCode != 0)
+                {
+                    OutputDebugLaunchMessage("<<<  Failed to debug the Web app. >>>");
+                }
+                else
+                {
+                    OutputDebugLaunchMessage("<<< Successfully launched the Web app for debugging. >>>");
+                }
+
+                return;
+            }
         }
 
         public override async Task LaunchAsync(DebugLaunchOptions launchOptions)
@@ -99,84 +405,126 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
                 return;
             }
 
-            var cap = new SDBCapability(device);
+            if (DeviceManager.SdbCapsMap.ContainsKey(device.Serial))
+            {
+                cap = DeviceManager.SdbCapsMap[device.Serial];
+            }
+            else
+            {
+                cap = new SDBCapability(device);
+                DeviceManager.SdbCapsMap.Add(device.Serial, cap);
+            }
+
             string tizenVersion = cap.GetValueByKey("platform_version");
             if (!ProfilerPlugin.IsTizenVersionSupported(tizenVersion, true))
             {
                 return;
             }
 
-            bool isSecureProtocol = cap.GetAvailabilityByKey("secure_protocol");
-            bool useNetCoreDbg = cap.GetAvailabilityByKey("netcoredbg_support");
             bool isDebugMode = !launchOptions.Equals(DebugLaunchOptions.NoDebug);
-            bool useLiveProfiler = isDebugMode && useNetCoreDbg && DebuggerInfo.UseLiveProfiler;
-
-            // check the root mode is off
-            if (!ProfilerPlugin.EnsureRootOff(device,
-                isDebugMode ?
-                    (useLiveProfiler ? ProfilerPlugin.RunMode.LiveProfiler : ProfilerPlugin.RunMode.Debug)
-                    : ProfilerPlugin.RunMode.NoDebug))
-            {
-                return;
-            }
 
             Project debuggeeProj = VsHierarchy.GetDTEProject();
+            string debugeeProjType = projHelper.getProjectType(Path.GetDirectoryName(debuggeeProj.FullName));
 
-            tDebugLaunchOptions = isSecureProtocol ?
-                (useNetCoreDbg ?
-                    new SecuredTizenNetCoreDbgLaunchOptions(device, isDebugMode, debuggeeProj, _tizenLaunchSettingsProvider.TizenLaunchSetting.ExtraArguments) :
-                    new SecuredTizenDebugLaunchOptions(device, isDebugMode, debuggeeProj, _tizenLaunchSettingsProvider.TizenLaunchSetting.ExtraArguments)) :
-                (useNetCoreDbg ?
-                    new TizenNetCoreDbgLaunchOptions(device, isDebugMode, debuggeeProj, _tizenLaunchSettingsProvider.TizenLaunchSetting.ExtraArguments) :
-                    new TizenDebugLaunchOptions(device, isDebugMode, debuggeeProj, _tizenLaunchSettingsProvider.TizenLaunchSetting.ExtraArguments));
-
-            string msg = $"Start {(isDebugMode ? "" : "without ")}debugging \"{tDebugLaunchOptions.AppId}\"";
-            if (isSecureProtocol)
+            if (debugeeProjType.Equals("web"))
             {
-                msg += " (secure protocol)";
+                // Code for Launching Tizen Web app
+                HandledWebAppLaunchByTZ(isDebugMode, device);
             }
-            OutputDebugLaunchMessage($"<<< {msg} >>>");
-
-            bool isDebugNeeded = InstallTizenPackage(device, tDebugLaunchOptions);
-
-            if (isDebugNeeded)
+            else if (debugeeProjType.Equals("native"))
             {
-                if (isDebugMode)
+                // Code for Launching Tizen Native app
+                await HandledNativeAppLaunchByVS(isDebugMode, device, debuggeeProj, launchOptions);
+            }
+            else
+            {
+                bool isSecureProtocol = cap.GetAvailabilityByKey("secure_protocol");
+                bool useNetCoreDbg = cap.GetAvailabilityByKey("netcoredbg_support");
+                bool useLiveProfiler = isDebugMode && useNetCoreDbg && DebuggerInfo.UseLiveProfiler;
+                bool useHotReloder = isDebugMode && !useLiveProfiler && HotReloadInfo.UseHotReload;
+
+                // check the root mode is off
+                if (!ProfilerPlugin.EnsureRootOff(device, cap,
+                    isDebugMode ?
+                        (useLiveProfiler ? ProfilerPlugin.RunMode.LiveProfiler : ProfilerPlugin.RunMode.Debug)
+                        : ProfilerPlugin.RunMode.NoDebug))
                 {
-/*
-                    OnDemandDebuggerInstaller debuggerInstaller = isSecureProtocol ?
-                        (useNetCoreDbg ?
-                            new OnDemandDebuggerInstallerSecure("netcoredbg", "1.0.0") :
-                            new OnDemandDebuggerInstallerSecure("lldb-tv", "3.8.1")) :
-                        (useNetCoreDbg ?
-                            new OnDemandDebuggerInstaller("netcoredbg", "1.0.0") :
-                            new OnDemandDebuggerInstaller("lldb", "3.8.1"));
-
-                    isDebugNeeded = debuggerInstaller.InstallPackage(tizenVersion, VsPackage.outputPaneTizen, VsPackage.dialogFactory);
-*/
-                    // TODO!! remove OnDemandDebuggerInstaller.cs after checking OnDemandInstaller
-
-                    var installer = new OnDemandInstaller(device, supportRpms: false, supportTarGz: true,
-                        onMessage: (s) => ProfilerPlugin.Instance.WriteToOutput(s));
-
-                    isDebugNeeded = installer.Install(useNetCoreDbg ? "netcoredbg" :
-                        (isSecureProtocol ? "lldb-tv" : "lldb"));
-
-                    if (!isDebugNeeded)
-                    {
-                        ProfilerPlugin.Instance.ShowError(StringHelper.CombineMessages(
-                            "Cannot check/install the debugger package.\n", installer.ErrorMessage));
-                    }
+                    return;
                 }
+                else
+                {
+                    isRootModeOff = true;
+                }
+
+
+                tDebugLaunchOptions = isSecureProtocol ?
+                    (useNetCoreDbg ?
+                        new SecuredTizenNetCoreDbgLaunchOptions(device, cap, isDebugMode, debuggeeProj, _tizenLaunchSettingsProvider.TizenLaunchSetting.ExtraArguments) :
+                        new SecuredTizenDebugLaunchOptions(device, cap, isDebugMode, debuggeeProj, _tizenLaunchSettingsProvider.TizenLaunchSetting.ExtraArguments)) :
+                    (useNetCoreDbg ?
+                        new TizenNetCoreDbgLaunchOptions(device, cap, isDebugMode, debuggeeProj, useHotReloder, _tizenLaunchSettingsProvider.TizenLaunchSetting.ExtraArguments) :
+                        new TizenDebugLaunchOptions(device, cap, isDebugMode, debuggeeProj, _tizenLaunchSettingsProvider.TizenLaunchSetting.ExtraArguments));
+
+
+                debugEngineOptions = tDebugLaunchOptions.DebugEngineOptions;
+
+                string msg = $"Start {(isDebugMode ? "" : "without ")}debugging \"{tDebugLaunchOptions.AppId}\"";
+                if (isSecureProtocol)
+                {
+                    msg += " (secure protocol)";
+                }
+                OutputDebugLaunchMessage($"<<< {msg} >>>");
+
+                bool isDebugNeeded = InstallTizenPackage(device, tDebugLaunchOptions);
                 if (isDebugNeeded)
                 {
-                    isDebugNeeded = LaunchApplication(device, tDebugLaunchOptions) && isDebugMode;
+                    if (isDebugMode)
+                    {
+                        // TODO!! remove OnDemandDebuggerInstaller.cs after checking OnDemandInstallers
+
+                        string packageapiversion = projHelper.GetPackageAPIVersion(tDebugLaunchOptions.TpkPath);
+                        if (string.IsNullOrEmpty(packageapiversion))
+                        {
+                            string errormsg = string.Format("Incorrect manifest values.");
+
+                            VsPackage.ShowMessage(MessageDialogType.Error, null, errormsg);
+                            return;
+                        }
+
+                        if (string.Compare(tizenVersion, packageapiversion) == -1)
+                        {
+                            string errormsg = string.Format("Tizen version of device is lower than that of the project.\n" +
+                                "Please install {0} platform using Tizen Package manager.", packageapiversion);
+
+                            VsPackage.ShowMessage(MessageDialogType.Error, null, errormsg);
+                            return;
+                        }
+
+                        if (!DeviceManager.isDebuggerInstalled)
+                        {
+                            string errormsg = string.Format("Debugger not properly installed.");
+
+                            VsPackage.ShowMessage(MessageDialogType.Error, null, errormsg);
+                            return;
+                        }
+
+                        if (useHotReloder)
+                        {
+                            await HotReloadLaunchProvider.StartHotReloadObserverAsync(device, tDebugLaunchOptions.AppId, debuggeeProj.FullName);
+                        }
+
+                    }
                     if (isDebugNeeded)
                     {
-                        await base.LaunchAsync(launchOptions);
+                        isDebugNeeded = LaunchApplication(device, tDebugLaunchOptions) && isDebugMode;
+                        if (isDebugNeeded)
+                        {
+                            await base.LaunchAsync(launchOptions);
+                        }
                     }
                 }
             }
+
         }
 
         public override async Task<IReadOnlyList<IDebugLaunchSettings>> QueryDebugTargetsAsync(DebugLaunchOptions launchOptions)
@@ -190,9 +538,10 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
             settings.Executable = await DebugLaunchDataStore.SDBTaskAsync();
             settings.Arguments = "";
             settings.LaunchDebugEngineGuid = MIEngineId;
-            settings.Options = tDebugLaunchOptions.DebugEngineOptions;
+            settings.Options = debugEngineOptions;
 
-            TraceTizenPackage();
+            if (!projHelper.IsTizenNativeProject())
+                TraceTizenPackage();
 
             return new IDebugLaunchSettings[] { settings };
         }
@@ -229,8 +578,8 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
         {
             SDBLauncher.Create(VsPackage.outputPaneTizen).TerminateApplication(device, tDebugLaunchOptions.AppId);
 
-            InstallResult installResult = Launcher.Create().InstallTizenPackage(device, tDebugLaunchOptions.TpkPath,
-                null, VsPackage.dialogFactory, false, out lastErrorMessage);
+            InstallResult installResult = Launcher.Create().InstallTizenPackage(device, cap, tDebugLaunchOptions.TpkPath,
+                null, VsPackage.dialogFactory, false, out lastErrorMessage, tDebugLaunchOptions.IsDebugMode);
 
             bool isInstallSucceeded = (installResult == InstallResult.OK);
 
@@ -254,6 +603,11 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
         private System.Diagnostics.Process StartSdbProcess(string arguments, string message, bool showStdErr = true)
         {
             var proc = SDBLib.CreateSdbProcess();
+
+            if (proc == null)
+            {
+                return null;
+            }
             proc.StartInfo.Arguments = arguments;
             proc.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
             {
@@ -309,7 +663,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
                     SDBLauncher.Create(VsPackage.outputPaneTizen).LaunchApplication(device, DebugLaunchDataStore.WidgetViewerSdkAppId);
                     break;
             }
-            var cap = new SDBCapability(device);
+
             bool startLiveProfiler = tDebugLaunchOptions.IsDebugMode && cap.GetAvailabilityByKey("netcoredbg_support") && DebuggerInfo.UseLiveProfiler;
             if (startLiveProfiler)
             {
@@ -317,6 +671,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
                 {
                     case "ui-application":
                     case "service-application":
+                    case "component-based-application":
                         if (tDebugLaunchOptions is SecuredTizenDebugLaunchOptions)
                         {
                             startLiveProfiler = false;
@@ -341,7 +696,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
             }
             else
             {
-                if (ProfilerPlugin.EnsureRootOff(device, ProfilerPlugin.RunMode.Debug)) // check the root mode is off
+                if (isRootModeOff) // check the root mode is off
                 {
                     foreach (var arg in tDebugLaunchOptions.LaunchSequence)
                     {
@@ -386,12 +741,15 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
             public const string TpkRoot = "tpkroot";
             public const string WidgetViewerSdkAppId = "org.tizen.widget_viewer_sdk";
 
-//!!            public static string LldbMi => (new SDBCapability().GetValueByKey("sdk_toolpath")) + @"/lldb/bin/lldb-mi";
+            //!!            public static string LldbMi => (new SDBCapability().GetValueByKey("sdk_toolpath")) + @"/lldb/bin/lldb-mi";
             public static Task<string> SDBTaskAsync() => Task.Run(() =>
             {
                 return SDBLib.GetSdbFilePath();
             });
         }
+
+
+
 
         private class TizenDebugLaunchOptions
         {
@@ -417,6 +775,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
             public bool IsDebugMode { get; }
 
             protected SDBDeviceInfo _device;
+            protected SDBCapability cap;
 
             protected const string niDisableOption = " COMPlus_ZapDisable 1 ";
             protected VsProjectHelper projHelper = VsProjectHelper.GetInstance;
@@ -443,9 +802,10 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
                 }
             }
 
-            public TizenDebugLaunchOptions(SDBDeviceInfo device, bool isDebugMode, Project proj, string extraArgs)
+            public TizenDebugLaunchOptions(SDBDeviceInfo device, SDBCapability c, bool isDebugMode, Project proj, string extraArgs, bool enableHotreload = false)
             {
                 _device = device;
+                cap = c;
 
                 IsDebugMode = isDebugMode;
 
@@ -455,6 +815,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
                 string debugLaunchPadArgs = string.Empty;
                 string launchCommand = string.Empty;
                 Parameters debugEngineLaunchParameters = GetDebugEngineLaunchParameters();
+                var setHotreload = enableHotreload && !HotReloadLaunchProvider.GetIsXamlProject();
 
                 if (IsDebugMode)
                 {
@@ -467,7 +828,8 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
                         projHelper.GetValidRootPath() +
                         "\" ExePath=\"" +
                         DebugLaunchDataStore.DotNetLauncher +
-                        "\" MIMode=\"" + debugEngineLaunchParameters.MiMode + "\" TargetArchitecture=\"" +
+                        "\" MIMode=\"" + debugEngineLaunchParameters.MiMode +
+                        "\" Hotreload=\"" + setHotreload + "\" TargetArchitecture=\"" +
                         GetTargetArch() +
                         "\" WorkingDirectory=\"" +
                         DebugLaunchDataStore.AppInstallPath + "/" + projHelper.GetPackageId(TpkPath) + "/bin" +
@@ -525,6 +887,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
                 {
                     case "ui-application":
                     case "service-application":
+                    case "component-based-application":
                         targetShellCmd = string.Join(" ", new string[] { launchCommand, appId, extraArgs, debugLaunchPadArgs });
                         break;
                     case "watch-application":
@@ -547,7 +910,6 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
 
             private string GetTargetArch()
             {
-                var cap = new SDBCapability(_device);
                 string arch = cap.GetValueByKey("cpu_arch");
 
                 switch (arch)
@@ -556,6 +918,10 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
                         return "X86";
                     case "x86_64":
                         return "X64";
+                    case "armv8":
+                        return "arm64";
+                    case "aarch64":
+                        return "arm64";
                     default:
                         return "arm";
                 }
@@ -578,10 +944,91 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
             }
         }
 
+
+        private class TizenNativeDebugLaunchOptions
+        {
+            public string DebugEngineOptions { get; }
+
+            public TizenNativeDebugLaunchOptions(SDBDeviceInfo device, SDBCapability cap, bool isDebugMode, Project proj)
+            {
+                VsProjectHelper projHelp = VsProjectHelper.GetInstance;
+                string debuggerPath = GetDebuggerPath(cap).Replace("\\", "/");
+                string arch = GetTargetArch(cap);
+                string buildFolderName = "native_build";
+                string tpkFolder = projHelp.getTPKFolder(projHelp.getSolutionFolderPath(), buildFolderName);
+                string exePath = Path.Combine(tpkFolder, "bin", projHelp.GetAppExec(proj));
+                string optionFormat = "<LocalLaunchOptions xmlns=\"http://schemas.microsoft.com/vstudio/MDDDebuggerOptions/2014\"\r\n" +
+                                              "MIDebuggerPath = \"{0}\" " +
+                                              "MIDebuggerServerAddress = \"127.0.0.1:1234\" " +
+                                              "ExePath = \"{1}\" " +
+                                              "MIMode = \"gdb\" " +
+                                              "TargetArchitecture = \"{2}\" " +
+                                              "/>";
+                DebugEngineOptions = String.Format(optionFormat, debuggerPath, exePath, arch);
+            }
+
+            public string GetTpkPath(Project prj)
+            {
+                string projectFolder = Path.GetDirectoryName(prj.FullName);
+                string projectOutput = Path.Combine(projectFolder, "debug");
+                string tpkFilePath = Path.Combine(projectOutput, "tpk");
+                return tpkFilePath;
+            }
+
+            private string GetTargetArch(SDBCapability cap)
+            {
+                // Only X86 and ARM are support now. 64bit are not supported.
+                string arch = cap.GetValueByKey("cpu_arch");
+                switch (arch)
+                {
+                    case "x86":
+                        return "X86";
+                    default:
+                        return "arm";
+                }
+            }
+
+            private string GetDebuggerPath(SDBCapability cap)
+            {
+                string sdkToolPath = Path.Combine(ToolsPathInfo.ToolsRootPath, "tools");
+                string arch = GetTargetArch(cap);
+                string tizenVersion = cap.GetValueByKey("platform_version");
+                Version version = Version.Parse(tizenVersion);
+                string debuggerPath = getGDBPath(sdkToolPath, arch, version);
+                return debuggerPath;
+            }
+
+            private string getGDBPath(string sdkToolPath, string arch, Version version)
+            {
+                if (version.Major >= 6)
+                {
+                    if (arch == "X86")
+                    {
+                        return Path.Combine(sdkToolPath, "i586-linux-gnueabi-gdb-8.3.1", "bin", "i586-linux-gnueabi-gdb.exe");
+                    }
+                    else
+                    {
+                        return Path.Combine(sdkToolPath, "arm-linux-gnueabi-gdb-8.3.1", "bin", "arm-linux-gnueabi-gdb.exe");
+                    }
+                }
+                else
+                {
+                    if (arch == "X86")
+                    {
+                        return Path.Combine(sdkToolPath, "i386-linux-gnueabi-gdb-7.8", "bin", "i386-linux-gnueabi-gdb.exe");
+                    }
+                    else
+                    {
+                        return Path.Combine(sdkToolPath, "arm-linux-gnueabi-gdb-7.8", "bin", "arm-linux-gnueabi-gdb.exe");
+                    }
+                }
+            }
+        }
+
         private class SecuredTizenDebugLaunchOptions : TizenDebugLaunchOptions
         {
-            public SecuredTizenDebugLaunchOptions(SDBDeviceInfo device, bool isDebugMode, Project proj, string extraArgs)
-                : base(device, isDebugMode, proj, extraArgs)
+            public SecuredTizenDebugLaunchOptions(SDBDeviceInfo device, SDBCapability cap, bool isDebugMode, Project proj, string extraArgs)
+                : base(device, cap, isDebugMode, proj, extraArgs)
             {
             }
 
@@ -606,6 +1053,7 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
                 {
                     case "ui-application":
                     case "service-application":
+                    case "component-based-application":
                         if (extraArgs == string.Empty)
                         {
                             targetShellCmd = string.Join(" ", new string[] { launchCommand, appId, debugLaunchPadArgs });
@@ -633,8 +1081,8 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
 
         private class TizenNetCoreDbgLaunchOptions : TizenDebugLaunchOptions
         {
-            public TizenNetCoreDbgLaunchOptions(SDBDeviceInfo device, bool isDebugMode, Project proj, string extraArgs)
-                : base(device, isDebugMode, proj, extraArgs)
+            public TizenNetCoreDbgLaunchOptions(SDBDeviceInfo device, SDBCapability cap, bool isDebugMode, Project proj, bool enableHotreload, string extraArgs)
+                : base(device, cap, isDebugMode, proj, extraArgs, enableHotreload)
             {
             }
 
@@ -670,22 +1118,21 @@ namespace Tizen.VisualStudio.ProjectSystem.VS.Debug
 
         private class SecuredTizenNetCoreDbgLaunchOptions : SecuredTizenDebugLaunchOptions
         {
-            public SecuredTizenNetCoreDbgLaunchOptions(SDBDeviceInfo device, bool isDebugMode, Project proj, string extraArgs)
-                : base(device, isDebugMode, proj, extraArgs)
+            public SecuredTizenNetCoreDbgLaunchOptions(SDBDeviceInfo device, SDBCapability cap, bool isDebugMode, Project proj, string extraArgs)
+                : base(device, cap, isDebugMode, proj, extraArgs)
             {
             }
 
             protected override Parameters GetDebugEngineLaunchParameters()
             {
                 string launchPadArguments = string.Empty;
-                var cap = new SDBCapability(_device);
                 string pluginVersion = cap.GetValueByKey("sdbd_plugin_version");
                 string[] version = pluginVersion.Split('.');
                 if (version.Length == 3)
                 {
                     int major = Int32.Parse(version[0]);
                     int minor = Int32.Parse(version[1]);
-                    if ((major < 3) || (major == 3 && minor <= 5))
+                    if ((major < 3) || (major == 3 && minor < 7))
                     {
                         launchPadArguments = " __DLP_DEBUG_ARG__ --server=4711,-- ";
                     }

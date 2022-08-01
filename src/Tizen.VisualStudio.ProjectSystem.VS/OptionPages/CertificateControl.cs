@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.IO;
 using System.Windows.Forms;
@@ -22,6 +24,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows;
 using Tizen.VisualStudio.Tools.Data;
+using System.Diagnostics;
+
 
 namespace Tizen.VisualStudio.OptionPages
 {
@@ -36,6 +40,8 @@ namespace Tizen.VisualStudio.OptionPages
         private Certificate.CertificateType selectedCertType;
 
         public delegate void DgtUpdateData(bool save);
+
+        private IVsThreadedWaitDialog2 waitDialog;
 
         private const string STR_noprofile = "<No Active Profile>";
 
@@ -57,6 +63,8 @@ namespace Tizen.VisualStudio.OptionPages
             this.toolTipError.SetToolTip(this.pbInvalidProfile, "Invalid Profile");
             this.toolTipError.SetToolTip(this.pbInvalidAuthorPath, "Invalid  Author Path");
             this.toolTipError.SetToolTip(this.pbInvalidDistPath, "Invalid Distributior Path");
+            this.toolTipError.SetToolTip(this.pbEmptyAuthorPass, "Enter valid Author Password");
+            this.toolTipError.SetToolTip(this.pbEmptyDistributorPass, "Enter valid Distributior Password");
         }
 
         public void UpdateData(bool save)
@@ -82,6 +90,7 @@ namespace Tizen.VisualStudio.OptionPages
                     textAuthorPass.Text = this.page.OptionAuthorCertiPass.DecryptAes();
                     textDistributorPath.Text = this.page.OptionDistributorCertiFile;
                     textDistributorPass.Text = this.page.OptionDistributorCertiPass.DecryptAes();
+                    selectedCertType = this.page.OptionSelectedCertificateType;
 
                     textProfilePath.Text = ToolsPathInfo.DefaultCertPath;
 
@@ -106,7 +115,7 @@ namespace Tizen.VisualStudio.OptionPages
                         comboBoxProfile.SelectedIndex = 0;
                     }
 
-                    selectedCertType = this.page.OptionSelectedCertificateType;
+                    this.page.OptionSelectedCertificateType = selectedCertType;
 
                     if (selectedCertType == Certificate.CertificateType.Default)
                     {
@@ -179,6 +188,23 @@ namespace Tizen.VisualStudio.OptionPages
             {
                 this.textDistributorPass.UseSystemPasswordChar = true;
             }
+
+            UpdateYamlBasedOnCertificateTypeSelection();
+        }
+
+        public void UpdateYamlBasedOnCertificateTypeSelection()
+        {
+            VsProjectHelper projHelp = VsProjectHelper.GetInstance;
+            if (this.selectedCertType == Certificate.CertificateType.Default)
+            {
+                // update with "."
+                projHelp.setActiveCertificate(".");
+            }
+            else
+            {
+                //update with ""
+                projHelp.setActiveCertificate(String.Empty);
+            }
         }
 
         private void OptionValidate()
@@ -202,11 +228,31 @@ namespace Tizen.VisualStudio.OptionPages
                 {
                     this.pbInvalidDistPath.Visible = true;
                 }
+
+                if (this.textAuthorPass.Text.Length == 0)
+                {
+                    this.pbEmptyAuthorPass.Visible = true;
+                }
+                else
+                {
+                    this.pbEmptyAuthorPass.Visible = false;
+                }
+
+                if (this.textDistributorPass.Text.Length == 0)
+                {
+                    this.pbEmptyDistributorPass.Visible = true;
+                }
+                else
+                {
+                    this.pbEmptyDistributorPass.Visible = false;
+                }
             }
             else
             {
                 this.pbInvalidAuthorPath.Visible = false;
                 this.pbInvalidDistPath.Visible = false;
+                this.pbEmptyDistributorPass.Visible = false;
+                this.pbEmptyAuthorPass.Visible = false;
             }
         }
 
@@ -322,11 +368,71 @@ namespace Tizen.VisualStudio.OptionPages
         {
             OptionValidate();
         }
+        public bool ChangeActiveProfile(string profileName, string prevSelectedProfile)
+        {
+            try
+            {
+                using (Process tizenCLI = new Process())
+                {
+                    IVsThreadedWaitDialogFactory dlgFactory = Package.GetGlobalService(typeof(SVsThreadedWaitDialogFactory)) as IVsThreadedWaitDialogFactory;
+                    waitDialog = null;
+                    if (dlgFactory != null)
+                    {
+                        dlgFactory.CreateInstance(out waitDialog);
+                    }
 
+                    tizenCLI.StartInfo.FileName = ToolsPathInfo.TizenCLIPath;
+                    tizenCLI.StartInfo.Arguments = "security-profiles set-active --name " + profileName;
+                    tizenCLI.StartInfo.UseShellExecute = true;
+                    tizenCLI.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    tizenCLI.StartInfo.Verb = "runas";
+                    
+                    if (waitDialog != null && waitDialog.StartWaitDialog(
+                "Tizen CLI", "Setting Active Certificate...",
+                null, null,
+                "Active certificate is being set",
+                0, false,
+                true) == VSConstants.S_OK)
+                    {
+                        tizenCLI.Start();
+                        tizenCLI.WaitForExit();
+                    }
+                    waitDialog.EndWaitDialog(out int userCancel);
+
+                    if (tizenCLI.ExitCode == 0)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        System.Windows.Forms.MessageBox.Show("Failed to set active certificate.", "Tizen CLI", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                waitDialog.EndWaitDialog(out int userCancel);
+                System.Windows.Forms.MessageBox.Show("Failed to set active certificate : " + e.Message, "Tizen CLI", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            return false;
+        }
         private void ComboBoxProfile_SelectedIndexChanged(object sender, EventArgs e)
         {
-            /// Sign .TPK using Active Profile only.
-            this.comboBoxProfile.SelectedItem = this.page.optionProfileSelected + " <Active>";
+            string prevSelectedProfile = this.page.optionProfileSelected;
+            this.page.optionProfileSelected = ((ComboBox)sender).SelectedItem.ToString().Split(new string[] { " <Active>" }, StringSplitOptions.None)[0];
+            if (string.Compare(prevSelectedProfile, this.page.optionProfileSelected) != 0 && string.Compare(STR_noprofile, this.page.optionProfileSelected) != 0)
+            {
+                if(ChangeActiveProfile(this.page.optionProfileSelected, prevSelectedProfile))
+                {
+                    this.comboBoxProfile.SelectedItem = this.page.optionProfileSelected + " <Active>";
+                }
+                else
+                {
+                    this.page.optionProfileSelected = prevSelectedProfile;
+                    this.comboBoxProfile.SelectedItem = prevSelectedProfile + " <Active>";
+                }
+            }
+            
         }
         #endregion
     }

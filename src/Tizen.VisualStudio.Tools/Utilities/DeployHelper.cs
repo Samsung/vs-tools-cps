@@ -48,6 +48,10 @@ namespace Tizen.VisualStudio.Tools.Utilities
                     return "x86_64";
                 case "x86":
                     return "i686";
+                case "armv8":
+                    return "aarch64";
+                case "aarch64":
+                    return "aarch64";
                 default:
                     return "armv7l";
             }

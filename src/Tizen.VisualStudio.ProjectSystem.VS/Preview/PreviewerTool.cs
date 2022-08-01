@@ -23,6 +23,7 @@ using Tizen.VisualStudio.Debug;
 using Tizen.VisualStudio.Tools.Data;
 using Tizen.VisualStudio.Tools.Utilities;
 using Tizen.VisualStudio.Utilities;
+using Tizen.VisualStudio.Tools.DebugBridge.SDBCommand;
 
 namespace Tizen.VisualStudio.Preview
 {
@@ -55,6 +56,11 @@ namespace Tizen.VisualStudio.Preview
         public bool Preview(IServiceProvider serviceProvider)
         {
             DTE dte = (DTE)serviceProvider.GetService(typeof(SDTE));
+
+            if (dte == null)
+            {
+                return false;
+            }
             var doc = dte.ActiveDocument;
             if ((doc == null) || !doc.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
             {
@@ -210,7 +216,17 @@ namespace Tizen.VisualStudio.Preview
                 : ToolsPathInfo.XamlPreviewerMobilePath;
 
             string lastErrorMessage;
-            InstallResult installResult = Launcher.Create().InstallTizenPackage(_selectedDevice, packagePath, null,
+            SDBCapability cap;
+            if (DeviceManager.SdbCapsMap.ContainsKey(_selectedDevice.Serial))
+            {
+                cap = DeviceManager.SdbCapsMap[_selectedDevice.Serial];
+            }
+            else
+            {
+                cap = new SDBCapability(_selectedDevice);
+                DeviceManager.SdbCapsMap.Add(_selectedDevice.Serial, cap);
+            }
+            InstallResult installResult = Launcher.Create().InstallTizenPackage(_selectedDevice, cap, packagePath, null,
                 VsPackage.dialogFactory, false, out lastErrorMessage);
 
             return String.IsNullOrEmpty(lastErrorMessage);

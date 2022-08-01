@@ -198,7 +198,8 @@ namespace Tizen.VisualStudio.ProjectSystem.Debug
                     {
                         ruleSnapshot.Properties.TryGetValue(ProjectDebugger.ActiveDebugProfileProperty, out string activeProfile);
 
-                        selectedDevice = DeviceManager.DeviceInfoList.Find(device => activeProfile.Split('#')[0].Equals(device.Serial));
+                        if (DeviceManager.DeviceInfoList != null)
+                            selectedDevice = DeviceManager.DeviceInfoList.Find(device => activeProfile.Split(' ')[0].Equals(device.Name));
                     }
 
                     if (selectedDevice != null)

@@ -198,6 +198,11 @@ namespace NetCore.Profiler.Analytics.DataProvider
                 if (child == null)
                 {
                     var function = PDataContainer.GetFunction(si.FunctionIntId);
+                    if (function == null)
+                    {
+                        Debug.WriteLine("function is NULL");
+                        return;
+                    }
                     child = new FunctionCall(si.FunctionIntId, function.Name, function.Signature)
                     {
                         Parent = call,
@@ -537,6 +542,11 @@ namespace NetCore.Profiler.Analytics.DataProvider
             }
 
             var node = NodeConstructor();
+            if (node == null)
+            {
+                Debug.WriteLine("node is NULL");
+                return null;
+            }
             node.Parent = parent;
             node.Name = call.Name;
             node.SamplesInclusive = call.SamplesInclusive;
@@ -740,6 +750,10 @@ namespace NetCore.Profiler.Analytics.DataProvider
                 foreach (var tuple in allClrJobs)
                 {
                     ClrJob job = tuple.Item1;
+                    if (job == null)
+                    {
+                        continue;
+                    }
                     if ((prevJob != null) && (prevJob.Type != job.Type))
                     {
                         n = 0;

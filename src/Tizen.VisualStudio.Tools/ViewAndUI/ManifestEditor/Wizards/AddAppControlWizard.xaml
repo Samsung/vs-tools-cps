@@ -5,12 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Tizen.VisualStudio.ManifestEditor"
         mc:Ignorable="d"
-        Title="Application Control" Height="600" Width="500" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" >
+        Title="Application Control" Height="625" Width="500" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" >
     <Window.Resources>
         <ResourceDictionary Source="../../Theme/Styles.xaml" />
     </Window.Resources>
     <Grid>
         <StackPanel HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" Margin="10">
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="3" Visibility="{Binding Path=ApiVersionGreaterThanFive}">
+                <Label Content="id" Width="80"/>
+                <TextBox x:Name="idTextBox" Height="23" TextWrapping="NoWrap" Width="375" TextChanged="idTextBox_TextChanged"/>
+            </StackPanel>
             <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="3">
                 <Label Content="Operation" Width="80"/>
                 <TextBox x:Name="operationTextBox" Height="23" TextWrapping="NoWrap" Width="375" TextChanged="operationTextBox_TextChanged"/>
@@ -22,6 +26,10 @@
             <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="3">
                 <Label Content="mime" Width="80"/>
                 <TextBox x:Name="mimeTextBox" Height="23" TextWrapping="NoWrap" Width="375" TextChanged="mimeTextBox_TextChanged"/>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="3" Visibility="{Binding Path=ApiVersionGreaterThanFive}">
+                <Label Content="visibility" Width="80"/>
+                <ComboBox x:Name="visibilityComboBox" Height="23" Width="375"  SelectedValue="{Binding visibilityValue}"/>
             </StackPanel>
             <StackPanel HorizontalAlignment="Center" Orientation="Vertical" Margin="0 10 0 0">
                 <Label Content="Added Privileges"/>

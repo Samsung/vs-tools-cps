@@ -20,7 +20,7 @@ namespace Tizen.VisualStudio.ManifestEditor
     {
         public ExecTextBox() : base()
         {
-            whiteList += @"^[a-zA-Z0-9'-''_''.']*$";//List of char allowed by Tizen app F/W
+            whiteList += @"^[a-zA-Z0-9'\-''_''.']*$";//List of char allowed by Tizen app F/W
         }
     }
 }

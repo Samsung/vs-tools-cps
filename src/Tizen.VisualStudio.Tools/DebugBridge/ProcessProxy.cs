@@ -91,7 +91,7 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
             {
             "push",
             "pull",
-            "shell",
+            //"shell",
             // /* TESTS */ "install",       /* Always allowed */
             // "uninstall",     /* Always allowed */
             // "forward",       /* Always allowed */
@@ -169,18 +169,21 @@ namespace Tizen.VisualStudio.Tools.DebugBridge
 
         private void capability(string param)
         {
-            Process p = new Process();
-            p.StartInfo.FileName = StartInfo.FileName;
             string returnValue;
 
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.Arguments = param + " capability";
-            p.Start();
+            using (Process p = new Process())
+            {
+                p.StartInfo.FileName = StartInfo.FileName;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.Arguments = param + " capability";
+                p.Exited += (emitter, args) => ((Process)emitter).Dispose();
+                p.Start();
 
-            returnValue = p.StandardOutput.ReadToEnd().Replace("\r", string.Empty);
-            p.WaitForExit();
+                returnValue = p.StandardOutput.ReadToEnd().Replace("\r", string.Empty);
+                p.WaitForExit();
+            }
 
             IsSupported = !string.IsNullOrEmpty(returnValue);
             if (IsSupported)

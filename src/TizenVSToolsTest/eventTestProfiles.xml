@@ -1,0 +1,18 @@
+<profiles version="3.0" active="TestProfile">
+<profile name="TestProfile">
+    <profileitem
+                ca="C:\tizen-studio-test\tools\certificate-generator\certificates\developer\tizen-developer-ca.cer"
+                distributor="0"
+                key="C:/tizen-studio-data.1/keystore/author/tttttt.p12"
+                password="yDL9Pk4NNCbGYRytc+XWyw=="
+                rootca=""/>
+
+    <profileitem ca="C:\tizen-studio-test\tools\certificate-generator\certificates\distributor\tizen-distributor-ca.cer"
+        distributor="1"
+        key="C:\tizen-studio-test\tools\certificate-generator\certificates\distributor\tizen-distributor-signer.p12"
+        password="Vy63flx5JBMc5GA4iEf8oFy+8aKE7FX/+arrDcO4I5k="
+        rootca=""/>
+
+    <profileitem ca="" distributor="2" key="" password="xmEcrXPl1ss=" rootca=""/>
+</profile>
+</profiles>

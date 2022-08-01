@@ -8,12 +8,14 @@
   </Choose>
 
   <PropertyGroup>
-    <TizenNETVersion>5.0.0.14562</TizenNETVersion>
-    <TizenNETSDKVersion>1.0.1</TizenNETSDKVersion>
-    <XamarinFormsVersion>3.2.0.871581</XamarinFormsVersion>
+    <TizenNETVersion>10.0.0.17064</TizenNETVersion>
+    <TizenNETSDKVersion>1.1.8</TizenNETSDKVersion>
+    <XamarinFormsVersion>5.0.0.2083</XamarinFormsVersion>
     <MSBuildTasksVersion>1.5.0.235</MSBuildTasksVersion>
-    <TizenWearableCircleUIVersion>1.0.0</TizenWearableCircleUIVersion>
+    <TizenWearableCircleUIVersion>1.5.0</TizenWearableCircleUIVersion>
     <TizenOpenTKVersion>3.0.2</TizenOpenTKVersion>
+    <TizenNUIXamlVersion>1.0.32</TizenNUIXamlVersion>
+    <TizenHotReloadVersion>1.0.1</TizenHotReloadVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,6 +41,8 @@
     <FileUpdate Files="@(TemplateCSProjFiles)" Regex="_NUGET_XAMARINFORMS_VER_" ReplacementText="$(XamarinFormsVersion)"/>
     <FileUpdate Files="@(TemplateCSProjFiles)" Regex="_NUGET_TIZENWEARABLECIRCULARUI_VER_" ReplacementText="$(TizenWearableCircleUIVersion)"/>
     <FileUpdate Files="@(TemplateCSProjFiles)" Regex="_NUGET_TIZENOPENTK_VER_" ReplacementText="$(TizenOpenTKVersion)"/>
+    <FileUpdate Files="@(TemplateCSProjFiles)" Regex="_NUGET_TIZENHOTRELOAD_VER_" ReplacementText="$(TizenHotReloadVersion)"/>
+    <FileUpdate Files="@(TemplateCSProjFiles)" Regex="_NUGET_TIZENNUIXAML_VER_" ReplacementText="$(TizenNUIXamlVersion)"/>
   </Target>
 
 

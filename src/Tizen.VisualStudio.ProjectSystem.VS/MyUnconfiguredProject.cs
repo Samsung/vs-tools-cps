@@ -48,7 +48,7 @@ namespace Tizen.VisualStudio
         /// <remarks>
         /// This value should be kept in sync with the capability as actually defined in your .targets.
         /// </remarks>
-        internal const string UniqueCapability = "Tizen.NET";
+        internal const string UniqueCapability = "Tizen.NET | (MultiPlatformSupport & MultiPlatformTizenSupport)";
 
         internal const string Language = "CSharp";
         internal const string TizenPropertyClassId = "{4A5DAC64-29D2-4E90-9EE0-08CBA3ED6187}";

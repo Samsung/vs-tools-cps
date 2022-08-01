@@ -28,6 +28,13 @@ namespace Tizen.VisualStudio
                     Log(log, "< ", text);
                 }
 
+                //closing handles before socket shutdown
+                log.Close();
+                reader.Close();
+                writer.Close();
+                stream.Close();
+                remote.Close();
+
                 remote.Shutdown(SocketShutdown.Send);
                 receiveTask.Wait();
             }

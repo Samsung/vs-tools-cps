@@ -1,0 +1,46 @@
+﻿<Window x:Name="ProjectWizardProjectImportXaml" 
+        x:Class="Tizen.VisualStudio.ProjectWizard.View.ProjectWizardProjectImport"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d" ResizeMode="NoResize" Height="320" Width="730"
+        Title="Tizen Project Wizard" BorderBrush="#FF7E7E7E" BorderThickness="1" WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ProjectWizardViewStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Style="{StaticResource gridstyle}" Margin="0,0,0,10" Name="projGrid" Focusable="True">
+        <StackPanel Margin="20,20,10,10" Grid.ColumnSpan="2" Grid.RowSpan="2">
+            <Label x:Name="label_name" Width="180" Content="Select project path to import:" VerticalAlignment="Top" HorizontalAlignment="Left" Style="{StaticResource ResourceKey=labelstyle}" />
+            <DockPanel Margin="10,8" LastChildFill="True" Height="25">
+                <Button DockPanel.Dock="Right" Margin="10 0 0 0" x:Name="Button_Reset" Width="100" Content="Reset" Click="ProjPathReset"/>
+                <Button DockPanel.Dock="Right" Margin="10 0 0 0" x:Name="Button_Browse" Width="100" Content="Browse..." Click="ProjPathBrowse"/>
+                <TextBox x:Name="Textbox_ProjPath" DockPanel.Dock="Left" Margin="0 0 70 0" Height="25"/>
+            </DockPanel>
+            <Label x:Name="label_modelfile" Width="180" Content="Select tizen workspace path:" VerticalAlignment="Top" HorizontalAlignment="Left" Style="{StaticResource ResourceKey=labelstyle}" />
+            <DockPanel Margin="10,8" LastChildFill="True" Height="25">
+                <Button DockPanel.Dock="Right" Margin="10 0 0 0" x:Name="Button_Reset1" Width="100" Content="Reset" Click="WrkspacePathReset"/>
+                <Button DockPanel.Dock="Right" Margin="10 0 0 0" x:Name="Button_Browse1" Width="100" Content="Browse..." Click="WrkspacePathBrowse"/>
+                <TextBox x:Name="Textbox_Path" DockPanel.Dock="Left" Margin="0 0 70 0" Height="25"/>
+            </DockPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0 10 0 0" RenderTransformOrigin="-0.482,0.831">
+                <Label Width="80" Content="Profile:" Margin="0 0 -20 0" Style="{StaticResource ResourceKey=labelstyle}" />
+                <ComboBox x:Name="profile_type"  Width="120" Margin="5" DropDownClosed="OnDropDownClosed">
+                </ComboBox>
+                <Label Width="100" Content="Platform Version:" Margin="50 0 10 0" Style="{StaticResource ResourceKey=labelstyle}" />
+                <ComboBox x:Name="platform_ver"  Width="120" Margin="5" DropDownClosed="OnDropDownClosed">
+                </ComboBox>
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 10 0 0" RenderTransformOrigin="-0.482,0.831">
+            <Button x:Name="button_ok" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="ButtonOkClick" Margin="5"/>
+            <Button x:Name="button_cancel" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Click="ButtonCancelClick" Margin="5"/>
+        </StackPanel>
+    </Grid>
+</Window>
+
